@@ -1,0 +1,663 @@
+Analysis & Synthesis report for spacewire_top
+Sat Nov  4 17:59:43 2023
+Quartus II 64-Bit Version 13.0.1 Build 232 06/12/2013 Service Pack 1 SJ Web Edition
+
+
+---------------------
+; Table of Contents ;
+---------------------
+  1. Legal Notice
+  2. Analysis & Synthesis Summary
+  3. Analysis & Synthesis Settings
+  4. Parallel Compilation
+  5. Analysis & Synthesis Source Files Read
+  6. Analysis & Synthesis Resource Usage Summary
+  7. Analysis & Synthesis Resource Utilization by Entity
+  8. State Machine - |streamtest_top|streamtest:streamtest_inst|r.tx_state
+  9. State Machine - |streamtest_top|streamtest:streamtest_inst|spwstream:spwstream_inst|spwlink:link_inst|r.state
+ 10. Registers Removed During Synthesis
+ 11. Removed Registers Triggering Further Register Optimizations
+ 12. General Register Statistics
+ 13. Parameter Settings for User Entity Instance: streamtest:streamtest_inst
+ 14. Parameter Settings for User Entity Instance: streamtest:streamtest_inst|spwstream:spwstream_inst
+ 15. Parameter Settings for User Entity Instance: streamtest:streamtest_inst|spwstream:spwstream_inst|spwlink:link_inst
+ 16. Parameter Settings for User Entity Instance: streamtest:streamtest_inst|spwstream:spwstream_inst|spwrecv:recv_inst
+ 17. Parameter Settings for User Entity Instance: streamtest:streamtest_inst|spwstream:spwstream_inst|spwram:rxmem
+ 18. Parameter Settings for User Entity Instance: streamtest:streamtest_inst|spwstream:spwstream_inst|spwram:txmem
+ 19. Port Connectivity Checks: "streamtest:streamtest_inst|spwstream:spwstream_inst|spwram:txmem"
+ 20. Port Connectivity Checks: "streamtest:streamtest_inst|spwstream:spwstream_inst|spwram:rxmem"
+ 21. Port Connectivity Checks: "streamtest:streamtest_inst|spwstream:spwstream_inst"
+ 22. Port Connectivity Checks: "streamtest:streamtest_inst"
+ 23. Elapsed Time Per Partition
+ 24. Analysis & Synthesis Messages
+
+
+
+----------------
+; Legal Notice ;
+----------------
+Copyright (C) 1991-2013 Altera Corporation
+Your use of Altera Corporation's design tools, logic functions 
+and other software and tools, and its AMPP partner logic 
+functions, and any output files from any of the foregoing 
+(including device programming or simulation files), and any 
+associated documentation or information are expressly subject 
+to the terms and conditions of the Altera Program License 
+Subscription Agreement, Altera MegaCore Function License 
+Agreement, or other applicable license agreement, including, 
+without limitation, that your use is for the sole purpose of 
+programming logic devices manufactured by Altera and sold by 
+Altera or its authorized distributors.  Please refer to the 
+applicable agreement for further details.
+
+
+
++--------------------------------------------------------------------------------------+
+; Analysis & Synthesis Summary                                                         ;
++------------------------------------+-------------------------------------------------+
+; Analysis & Synthesis Status        ; Successful - Sat Nov  4 17:59:43 2023           ;
+; Quartus II 64-Bit Version          ; 13.0.1 Build 232 06/12/2013 SP 1 SJ Web Edition ;
+; Revision Name                      ; spacewire_top                                   ;
+; Top-level Entity Name              ; streamtest_top                                  ;
+; Family                             ; Cyclone IV E                                    ;
+; Total logic elements               ; 0                                               ;
+;     Total combinational functions  ; 0                                               ;
+;     Dedicated logic registers      ; 0                                               ;
+; Total registers                    ; 0                                               ;
+; Total pins                         ; 25                                              ;
+; Total virtual pins                 ; 0                                               ;
+; Total memory bits                  ; 0                                               ;
+; Embedded Multiplier 9-bit elements ; 0                                               ;
+; Total PLLs                         ; 0                                               ;
++------------------------------------+-------------------------------------------------+
+
+
++----------------------------------------------------------------------------------------------------------------------+
+; Analysis & Synthesis Settings                                                                                        ;
++----------------------------------------------------------------------------+--------------------+--------------------+
+; Option                                                                     ; Setting            ; Default Value      ;
++----------------------------------------------------------------------------+--------------------+--------------------+
+; Device                                                                     ; EP4CE22F17C6       ;                    ;
+; Top-level entity name                                                      ; streamtest_top     ; spacewire_top      ;
+; Family name                                                                ; Cyclone IV E       ; Cyclone IV GX      ;
+; Use smart compilation                                                      ; Off                ; Off                ;
+; Enable parallel Assembler and TimeQuest Timing Analyzer during compilation ; On                 ; On                 ;
+; Enable compact report table                                                ; Off                ; Off                ;
+; Restructure Multiplexers                                                   ; Auto               ; Auto               ;
+; Create Debugging Nodes for IP Cores                                        ; Off                ; Off                ;
+; Preserve fewer node names                                                  ; On                 ; On                 ;
+; Disable OpenCore Plus hardware evaluation                                  ; Off                ; Off                ;
+; Verilog Version                                                            ; Verilog_2001       ; Verilog_2001       ;
+; VHDL Version                                                               ; VHDL_1993          ; VHDL_1993          ;
+; State Machine Processing                                                   ; Auto               ; Auto               ;
+; Safe State Machine                                                         ; Off                ; Off                ;
+; Extract Verilog State Machines                                             ; On                 ; On                 ;
+; Extract VHDL State Machines                                                ; On                 ; On                 ;
+; Ignore Verilog initial constructs                                          ; Off                ; Off                ;
+; Iteration limit for constant Verilog loops                                 ; 5000               ; 5000               ;
+; Iteration limit for non-constant Verilog loops                             ; 250                ; 250                ;
+; Add Pass-Through Logic to Inferred RAMs                                    ; On                 ; On                 ;
+; Infer RAMs from Raw Logic                                                  ; On                 ; On                 ;
+; Parallel Synthesis                                                         ; On                 ; On                 ;
+; DSP Block Balancing                                                        ; Auto               ; Auto               ;
+; NOT Gate Push-Back                                                         ; On                 ; On                 ;
+; Power-Up Don't Care                                                        ; On                 ; On                 ;
+; Remove Redundant Logic Cells                                               ; Off                ; Off                ;
+; Remove Duplicate Registers                                                 ; On                 ; On                 ;
+; Ignore CARRY Buffers                                                       ; Off                ; Off                ;
+; Ignore CASCADE Buffers                                                     ; Off                ; Off                ;
+; Ignore GLOBAL Buffers                                                      ; Off                ; Off                ;
+; Ignore ROW GLOBAL Buffers                                                  ; Off                ; Off                ;
+; Ignore LCELL Buffers                                                       ; Off                ; Off                ;
+; Ignore SOFT Buffers                                                        ; On                 ; On                 ;
+; Limit AHDL Integers to 32 Bits                                             ; Off                ; Off                ;
+; Optimization Technique                                                     ; Balanced           ; Balanced           ;
+; Carry Chain Length                                                         ; 70                 ; 70                 ;
+; Auto Carry Chains                                                          ; On                 ; On                 ;
+; Auto Open-Drain Pins                                                       ; On                 ; On                 ;
+; Perform WYSIWYG Primitive Resynthesis                                      ; Off                ; Off                ;
+; Auto ROM Replacement                                                       ; On                 ; On                 ;
+; Auto RAM Replacement                                                       ; On                 ; On                 ;
+; Auto DSP Block Replacement                                                 ; On                 ; On                 ;
+; Auto Shift Register Replacement                                            ; Auto               ; Auto               ;
+; Allow Shift Register Merging across Hierarchies                            ; Auto               ; Auto               ;
+; Auto Clock Enable Replacement                                              ; On                 ; On                 ;
+; Strict RAM Replacement                                                     ; Off                ; Off                ;
+; Allow Synchronous Control Signals                                          ; On                 ; On                 ;
+; Force Use of Synchronous Clear Signals                                     ; Off                ; Off                ;
+; Auto RAM Block Balancing                                                   ; On                 ; On                 ;
+; Auto RAM to Logic Cell Conversion                                          ; Off                ; Off                ;
+; Auto Resource Sharing                                                      ; Off                ; Off                ;
+; Allow Any RAM Size For Recognition                                         ; Off                ; Off                ;
+; Allow Any ROM Size For Recognition                                         ; Off                ; Off                ;
+; Allow Any Shift Register Size For Recognition                              ; Off                ; Off                ;
+; Use LogicLock Constraints during Resource Balancing                        ; On                 ; On                 ;
+; Ignore translate_off and synthesis_off directives                          ; Off                ; Off                ;
+; Timing-Driven Synthesis                                                    ; On                 ; On                 ;
+; Report Parameter Settings                                                  ; On                 ; On                 ;
+; Report Source Assignments                                                  ; On                 ; On                 ;
+; Report Connectivity Checks                                                 ; On                 ; On                 ;
+; Ignore Maximum Fan-Out Assignments                                         ; Off                ; Off                ;
+; Synchronization Register Chain Length                                      ; 2                  ; 2                  ;
+; PowerPlay Power Optimization                                               ; Normal compilation ; Normal compilation ;
+; HDL message level                                                          ; Level2             ; Level2             ;
+; Suppress Register Optimization Related Messages                            ; Off                ; Off                ;
+; Number of Removed Registers Reported in Synthesis Report                   ; 5000               ; 5000               ;
+; Number of Swept Nodes Reported in Synthesis Report                         ; 5000               ; 5000               ;
+; Number of Inverted Registers Reported in Synthesis Report                  ; 100                ; 100                ;
+; Clock MUX Protection                                                       ; On                 ; On                 ;
+; Auto Gated Clock Conversion                                                ; Off                ; Off                ;
+; Block Design Naming                                                        ; Auto               ; Auto               ;
+; SDC constraint protection                                                  ; Off                ; Off                ;
+; Synthesis Effort                                                           ; Auto               ; Auto               ;
+; Shift Register Replacement - Allow Asynchronous Clear Signal               ; On                 ; On                 ;
+; Pre-Mapping Resynthesis Optimization                                       ; Off                ; Off                ;
+; Analysis & Synthesis Message Level                                         ; Medium             ; Medium             ;
+; Disable Register Merging Across Hierarchies                                ; Auto               ; Auto               ;
+; Resource Aware Inference For Block RAM                                     ; On                 ; On                 ;
+; Synthesis Seed                                                             ; 1                  ; 1                  ;
++----------------------------------------------------------------------------+--------------------+--------------------+
+
+
+Parallel compilation was disabled, but you have multiple processors available. Enable parallel compilation to reduce compilation time.
++-------------------------------------+
+; Parallel Compilation                ;
++----------------------------+--------+
+; Processors                 ; Number ;
++----------------------------+--------+
+; Number detected on machine ; 8      ;
+; Maximum allowed            ; 1      ;
++----------------------------+--------+
+
+
++----------------------------------------------------------------------------------------------------------------------------------------------------+
+; Analysis & Synthesis Source Files Read                                                                                                             ;
++-----------------------------------+-----------------+-----------------------+------------------------------------------------------------+---------+
+; File Name with User-Entered Path  ; Used in Netlist ; File Type             ; File Name with Absolute Path                               ; Library ;
++-----------------------------------+-----------------+-----------------------+------------------------------------------------------------+---------+
+; rtl/vhdl/streamtest.vhd           ; yes             ; User VHDL File        ; /home/holo/spacewire_top/rtl/vhdl/streamtest.vhd           ;         ;
+; rtl/vhdl/spwxmit.vhd              ; yes             ; User VHDL File        ; /home/holo/spacewire_top/rtl/vhdl/spwxmit.vhd              ;         ;
+; rtl/vhdl/spwstream.vhd            ; yes             ; User VHDL File        ; /home/holo/spacewire_top/rtl/vhdl/spwstream.vhd            ;         ;
+; rtl/vhdl/spwrecvfront_generic.vhd ; yes             ; User VHDL File        ; /home/holo/spacewire_top/rtl/vhdl/spwrecvfront_generic.vhd ;         ;
+; rtl/vhdl/spwrecv.vhd              ; yes             ; User VHDL File        ; /home/holo/spacewire_top/rtl/vhdl/spwrecv.vhd              ;         ;
+; rtl/vhdl/spwram.vhd               ; yes             ; User VHDL File        ; /home/holo/spacewire_top/rtl/vhdl/spwram.vhd               ;         ;
+; rtl/vhdl/spwpkg.vhd               ; yes             ; User VHDL File        ; /home/holo/spacewire_top/rtl/vhdl/spwpkg.vhd               ;         ;
+; rtl/vhdl/spwlink.vhd              ; yes             ; User VHDL File        ; /home/holo/spacewire_top/rtl/vhdl/spwlink.vhd              ;         ;
+; streamtest_top.vhd                ; yes             ; Auto-Found VHDL File  ; /home/holo/spacewire_top/streamtest_top.vhd                ;         ;
++-----------------------------------+-----------------+-----------------------+------------------------------------------------------------+---------+
+
+
++-----------------------------------------------------+
+; Analysis & Synthesis Resource Usage Summary         ;
++---------------------------------------------+-------+
+; Resource                                    ; Usage ;
++---------------------------------------------+-------+
+;                                             ;       ;
+; Total combinational functions               ; 0     ;
+; Logic element usage by number of LUT inputs ;       ;
+;     -- 4 input functions                    ; 0     ;
+;     -- 3 input functions                    ; 0     ;
+;     -- <=2 input functions                  ; 0     ;
+;                                             ;       ;
+; Logic elements by mode                      ;       ;
+;     -- normal mode                          ; 0     ;
+;     -- arithmetic mode                      ; 0     ;
+;                                             ;       ;
+; Total registers                             ; 0     ;
+;     -- Dedicated logic registers            ; 0     ;
+;     -- I/O registers                        ; 0     ;
+;                                             ;       ;
+; I/O pins                                    ; 25    ;
+; Embedded Multiplier 9-bit elements          ; 0     ;
+; Maximum fan-out node                        ; clk50 ;
+; Maximum fan-out                             ; 1     ;
+; Total fan-out                               ; 25    ;
+; Average fan-out                             ; 0.50  ;
++---------------------------------------------+-------+
+
+
++-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+; Analysis & Synthesis Resource Utilization by Entity                                                                                                                         ;
++----------------------------+-------------------+--------------+-------------+--------------+---------+-----------+------+--------------+---------------------+--------------+
+; Compilation Hierarchy Node ; LC Combinationals ; LC Registers ; Memory Bits ; DSP Elements ; DSP 9x9 ; DSP 18x18 ; Pins ; Virtual Pins ; Full Hierarchy Name ; Library Name ;
++----------------------------+-------------------+--------------+-------------+--------------+---------+-----------+------+--------------+---------------------+--------------+
+; |streamtest_top            ; 0 (0)             ; 0 (0)        ; 0           ; 0            ; 0       ; 0         ; 25   ; 0            ; |streamtest_top     ; work         ;
++----------------------------+-------------------+--------------+-------------+--------------+---------+-----------+------+--------------+---------------------+--------------+
+Note: For table entries with two numbers listed, the numbers in parentheses indicate the number of resources of the given type used by the specific entity alone. The numbers listed outside of parentheses indicate the total resources of the given type used by the specific entity and all of its sub-entities in the hierarchy.
+
+
+Encoding Type:  One-Hot
++-------------------------------------------------------------------------------------------------+
+; State Machine - |streamtest_top|streamtest:streamtest_inst|r.tx_state                           ;
++-------------------------+----------------------+-------------------------+----------------------+
+; Name                    ; r.tx_state.txst_data ; r.tx_state.txst_prepare ; r.tx_state.txst_idle ;
++-------------------------+----------------------+-------------------------+----------------------+
+; r.tx_state.txst_idle    ; 0                    ; 0                       ; 0                    ;
+; r.tx_state.txst_prepare ; 0                    ; 1                       ; 1                    ;
+; r.tx_state.txst_data    ; 1                    ; 0                       ; 1                    ;
++-------------------------+----------------------+-------------------------+----------------------+
+
+
+Encoding Type:  One-Hot
++------------------------------------------------------------------------------------------------------------------------------------------------+
+; State Machine - |streamtest_top|streamtest:streamtest_inst|spwstream:spwstream_inst|spwlink:link_inst|r.state                                  ;
++----------------------+---------------+----------------------+-------------------+-----------------+---------------------+----------------------+
+; Name                 ; r.state.S_Run ; r.state.S_Connecting ; r.state.S_Started ; r.state.S_Ready ; r.state.S_ErrorWait ; r.state.S_ErrorReset ;
++----------------------+---------------+----------------------+-------------------+-----------------+---------------------+----------------------+
+; r.state.S_ErrorReset ; 0             ; 0                    ; 0                 ; 0               ; 0                   ; 0                    ;
+; r.state.S_ErrorWait  ; 0             ; 0                    ; 0                 ; 0               ; 1                   ; 1                    ;
+; r.state.S_Ready      ; 0             ; 0                    ; 0                 ; 1               ; 0                   ; 1                    ;
+; r.state.S_Started    ; 0             ; 0                    ; 1                 ; 0               ; 0                   ; 1                    ;
+; r.state.S_Connecting ; 0             ; 1                    ; 0                 ; 0               ; 0                   ; 1                    ;
+; r.state.S_Run        ; 1             ; 0                    ; 0                 ; 0               ; 0                   ; 1                    ;
++----------------------+---------------+----------------------+-------------------+-----------------+---------------------+----------------------+
+
+
++---------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+; Registers Removed During Synthesis                                                                                                                                  ;
++----------------------------------------------------------------------------------------------------------------------------+----------------------------------------+
+; Register name                                                                                                              ; Reason for Removal                     ;
++----------------------------------------------------------------------------------------------------------------------------+----------------------------------------+
+; streamtest:streamtest_inst|r.tx_quietcnt[0..15]                                                                            ; Lost fanout                            ;
+; streamtest:streamtest_inst|r.tx_lfsr[0..7]                                                                                 ; Lost fanout                            ;
+; streamtest:streamtest_inst|r.rx_quietcnt[0..15]                                                                            ; Lost fanout                            ;
+; streamtest:streamtest_inst|r.tx_enabledata                                                                                 ; Lost fanout                            ;
+; streamtest:streamtest_inst|r.tx_lfsr[9..15]                                                                                ; Lost fanout                            ;
+; streamtest:streamtest_inst|r.tx_pktlen[0..15]                                                                              ; Lost fanout                            ;
+; streamtest:streamtest_inst|r.tx_lfsr[8]                                                                                    ; Lost fanout                            ;
+; streamtest:streamtest_inst|r.rx_enabledata                                                                                 ; Lost fanout                            ;
+; streamtest:streamtest_inst|spwstream:spwstream_inst|spwram:rxmem|rdata[8]                                                  ; Lost fanout                            ;
+; streamtest:streamtest_inst|r.rx_state                                                                                      ; Lost fanout                            ;
+; streamtest:streamtest_inst|r.tx_timecnt[0..19]                                                                             ; Stuck at GND due to stuck port data_in ;
+; streamtest:streamtest_inst|spwstream:spwstream_inst|r.rxpacket                                                             ; Lost fanout                            ;
+; streamtest:streamtest_inst|spwstream:spwstream_inst|r.txpacket                                                             ; Lost fanout                            ;
+; streamtest:streamtest_inst|r.rxread                                                                                        ; Lost fanout                            ;
+; streamtest:streamtest_inst|spwstream:spwstream_inst|r.rxfifo_rvalid                                                        ; Lost fanout                            ;
+; streamtest:streamtest_inst|spwstream:spwstream_inst|r.txfifo_raddr[9,10]                                                   ; Stuck at GND due to stuck port data_in ;
+; streamtest:streamtest_inst|spwstream:spwstream_inst|r.rxfifo_waddr[0..10]                                                  ; Stuck at GND due to stuck port data_in ;
+; streamtest:streamtest_inst|spwstream:spwstream_inst|r.rxfifo_raddr[0..10]                                                  ; Stuck at GND due to stuck port data_in ;
+; streamtest:streamtest_inst|spwstream:spwstream_inst|r.txdiscard                                                            ; Stuck at GND due to stuck port data_in ;
+; streamtest:streamtest_inst|spwstream:spwstream_inst|r.rxeep                                                                ; Stuck at GND due to stuck port data_in ;
+; streamtest:streamtest_inst|spwstream:spwstream_inst|spwxmit:\xmit_sel0:xmit_inst|r.txclkcnt[0..7]                          ; Lost fanout                            ;
+; streamtest:streamtest_inst|spwstream:spwstream_inst|spwram:txmem|rdata[8]                                                  ; Lost fanout                            ;
+; streamtest:streamtest_inst|r.txflag                                                                                        ; Lost fanout                            ;
+; streamtest:streamtest_inst|r.tick_in                                                                                       ; Lost fanout                            ;
+; streamtest:streamtest_inst|spwstream:spwstream_inst|spwxmit:\xmit_sel0:xmit_inst|r.sent_null                               ; Lost fanout                            ;
+; streamtest:streamtest_inst|spwstream:spwstream_inst|spwxmit:\xmit_sel0:xmit_inst|r.sent_fct                                ; Lost fanout                            ;
+; streamtest:streamtest_inst|spwstream:spwstream_inst|spwxmit:\xmit_sel0:xmit_inst|r.allow_char                              ; Stuck at GND due to stuck port data_in ;
+; streamtest:streamtest_inst|spwstream:spwstream_inst|spwxmit:\xmit_sel0:xmit_inst|r.allow_fct                               ; Stuck at GND due to stuck port data_in ;
+; streamtest:streamtest_inst|spwstream:spwstream_inst|spwxmit:\xmit_sel0:xmit_inst|r.pend_tick                               ; Stuck at GND due to stuck port data_in ;
+; streamtest:streamtest_inst|spwstream:spwstream_inst|spwxmit:\xmit_sel0:xmit_inst|r.bitcnt[0..3]                            ; Stuck at GND due to stuck port data_in ;
+; streamtest:streamtest_inst|spwstream:spwstream_inst|spwxmit:\xmit_sel0:xmit_inst|r.txclken                                 ; Stuck at GND due to stuck port data_in ;
+; streamtest:streamtest_inst|spwstream:spwstream_inst|r.txfifo_rvalid                                                        ; Lost fanout                            ;
+; streamtest:streamtest_inst|spwstream:spwstream_inst|spwlink:link_inst|r.tx_credit[0..5]                                    ; Lost fanout                            ;
+; streamtest:streamtest_inst|spwstream:spwstream_inst|spwrecv:recv_inst|r.gotfct                                             ; Lost fanout                            ;
+; streamtest:streamtest_inst|spwstream:spwstream_inst|spwlink:link_inst|r.timercnt[0..10]                                    ; Lost fanout                            ;
+; streamtest:streamtest_inst|spwstream:spwstream_inst|spwlink:link_inst|r.timerdone                                          ; Lost fanout                            ;
+; streamtest:streamtest_inst|spwstream:spwstream_inst|spwrecv:recv_inst|r.tick_out                                           ; Lost fanout                            ;
+; streamtest:streamtest_inst|spwstream:spwstream_inst|spwlink:link_inst|r.errcred                                            ; Lost fanout                            ;
+; streamtest:streamtest_inst|spwstream:spwstream_inst|spwlink:link_inst|r.rx_credit[3..5]                                    ; Lost fanout                            ;
+; streamtest:streamtest_inst|spwstream:spwstream_inst|r.rxroom[0..5]                                                         ; Lost fanout                            ;
+; streamtest:streamtest_inst|spwstream:spwstream_inst|spwlink:link_inst|r.rx_credit[0..2]                                    ; Lost fanout                            ;
+; streamtest:streamtest_inst|spwstream:spwstream_inst|spwlink:link_inst|r.xmit_fct_in                                        ; Lost fanout                            ;
+; streamtest:streamtest_inst|r.txwrite                                                                                       ; Stuck at GND due to stuck port data_in ;
+; streamtest:streamtest_inst|spwstream:spwstream_inst|r.txfifo_raddr[0..8]                                                   ; Stuck at GND due to stuck port data_in ;
+; streamtest:streamtest_inst|spwstream:spwstream_inst|r.txfifo_waddr[1..10]                                                  ; Stuck at GND due to stuck port data_in ;
+; streamtest:streamtest_inst|spwstream:spwstream_inst|r.txfull                                                               ; Lost fanout                            ;
+; streamtest:streamtest_inst|spwstream:spwstream_inst|r.txfifo_waddr[0]                                                      ; Lost fanout                            ;
+; streamtest:streamtest_inst|r.txdata[0..7]                                                                                  ; Lost fanout                            ;
+; streamtest:streamtest_inst|spwstream:spwstream_inst|r.rxfull                                                               ; Lost fanout                            ;
+; streamtest:streamtest_inst|spwstream:spwstream_inst|spwrecvfront_generic:\recvfront_sel0:recvfront_generic_inst|s_inbvalid ; Lost fanout                            ;
+; streamtest:streamtest_inst|spwstream:spwstream_inst|spwrecvfront_generic:\recvfront_sel0:recvfront_generic_inst|s_inbit    ; Lost fanout                            ;
+; streamtest:streamtest_inst|spwstream:spwstream_inst|spwrecvfront_generic:\recvfront_sel0:recvfront_generic_inst|s_spwsi3   ; Lost fanout                            ;
+; streamtest:streamtest_inst|spwstream:spwstream_inst|spwrecvfront_generic:\recvfront_sel0:recvfront_generic_inst|s_spwsi2   ; Lost fanout                            ;
+; streamtest:streamtest_inst|spwstream:spwstream_inst|spwrecvfront_generic:\recvfront_sel0:recvfront_generic_inst|s_spwdi2   ; Lost fanout                            ;
+; streamtest:streamtest_inst|spwstream:spwstream_inst|spwrecvfront_generic:\recvfront_sel0:recvfront_generic_inst|s_spwsi1   ; Lost fanout                            ;
+; streamtest:streamtest_inst|spwstream:spwstream_inst|spwrecvfront_generic:\recvfront_sel0:recvfront_generic_inst|s_spwdi1   ; Lost fanout                            ;
+; streamtest:streamtest_inst|spwstream:spwstream_inst|spwrecv:recv_inst|r.disccnt[0..4]                                      ; Lost fanout                            ;
+; streamtest:streamtest_inst|spwstream:spwstream_inst|spwrecv:recv_inst|r.errpar                                             ; Lost fanout                            ;
+; streamtest:streamtest_inst|spwstream:spwstream_inst|spwrecv:recv_inst|r.erresc                                             ; Lost fanout                            ;
+; streamtest:streamtest_inst|spwstream:spwstream_inst|spwrecv:recv_inst|r.disccnt[5..7]                                      ; Lost fanout                            ;
+; streamtest:streamtest_inst|spwstream:spwstream_inst|spwrecv:recv_inst|r.datareg[0..7]                                      ; Lost fanout                            ;
+; streamtest:streamtest_inst|spwstream:spwstream_inst|spwrecv:recv_inst|r.rxflag                                             ; Lost fanout                            ;
+; streamtest:streamtest_inst|spwstream:spwstream_inst|spwrecv:recv_inst|r.rxchar                                             ; Lost fanout                            ;
+; streamtest:streamtest_inst|spwstream:spwstream_inst|spwrecv:recv_inst|r.escaped                                            ; Lost fanout                            ;
+; streamtest:streamtest_inst|spwstream:spwstream_inst|spwrecv:recv_inst|r.control                                            ; Lost fanout                            ;
+; streamtest:streamtest_inst|spwstream:spwstream_inst|spwrecv:recv_inst|r.parity                                             ; Lost fanout                            ;
+; streamtest:streamtest_inst|spwstream:spwstream_inst|spwrecv:recv_inst|r.bitcnt[0..9]                                       ; Lost fanout                            ;
+; streamtest:streamtest_inst|spwstream:spwstream_inst|spwrecv:recv_inst|r.bitshift[0..8]                                     ; Lost fanout                            ;
+; streamtest:streamtest_inst|spwstream:spwstream_inst|spwrecv:recv_inst|r.null_seen                                          ; Lost fanout                            ;
+; streamtest:streamtest_inst|spwstream:spwstream_inst|spwrecv:recv_inst|r.bit_seen                                           ; Lost fanout                            ;
+; streamtest:streamtest_inst|r.tx_state.txst_idle                                                                            ; Lost fanout                            ;
+; streamtest:streamtest_inst|r.tx_state.txst_prepare                                                                         ; Lost fanout                            ;
+; streamtest:streamtest_inst|r.tx_state.txst_data                                                                            ; Lost fanout                            ;
+; streamtest:streamtest_inst|spwstream:spwstream_inst|spwlink:link_inst|r.state.S_ErrorReset                                 ; Lost fanout                            ;
+; streamtest:streamtest_inst|spwstream:spwstream_inst|spwlink:link_inst|r.state.S_ErrorWait                                  ; Lost fanout                            ;
+; streamtest:streamtest_inst|spwstream:spwstream_inst|spwlink:link_inst|r.state.S_Ready                                      ; Lost fanout                            ;
+; streamtest:streamtest_inst|spwstream:spwstream_inst|spwlink:link_inst|r.state.S_Started                                    ; Lost fanout                            ;
+; streamtest:streamtest_inst|spwstream:spwstream_inst|spwlink:link_inst|r.state.S_Connecting                                 ; Lost fanout                            ;
+; streamtest:streamtest_inst|spwstream:spwstream_inst|spwlink:link_inst|r.state.S_Run                                        ; Lost fanout                            ;
+; Total Number of Removed Registers = 265                                                                                    ;                                        ;
++----------------------------------------------------------------------------------------------------------------------------+----------------------------------------+
+
+
++------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+; Removed Registers Triggering Further Register Optimizations                                                                                                                                                                                                                        ;
++--------------------------------------------------------------------------------------------------------------------------+---------------------------+-----------------------------------------------------------------------------------------------------------------------------+
+; Register name                                                                                                            ; Reason for Removal        ; Registers Removed due to This Register                                                                                      ;
++--------------------------------------------------------------------------------------------------------------------------+---------------------------+-----------------------------------------------------------------------------------------------------------------------------+
+; streamtest:streamtest_inst|spwstream:spwstream_inst|spwram:rxmem|rdata[8]                                                ; Lost Fanouts              ; streamtest:streamtest_inst|spwstream:spwstream_inst|spwrecv:recv_inst|r.datareg[0],                                         ;
+;                                                                                                                          ;                           ; streamtest:streamtest_inst|spwstream:spwstream_inst|spwrecv:recv_inst|r.datareg[1],                                         ;
+;                                                                                                                          ;                           ; streamtest:streamtest_inst|spwstream:spwstream_inst|spwrecv:recv_inst|r.datareg[2],                                         ;
+;                                                                                                                          ;                           ; streamtest:streamtest_inst|spwstream:spwstream_inst|spwrecv:recv_inst|r.datareg[3],                                         ;
+;                                                                                                                          ;                           ; streamtest:streamtest_inst|spwstream:spwstream_inst|spwrecv:recv_inst|r.datareg[4],                                         ;
+;                                                                                                                          ;                           ; streamtest:streamtest_inst|spwstream:spwstream_inst|spwrecv:recv_inst|r.datareg[5],                                         ;
+;                                                                                                                          ;                           ; streamtest:streamtest_inst|spwstream:spwstream_inst|spwrecv:recv_inst|r.datareg[6],                                         ;
+;                                                                                                                          ;                           ; streamtest:streamtest_inst|spwstream:spwstream_inst|spwrecv:recv_inst|r.datareg[7]                                          ;
+; streamtest:streamtest_inst|spwstream:spwstream_inst|r.txfifo_raddr[9]                                                    ; Stuck at GND              ; streamtest:streamtest_inst|spwstream:spwstream_inst|r.txfifo_rvalid,                                                        ;
+;                                                                                                                          ; due to stuck port data_in ; streamtest:streamtest_inst|r.txdata[6], streamtest:streamtest_inst|r.txdata[5],                                             ;
+;                                                                                                                          ;                           ; streamtest:streamtest_inst|r.txdata[4], streamtest:streamtest_inst|r.txdata[3],                                             ;
+;                                                                                                                          ;                           ; streamtest:streamtest_inst|r.txdata[2], streamtest:streamtest_inst|r.txdata[1],                                             ;
+;                                                                                                                          ;                           ; streamtest:streamtest_inst|r.txdata[0]                                                                                      ;
+; streamtest:streamtest_inst|spwstream:spwstream_inst|spwxmit:\xmit_sel0:xmit_inst|r.allow_char                            ; Stuck at GND              ; streamtest:streamtest_inst|spwstream:spwstream_inst|spwrecv:recv_inst|r.gotfct,                                             ;
+;                                                                                                                          ; due to stuck port data_in ; streamtest:streamtest_inst|spwstream:spwstream_inst|spwlink:link_inst|r.rx_credit[3],                                       ;
+;                                                                                                                          ;                           ; streamtest:streamtest_inst|spwstream:spwstream_inst|spwlink:link_inst|r.rx_credit[2],                                       ;
+;                                                                                                                          ;                           ; streamtest:streamtest_inst|spwstream:spwstream_inst|spwrecvfront_generic:\recvfront_sel0:recvfront_generic_inst|s_inbvalid, ;
+;                                                                                                                          ;                           ; streamtest:streamtest_inst|spwstream:spwstream_inst|spwrecv:recv_inst|r.control,                                            ;
+;                                                                                                                          ;                           ; streamtest:streamtest_inst|spwstream:spwstream_inst|spwrecv:recv_inst|r.parity,                                             ;
+;                                                                                                                          ;                           ; streamtest:streamtest_inst|spwstream:spwstream_inst|spwrecv:recv_inst|r.bitcnt[0]                                           ;
+; streamtest:streamtest_inst|spwstream:spwstream_inst|spwrecvfront_generic:\recvfront_sel0:recvfront_generic_inst|s_inbit  ; Lost Fanouts              ; streamtest:streamtest_inst|spwstream:spwstream_inst|spwrecvfront_generic:\recvfront_sel0:recvfront_generic_inst|s_spwdi2,   ;
+;                                                                                                                          ;                           ; streamtest:streamtest_inst|spwstream:spwstream_inst|spwrecvfront_generic:\recvfront_sel0:recvfront_generic_inst|s_spwdi1    ;
+; streamtest:streamtest_inst|spwstream:spwstream_inst|spwrecvfront_generic:\recvfront_sel0:recvfront_generic_inst|s_spwsi3 ; Lost Fanouts              ; streamtest:streamtest_inst|spwstream:spwstream_inst|spwrecvfront_generic:\recvfront_sel0:recvfront_generic_inst|s_spwsi2,   ;
+;                                                                                                                          ;                           ; streamtest:streamtest_inst|spwstream:spwstream_inst|spwrecvfront_generic:\recvfront_sel0:recvfront_generic_inst|s_spwsi1    ;
+; streamtest:streamtest_inst|spwstream:spwstream_inst|r.rxfifo_waddr[0]                                                    ; Stuck at GND              ; streamtest:streamtest_inst|spwstream:spwstream_inst|spwrecv:recv_inst|r.rxchar                                              ;
+;                                                                                                                          ; due to stuck port data_in ;                                                                                                                             ;
+; streamtest:streamtest_inst|spwstream:spwstream_inst|r.txdiscard                                                          ; Stuck at GND              ; streamtest:streamtest_inst|spwstream:spwstream_inst|spwlink:link_inst|r.xmit_fct_in                                         ;
+;                                                                                                                          ; due to stuck port data_in ;                                                                                                                             ;
+; streamtest:streamtest_inst|spwstream:spwstream_inst|spwram:txmem|rdata[8]                                                ; Lost Fanouts              ; streamtest:streamtest_inst|r.txflag                                                                                         ;
+; streamtest:streamtest_inst|spwstream:spwstream_inst|spwxmit:\xmit_sel0:xmit_inst|r.bitcnt[0]                             ; Stuck at GND              ; streamtest:streamtest_inst|spwstream:spwstream_inst|spwlink:link_inst|r.rx_credit[5]                                        ;
+;                                                                                                                          ; due to stuck port data_in ;                                                                                                                             ;
+; streamtest:streamtest_inst|spwstream:spwstream_inst|spwrecv:recv_inst|r.tick_out                                         ; Lost Fanouts              ; streamtest:streamtest_inst|spwstream:spwstream_inst|spwrecv:recv_inst|r.escaped                                             ;
+; streamtest:streamtest_inst|r.txwrite                                                                                     ; Stuck at GND              ; streamtest:streamtest_inst|spwstream:spwstream_inst|r.txfifo_waddr[0]                                                       ;
+;                                                                                                                          ; due to stuck port data_in ;                                                                                                                             ;
++--------------------------------------------------------------------------------------------------------------------------+---------------------------+-----------------------------------------------------------------------------------------------------------------------------+
+
+
++------------------------------------------------------+
+; General Register Statistics                          ;
++----------------------------------------------+-------+
+; Statistic                                    ; Value ;
++----------------------------------------------+-------+
+; Total registers                              ; 0     ;
+; Number of registers using Synchronous Clear  ; 0     ;
+; Number of registers using Synchronous Load   ; 0     ;
+; Number of registers using Asynchronous Clear ; 0     ;
+; Number of registers using Asynchronous Load  ; 0     ;
+; Number of registers using Clock Enable       ; 0     ;
+; Number of registers using Preset             ; 0     ;
++----------------------------------------------+-------+
+
+
++-------------------------------------------------------------------------+
+; Parameter Settings for User Entity Instance: streamtest:streamtest_inst ;
++-----------------+--------------+----------------------------------------+
+; Parameter Name  ; Value        ; Type                                   ;
++-----------------+--------------+----------------------------------------+
+; sysfreq         ; 60000000.0   ; Signed Float                           ;
+; txclkfreq       ; 0.0          ; Signed Float                           ;
+; tickdiv         ; 20           ; Signed Integer                         ;
+; rximpl          ; impl_generic ; Enumerated                             ;
+; rxchunk         ; 1            ; Signed Integer                         ;
+; tximpl          ; impl_generic ; Enumerated                             ;
+; rxfifosize_bits ; 11           ; Signed Integer                         ;
+; txfifosize_bits ; 11           ; Signed Integer                         ;
++-----------------+--------------+----------------------------------------+
+Note: In order to hide this table in the UI and the text report file, please set the "Show Parameter Settings in Synthesis Report" option in "Analysis and Synthesis Settings -> More Settings" to "Off".
+
+
++--------------------------------------------------------------------------------------------------+
+; Parameter Settings for User Entity Instance: streamtest:streamtest_inst|spwstream:spwstream_inst ;
++-----------------+--------------+-----------------------------------------------------------------+
+; Parameter Name  ; Value        ; Type                                                            ;
++-----------------+--------------+-----------------------------------------------------------------+
+; sysfreq         ; 60000000.0   ; Signed Float                                                    ;
+; txclkfreq       ; 0.0          ; Signed Float                                                    ;
+; rximpl          ; impl_generic ; Enumerated                                                      ;
+; rxchunk         ; 1            ; Signed Integer                                                  ;
+; tximpl          ; impl_generic ; Enumerated                                                      ;
+; rxfifosize_bits ; 11           ; Signed Integer                                                  ;
+; txfifosize_bits ; 11           ; Signed Integer                                                  ;
++-----------------+--------------+-----------------------------------------------------------------+
+Note: In order to hide this table in the UI and the text report file, please set the "Show Parameter Settings in Synthesis Report" option in "Analysis and Synthesis Settings -> More Settings" to "Off".
+
+
++--------------------------------------------------------------------------------------------------------------------+
+; Parameter Settings for User Entity Instance: streamtest:streamtest_inst|spwstream:spwstream_inst|spwlink:link_inst ;
++----------------+-------+-------------------------------------------------------------------------------------------+
+; Parameter Name ; Value ; Type                                                                                      ;
++----------------+-------+-------------------------------------------------------------------------------------------+
+; reset_time     ; 384   ; Signed Integer                                                                            ;
++----------------+-------+-------------------------------------------------------------------------------------------+
+Note: In order to hide this table in the UI and the text report file, please set the "Show Parameter Settings in Synthesis Report" option in "Analysis and Synthesis Settings -> More Settings" to "Off".
+
+
++--------------------------------------------------------------------------------------------------------------------+
+; Parameter Settings for User Entity Instance: streamtest:streamtest_inst|spwstream:spwstream_inst|spwrecv:recv_inst ;
++-----------------+-------+------------------------------------------------------------------------------------------+
+; Parameter Name  ; Value ; Type                                                                                     ;
++-----------------+-------+------------------------------------------------------------------------------------------+
+; disconnect_time ; 51    ; Signed Integer                                                                           ;
+; rxchunk         ; 1     ; Signed Integer                                                                           ;
++-----------------+-------+------------------------------------------------------------------------------------------+
+Note: In order to hide this table in the UI and the text report file, please set the "Show Parameter Settings in Synthesis Report" option in "Analysis and Synthesis Settings -> More Settings" to "Off".
+
+
++---------------------------------------------------------------------------------------------------------------+
+; Parameter Settings for User Entity Instance: streamtest:streamtest_inst|spwstream:spwstream_inst|spwram:rxmem ;
++----------------+-------+--------------------------------------------------------------------------------------+
+; Parameter Name ; Value ; Type                                                                                 ;
++----------------+-------+--------------------------------------------------------------------------------------+
+; abits          ; 11    ; Signed Integer                                                                       ;
+; dbits          ; 9     ; Signed Integer                                                                       ;
++----------------+-------+--------------------------------------------------------------------------------------+
+Note: In order to hide this table in the UI and the text report file, please set the "Show Parameter Settings in Synthesis Report" option in "Analysis and Synthesis Settings -> More Settings" to "Off".
+
+
++---------------------------------------------------------------------------------------------------------------+
+; Parameter Settings for User Entity Instance: streamtest:streamtest_inst|spwstream:spwstream_inst|spwram:txmem ;
++----------------+-------+--------------------------------------------------------------------------------------+
+; Parameter Name ; Value ; Type                                                                                 ;
++----------------+-------+--------------------------------------------------------------------------------------+
+; abits          ; 11    ; Signed Integer                                                                       ;
+; dbits          ; 9     ; Signed Integer                                                                       ;
++----------------+-------+--------------------------------------------------------------------------------------+
+Note: In order to hide this table in the UI and the text report file, please set the "Show Parameter Settings in Synthesis Report" option in "Analysis and Synthesis Settings -> More Settings" to "Off".
+
+
++----------------------------------------------------------------------------------------------+
+; Port Connectivity Checks: "streamtest:streamtest_inst|spwstream:spwstream_inst|spwram:txmem" ;
++------+-------+----------+--------------------------------------------------------------------+
+; Port ; Type  ; Severity ; Details                                                            ;
++------+-------+----------+--------------------------------------------------------------------+
+; ren  ; Input ; Info     ; Stuck at VCC                                                       ;
++------+-------+----------+--------------------------------------------------------------------+
+
+
++----------------------------------------------------------------------------------------------+
+; Port Connectivity Checks: "streamtest:streamtest_inst|spwstream:spwstream_inst|spwram:rxmem" ;
++------+-------+----------+--------------------------------------------------------------------+
+; Port ; Type  ; Severity ; Details                                                            ;
++------+-------+----------+--------------------------------------------------------------------+
+; ren  ; Input ; Info     ; Stuck at VCC                                                       ;
++------+-------+----------+--------------------------------------------------------------------+
+
+
++--------------------------------------------------------------------------------------------------------------------+
+; Port Connectivity Checks: "streamtest:streamtest_inst|spwstream:spwstream_inst"                                    ;
++----------+--------+----------+-------------------------------------------------------------------------------------+
+; Port     ; Type   ; Severity ; Details                                                                             ;
++----------+--------+----------+-------------------------------------------------------------------------------------+
+; ctrl_in  ; Input  ; Info     ; Stuck at GND                                                                        ;
+; txhalff  ; Output ; Info     ; Connected to dangling logic. Logic that only feeds a dangling port will be removed. ;
+; ctrl_out ; Output ; Info     ; Connected to dangling logic. Logic that only feeds a dangling port will be removed. ;
+; rxhalff  ; Output ; Info     ; Connected to dangling logic. Logic that only feeds a dangling port will be removed. ;
++----------+--------+----------+-------------------------------------------------------------------------------------+
+
+
++--------------------------------------------------------------------------------------------------------------------------+
+; Port Connectivity Checks: "streamtest:streamtest_inst"                                                                   ;
++----------------+--------+----------+-------------------------------------------------------------------------------------+
+; Port           ; Type   ; Severity ; Details                                                                             ;
++----------------+--------+----------+-------------------------------------------------------------------------------------+
+; rxclk          ; Input  ; Info     ; Stuck at GND                                                                        ;
+; txclk          ; Input  ; Info     ; Stuck at GND                                                                        ;
+; rst            ; Input  ; Info     ; Stuck at VCC                                                                        ;
+; linkstart      ; Input  ; Info     ; Stuck at GND                                                                        ;
+; autostart      ; Input  ; Info     ; Stuck at GND                                                                        ;
+; linkdisable    ; Input  ; Info     ; Stuck at GND                                                                        ;
+; senddata       ; Input  ; Info     ; Stuck at GND                                                                        ;
+; sendtick       ; Input  ; Info     ; Stuck at GND                                                                        ;
+; txdivcnt       ; Input  ; Info     ; Stuck at GND                                                                        ;
+; linkstarted    ; Output ; Info     ; Connected to dangling logic. Logic that only feeds a dangling port will be removed. ;
+; linkconnecting ; Output ; Info     ; Connected to dangling logic. Logic that only feeds a dangling port will be removed. ;
+; linkrun        ; Output ; Info     ; Connected to dangling logic. Logic that only feeds a dangling port will be removed. ;
+; linkerror      ; Output ; Info     ; Connected to dangling logic. Logic that only feeds a dangling port will be removed. ;
+; gotdata        ; Output ; Info     ; Connected to dangling logic. Logic that only feeds a dangling port will be removed. ;
+; dataerror      ; Output ; Info     ; Connected to dangling logic. Logic that only feeds a dangling port will be removed. ;
+; tickerror      ; Output ; Info     ; Connected to dangling logic. Logic that only feeds a dangling port will be removed. ;
+; spw_do         ; Output ; Info     ; Connected to dangling logic. Logic that only feeds a dangling port will be removed. ;
+; spw_so         ; Output ; Info     ; Connected to dangling logic. Logic that only feeds a dangling port will be removed. ;
++----------------+--------+----------+-------------------------------------------------------------------------------------+
+
+
++-------------------------------+
+; Elapsed Time Per Partition    ;
++----------------+--------------+
+; Partition Name ; Elapsed Time ;
++----------------+--------------+
+; Top            ; 00:00:00     ;
++----------------+--------------+
+
+
++-------------------------------+
+; Analysis & Synthesis Messages ;
++-------------------------------+
+Info: *******************************************************************
+Info: Running Quartus II 64-Bit Analysis & Synthesis
+    Info: Version 13.0.1 Build 232 06/12/2013 Service Pack 1 SJ Web Edition
+    Info: Processing started: Sat Nov  4 17:59:42 2023
+Info: Command: quartus_map --read_settings_files=on --write_settings_files=off spacewire_top -c spacewire_top
+Warning (20028): Parallel compilation is not licensed and has been disabled
+Info (12021): Found 2 design units, including 1 entities, in source file bench/vhdl/streamtest_tb.vhd
+    Info (12022): Found design unit 1: streamtest_tb-tb_arch
+    Info (12023): Found entity 1: streamtest_tb
+Info (12021): Found 2 design units, including 1 entities, in source file bench/vhdl/spwlink_tb_all.vhd
+    Info (12022): Found design unit 1: spwlink_tb_all-tb_arch
+    Info (12023): Found entity 1: spwlink_tb_all
+Info (12021): Found 2 design units, including 1 entities, in source file bench/vhdl/spwlink_tb.vhd
+    Info (12022): Found design unit 1: spwlink_tb-tb_arch
+    Info (12023): Found entity 1: spwlink_tb
+Warning (10335): Unrecognized synthesis attribute "REGISTER_DUPLICATION" at rtl/vhdl/syncdff.vhd(27)
+Warning (10335): Unrecognized synthesis attribute "SHIFT_EXTRACT" at rtl/vhdl/syncdff.vhd(39)
+Warning (10335): Unrecognized synthesis attribute "SHIFT_EXTRACT" at rtl/vhdl/syncdff.vhd(40)
+Warning (10335): Unrecognized synthesis attribute "RLOC" at rtl/vhdl/syncdff.vhd(44)
+Warning (10335): Unrecognized synthesis attribute "RLOC" at rtl/vhdl/syncdff.vhd(45)
+Info (12021): Found 2 design units, including 1 entities, in source file rtl/vhdl/syncdff.vhd
+    Info (12022): Found design unit 1: syncdff-syncdff_arch
+    Info (12023): Found entity 1: syncdff
+Info (12021): Found 2 design units, including 1 entities, in source file rtl/vhdl/streamtest.vhd
+    Info (12022): Found design unit 1: streamtest-streamtest_arch
+    Info (12023): Found entity 1: streamtest
+Warning (10335): Unrecognized synthesis attribute "FSM_EXTRACT" at rtl/vhdl/spwxmit_fast.vhd(184)
+Warning (10335): Unrecognized synthesis attribute "IOB" at rtl/vhdl/spwxmit_fast.vhd(325)
+Warning (10335): Unrecognized synthesis attribute "IOB" at rtl/vhdl/spwxmit_fast.vhd(326)
+Info (12021): Found 2 design units, including 1 entities, in source file rtl/vhdl/spwxmit_fast.vhd
+    Info (12022): Found design unit 1: spwxmit_fast-spwxmit_fast_arch
+    Info (12023): Found entity 1: spwxmit_fast
+Info (12021): Found 2 design units, including 1 entities, in source file rtl/vhdl/spwxmit.vhd
+    Info (12022): Found design unit 1: spwxmit-spwxmit_arch
+    Info (12023): Found entity 1: spwxmit
+Info (12021): Found 2 design units, including 1 entities, in source file rtl/vhdl/spwstream.vhd
+    Info (12022): Found design unit 1: spwstream-spwstream_arch
+    Info (12023): Found entity 1: spwstream
+Info (12021): Found 2 design units, including 1 entities, in source file rtl/vhdl/spwrecvfront_generic.vhd
+    Info (12022): Found design unit 1: spwrecvfront_generic-spwrecvfront_arch
+    Info (12023): Found entity 1: spwrecvfront_generic
+Warning (10335): Unrecognized synthesis attribute "FSM_EXTRACT" at rtl/vhdl/spwrecvfront_fast.vhd(106)
+Warning (10335): Unrecognized synthesis attribute "IOB" at rtl/vhdl/spwrecvfront_fast.vhd(194)
+Warning (10335): Unrecognized synthesis attribute "IOB" at rtl/vhdl/spwrecvfront_fast.vhd(195)
+Warning (10335): Unrecognized synthesis attribute "IOB" at rtl/vhdl/spwrecvfront_fast.vhd(196)
+Warning (10335): Unrecognized synthesis attribute "IOB" at rtl/vhdl/spwrecvfront_fast.vhd(197)
+Info (12021): Found 2 design units, including 1 entities, in source file rtl/vhdl/spwrecvfront_fast.vhd
+    Info (12022): Found design unit 1: spwrecvfront_fast-spwrecvfront_arch
+    Info (12023): Found entity 1: spwrecvfront_fast
+Info (12021): Found 2 design units, including 1 entities, in source file rtl/vhdl/spwrecv.vhd
+    Info (12022): Found design unit 1: spwrecv-spwrecv_arch
+    Info (12023): Found entity 1: spwrecv
+Info (12021): Found 2 design units, including 1 entities, in source file rtl/vhdl/spwram.vhd
+    Info (12022): Found design unit 1: spwram-spwram_arch
+    Info (12023): Found entity 1: spwram
+Info (12021): Found 1 design units, including 0 entities, in source file rtl/vhdl/spwpkg.vhd
+    Info (12022): Found design unit 1: spwpkg
+Info (12021): Found 2 design units, including 1 entities, in source file rtl/vhdl/spwlink.vhd
+    Info (12022): Found design unit 1: spwlink-spwlink_arch
+    Info (12023): Found entity 1: spwlink
+Warning (12125): Using design file streamtest_top.vhd, which is not specified as a design file for the current project, but contains definitions for 2 design units and 1 entities in project
+    Info (12022): Found design unit 1: streamtest_top-streamtest_top_arch
+    Info (12023): Found entity 1: streamtest_top
+Info (12127): Elaborating entity "streamtest_top" for the top level hierarchy
+Warning (10541): VHDL Signal Declaration warning at streamtest_top.vhd(50): used implicit default value for signal "spw_do" because signal was never assigned a value or an explicit default value. Use of implicit default value may introduce unintended design optimizations.
+Warning (10541): VHDL Signal Declaration warning at streamtest_top.vhd(51): used implicit default value for signal "spw_so" because signal was never assigned a value or an explicit default value. Use of implicit default value may introduce unintended design optimizations.
+Warning (10541): VHDL Signal Declaration warning at streamtest_top.vhd(59): used implicit default value for signal "sysclk" because signal was never assigned a value or an explicit default value. Use of implicit default value may introduce unintended design optimizations.
+Warning (10541): VHDL Signal Declaration warning at streamtest_top.vhd(82): used implicit default value for signal "s_spwdi" because signal was never assigned a value or an explicit default value. Use of implicit default value may introduce unintended design optimizations.
+Warning (10541): VHDL Signal Declaration warning at streamtest_top.vhd(83): used implicit default value for signal "s_spwsi" because signal was never assigned a value or an explicit default value. Use of implicit default value may introduce unintended design optimizations.
+Warning (10036): Verilog HDL or VHDL warning at streamtest_top.vhd(84): object "s_spwdo" assigned a value but never read
+Warning (10036): Verilog HDL or VHDL warning at streamtest_top.vhd(85): object "s_spwso" assigned a value but never read
+Warning (10873): Using initial value X (don't care) for net "led" at streamtest_top.vhd(47)
+Info (12128): Elaborating entity "streamtest" for hierarchy "streamtest:streamtest_inst"
+Info (12128): Elaborating entity "spwstream" for hierarchy "streamtest:streamtest_inst|spwstream:spwstream_inst"
+Info (12128): Elaborating entity "spwlink" for hierarchy "streamtest:streamtest_inst|spwstream:spwstream_inst|spwlink:link_inst"
+Info (12128): Elaborating entity "spwrecv" for hierarchy "streamtest:streamtest_inst|spwstream:spwstream_inst|spwrecv:recv_inst"
+Info (12128): Elaborating entity "spwxmit" for hierarchy "streamtest:streamtest_inst|spwstream:spwstream_inst|spwxmit:\xmit_sel0:xmit_inst"
+Info (12128): Elaborating entity "spwrecvfront_generic" for hierarchy "streamtest:streamtest_inst|spwstream:spwstream_inst|spwrecvfront_generic:\recvfront_sel0:recvfront_generic_inst"
+Info (12128): Elaborating entity "spwram" for hierarchy "streamtest:streamtest_inst|spwstream:spwstream_inst|spwram:rxmem"
+Warning (13024): Output pins are stuck at VCC or GND
+    Warning (13410): Pin "led[0]" is stuck at GND
+    Warning (13410): Pin "led[1]" is stuck at GND
+    Warning (13410): Pin "led[2]" is stuck at GND
+    Warning (13410): Pin "led[3]" is stuck at GND
+    Warning (13410): Pin "led[4]" is stuck at GND
+    Warning (13410): Pin "led[5]" is stuck at GND
+    Warning (13410): Pin "led[6]" is stuck at GND
+    Warning (13410): Pin "led[7]" is stuck at GND
+    Warning (13410): Pin "spw_do" is stuck at GND
+    Warning (13410): Pin "spw_so" is stuck at GND
+Info (17049): 191 registers lost all their fanouts during netlist optimizations.
+Info (16010): Generating hard_block partition "hard_block:auto_generated_inst"
+    Info (16011): Adding 0 node(s), including 0 DDIO, 0 PLL, 0 transceiver and 0 LCELL
+Warning (21074): Design contains 15 input pin(s) that do not drive logic
+    Warning (15610): No output dependent on input pin "clk50"
+    Warning (15610): No output dependent on input pin "button[0]"
+    Warning (15610): No output dependent on input pin "button[1]"
+    Warning (15610): No output dependent on input pin "button[2]"
+    Warning (15610): No output dependent on input pin "button[3]"
+    Warning (15610): No output dependent on input pin "switch[0]"
+    Warning (15610): No output dependent on input pin "switch[1]"
+    Warning (15610): No output dependent on input pin "switch[2]"
+    Warning (15610): No output dependent on input pin "switch[3]"
+    Warning (15610): No output dependent on input pin "switch[4]"
+    Warning (15610): No output dependent on input pin "switch[5]"
+    Warning (15610): No output dependent on input pin "switch[6]"
+    Warning (15610): No output dependent on input pin "switch[7]"
+    Warning (15610): No output dependent on input pin "spw_di"
+    Warning (15610): No output dependent on input pin "spw_si"
+Info (21057): Implemented 25 device resources after synthesis - the final resource count might be different
+    Info (21058): Implemented 15 input pins
+    Info (21059): Implemented 10 output pins
+Info: Quartus II 64-Bit Analysis & Synthesis was successful. 0 errors, 50 warnings
+    Info: Peak virtual memory: 628 megabytes
+    Info: Processing ended: Sat Nov  4 17:59:43 2023
+    Info: Elapsed time: 00:00:01
+    Info: Total CPU time (on all processors): 00:00:01
+
+
