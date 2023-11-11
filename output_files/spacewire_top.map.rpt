@@ -1,5 +1,5 @@
 Analysis & Synthesis report for spacewire_top
-Sat Nov  4 17:59:43 2023
+Thu Nov  9 15:01:57 2023
 Quartus II 64-Bit Version 13.0.1 Build 232 06/12/2013 Service Pack 1 SJ Web Edition
 
 
@@ -55,7 +55,7 @@ applicable agreement for further details.
 +--------------------------------------------------------------------------------------+
 ; Analysis & Synthesis Summary                                                         ;
 +------------------------------------+-------------------------------------------------+
-; Analysis & Synthesis Status        ; Successful - Sat Nov  4 17:59:43 2023           ;
+; Analysis & Synthesis Status        ; Successful - Thu Nov  9 15:01:57 2023           ;
 ; Quartus II 64-Bit Version          ; 13.0.1 Build 232 06/12/2013 SP 1 SJ Web Edition ;
 ; Revision Name                      ; spacewire_top                                   ;
 ; Top-level Entity Name              ; streamtest_top                                  ;
@@ -64,7 +64,7 @@ applicable agreement for further details.
 ;     Total combinational functions  ; 0                                               ;
 ;     Dedicated logic registers      ; 0                                               ;
 ; Total registers                    ; 0                                               ;
-; Total pins                         ; 25                                              ;
+; Total pins                         ; 15                                              ;
 ; Total virtual pins                 ; 0                                               ;
 ; Total memory bits                  ; 0                                               ;
 ; Embedded Multiplier 9-bit elements ; 0                                               ;
@@ -165,26 +165,26 @@ Parallel compilation was disabled, but you have multiple processors available. E
 +----------------------------+--------+
 ; Processors                 ; Number ;
 +----------------------------+--------+
-; Number detected on machine ; 8      ;
+; Number detected on machine ; 4      ;
 ; Maximum allowed            ; 1      ;
 +----------------------------+--------+
 
 
-+----------------------------------------------------------------------------------------------------------------------------------------------------+
-; Analysis & Synthesis Source Files Read                                                                                                             ;
-+-----------------------------------+-----------------+-----------------------+------------------------------------------------------------+---------+
-; File Name with User-Entered Path  ; Used in Netlist ; File Type             ; File Name with Absolute Path                               ; Library ;
-+-----------------------------------+-----------------+-----------------------+------------------------------------------------------------+---------+
-; rtl/vhdl/streamtest.vhd           ; yes             ; User VHDL File        ; /home/holo/spacewire_top/rtl/vhdl/streamtest.vhd           ;         ;
-; rtl/vhdl/spwxmit.vhd              ; yes             ; User VHDL File        ; /home/holo/spacewire_top/rtl/vhdl/spwxmit.vhd              ;         ;
-; rtl/vhdl/spwstream.vhd            ; yes             ; User VHDL File        ; /home/holo/spacewire_top/rtl/vhdl/spwstream.vhd            ;         ;
-; rtl/vhdl/spwrecvfront_generic.vhd ; yes             ; User VHDL File        ; /home/holo/spacewire_top/rtl/vhdl/spwrecvfront_generic.vhd ;         ;
-; rtl/vhdl/spwrecv.vhd              ; yes             ; User VHDL File        ; /home/holo/spacewire_top/rtl/vhdl/spwrecv.vhd              ;         ;
-; rtl/vhdl/spwram.vhd               ; yes             ; User VHDL File        ; /home/holo/spacewire_top/rtl/vhdl/spwram.vhd               ;         ;
-; rtl/vhdl/spwpkg.vhd               ; yes             ; User VHDL File        ; /home/holo/spacewire_top/rtl/vhdl/spwpkg.vhd               ;         ;
-; rtl/vhdl/spwlink.vhd              ; yes             ; User VHDL File        ; /home/holo/spacewire_top/rtl/vhdl/spwlink.vhd              ;         ;
-; streamtest_top.vhd                ; yes             ; Auto-Found VHDL File  ; /home/holo/spacewire_top/streamtest_top.vhd                ;         ;
-+-----------------------------------+-----------------+-----------------------+------------------------------------------------------------+---------+
++-------------------------------------------------------------------------------------------------------------------------------------------------------+
+; Analysis & Synthesis Source Files Read                                                                                                                ;
++-----------------------------------+-----------------+-----------------------+---------------------------------------------------------------+---------+
+; File Name with User-Entered Path  ; Used in Netlist ; File Type             ; File Name with Absolute Path                                  ; Library ;
++-----------------------------------+-----------------+-----------------------+---------------------------------------------------------------+---------+
+; rtl/vhdl/streamtest.vhd           ; yes             ; User VHDL File        ; /home/quartus/spacewire_top/rtl/vhdl/streamtest.vhd           ;         ;
+; rtl/vhdl/spwxmit.vhd              ; yes             ; User VHDL File        ; /home/quartus/spacewire_top/rtl/vhdl/spwxmit.vhd              ;         ;
+; rtl/vhdl/spwstream.vhd            ; yes             ; User VHDL File        ; /home/quartus/spacewire_top/rtl/vhdl/spwstream.vhd            ;         ;
+; rtl/vhdl/spwrecvfront_generic.vhd ; yes             ; User VHDL File        ; /home/quartus/spacewire_top/rtl/vhdl/spwrecvfront_generic.vhd ;         ;
+; rtl/vhdl/spwrecv.vhd              ; yes             ; User VHDL File        ; /home/quartus/spacewire_top/rtl/vhdl/spwrecv.vhd              ;         ;
+; rtl/vhdl/spwram.vhd               ; yes             ; User VHDL File        ; /home/quartus/spacewire_top/rtl/vhdl/spwram.vhd               ;         ;
+; rtl/vhdl/spwpkg.vhd               ; yes             ; User VHDL File        ; /home/quartus/spacewire_top/rtl/vhdl/spwpkg.vhd               ;         ;
+; rtl/vhdl/spwlink.vhd              ; yes             ; User VHDL File        ; /home/quartus/spacewire_top/rtl/vhdl/spwlink.vhd              ;         ;
+; streamtest_top.vhd                ; yes             ; Auto-Found VHDL File  ; /home/quartus/spacewire_top/streamtest_top.vhd                ;         ;
++-----------------------------------+-----------------+-----------------------+---------------------------------------------------------------+---------+
 
 
 +-----------------------------------------------------+
@@ -207,11 +207,11 @@ Parallel compilation was disabled, but you have multiple processors available. E
 ;     -- Dedicated logic registers            ; 0     ;
 ;     -- I/O registers                        ; 0     ;
 ;                                             ;       ;
-; I/O pins                                    ; 25    ;
+; I/O pins                                    ; 15    ;
 ; Embedded Multiplier 9-bit elements          ; 0     ;
-; Maximum fan-out node                        ; clk50 ;
+; Maximum fan-out node                        ; clk   ;
 ; Maximum fan-out                             ; 1     ;
-; Total fan-out                               ; 25    ;
+; Total fan-out                               ; 15    ;
 ; Average fan-out                             ; 0.50  ;
 +---------------------------------------------+-------+
 
@@ -221,7 +221,7 @@ Parallel compilation was disabled, but you have multiple processors available. E
 +----------------------------+-------------------+--------------+-------------+--------------+---------+-----------+------+--------------+---------------------+--------------+
 ; Compilation Hierarchy Node ; LC Combinationals ; LC Registers ; Memory Bits ; DSP Elements ; DSP 9x9 ; DSP 18x18 ; Pins ; Virtual Pins ; Full Hierarchy Name ; Library Name ;
 +----------------------------+-------------------+--------------+-------------+--------------+---------+-----------+------+--------------+---------------------+--------------+
-; |streamtest_top            ; 0 (0)             ; 0 (0)        ; 0           ; 0            ; 0       ; 0         ; 25   ; 0            ; |streamtest_top     ; work         ;
+; |streamtest_top            ; 0 (0)             ; 0 (0)        ; 0           ; 0            ; 0       ; 0         ; 15   ; 0            ; |streamtest_top     ; work         ;
 +----------------------------+-------------------+--------------+-------------+--------------+---------+-----------+------+--------------+---------------------+--------------+
 Note: For table entries with two numbers listed, the numbers in parentheses indicate the number of resources of the given type used by the specific entity alone. The numbers listed outside of parentheses indicate the total resources of the given type used by the specific entity and all of its sub-entities in the hierarchy.
 
@@ -268,12 +268,12 @@ Encoding Type:  One-Hot
 ; streamtest:streamtest_inst|r.rx_enabledata                                                                                 ; Lost fanout                            ;
 ; streamtest:streamtest_inst|spwstream:spwstream_inst|spwram:rxmem|rdata[8]                                                  ; Lost fanout                            ;
 ; streamtest:streamtest_inst|r.rx_state                                                                                      ; Lost fanout                            ;
-; streamtest:streamtest_inst|r.tx_timecnt[0..19]                                                                             ; Stuck at GND due to stuck port data_in ;
+; streamtest:streamtest_inst|r.tx_timecnt[0..21]                                                                             ; Stuck at GND due to stuck port data_in ;
 ; streamtest:streamtest_inst|spwstream:spwstream_inst|r.rxpacket                                                             ; Lost fanout                            ;
 ; streamtest:streamtest_inst|spwstream:spwstream_inst|r.txpacket                                                             ; Lost fanout                            ;
 ; streamtest:streamtest_inst|r.rxread                                                                                        ; Lost fanout                            ;
 ; streamtest:streamtest_inst|spwstream:spwstream_inst|r.rxfifo_rvalid                                                        ; Lost fanout                            ;
-; streamtest:streamtest_inst|spwstream:spwstream_inst|r.txfifo_raddr[9,10]                                                   ; Stuck at GND due to stuck port data_in ;
+; streamtest:streamtest_inst|spwstream:spwstream_inst|r.txfifo_raddr[9]                                                      ; Stuck at GND due to stuck port data_in ;
 ; streamtest:streamtest_inst|spwstream:spwstream_inst|r.rxfifo_waddr[0..10]                                                  ; Stuck at GND due to stuck port data_in ;
 ; streamtest:streamtest_inst|spwstream:spwstream_inst|r.rxfifo_raddr[0..10]                                                  ; Stuck at GND due to stuck port data_in ;
 ; streamtest:streamtest_inst|spwstream:spwstream_inst|r.txdiscard                                                            ; Stuck at GND due to stuck port data_in ;
@@ -302,9 +302,8 @@ Encoding Type:  One-Hot
 ; streamtest:streamtest_inst|spwstream:spwstream_inst|spwlink:link_inst|r.xmit_fct_in                                        ; Lost fanout                            ;
 ; streamtest:streamtest_inst|r.txwrite                                                                                       ; Stuck at GND due to stuck port data_in ;
 ; streamtest:streamtest_inst|spwstream:spwstream_inst|r.txfifo_raddr[0..8]                                                   ; Stuck at GND due to stuck port data_in ;
-; streamtest:streamtest_inst|spwstream:spwstream_inst|r.txfifo_waddr[1..10]                                                  ; Stuck at GND due to stuck port data_in ;
+; streamtest:streamtest_inst|spwstream:spwstream_inst|r.txfifo_waddr[0..9]                                                   ; Stuck at GND due to stuck port data_in ;
 ; streamtest:streamtest_inst|spwstream:spwstream_inst|r.txfull                                                               ; Lost fanout                            ;
-; streamtest:streamtest_inst|spwstream:spwstream_inst|r.txfifo_waddr[0]                                                      ; Lost fanout                            ;
 ; streamtest:streamtest_inst|r.txdata[0..7]                                                                                  ; Lost fanout                            ;
 ; streamtest:streamtest_inst|spwstream:spwstream_inst|r.rxfull                                                               ; Lost fanout                            ;
 ; streamtest:streamtest_inst|spwstream:spwstream_inst|spwrecvfront_generic:\recvfront_sel0:recvfront_generic_inst|s_inbvalid ; Lost fanout                            ;
@@ -378,8 +377,6 @@ Encoding Type:  One-Hot
 ; streamtest:streamtest_inst|spwstream:spwstream_inst|spwxmit:\xmit_sel0:xmit_inst|r.bitcnt[0]                             ; Stuck at GND              ; streamtest:streamtest_inst|spwstream:spwstream_inst|spwlink:link_inst|r.rx_credit[5]                                        ;
 ;                                                                                                                          ; due to stuck port data_in ;                                                                                                                             ;
 ; streamtest:streamtest_inst|spwstream:spwstream_inst|spwrecv:recv_inst|r.tick_out                                         ; Lost Fanouts              ; streamtest:streamtest_inst|spwstream:spwstream_inst|spwrecv:recv_inst|r.escaped                                             ;
-; streamtest:streamtest_inst|r.txwrite                                                                                     ; Stuck at GND              ; streamtest:streamtest_inst|spwstream:spwstream_inst|r.txfifo_waddr[0]                                                       ;
-;                                                                                                                          ; due to stuck port data_in ;                                                                                                                             ;
 +--------------------------------------------------------------------------------------------------------------------------+---------------------------+-----------------------------------------------------------------------------------------------------------------------------+
 
 
@@ -403,14 +400,14 @@ Encoding Type:  One-Hot
 +-----------------+--------------+----------------------------------------+
 ; Parameter Name  ; Value        ; Type                                   ;
 +-----------------+--------------+----------------------------------------+
-; sysfreq         ; 60000000.0   ; Signed Float                           ;
+; sysfreq         ; 50000000.0   ; Signed Float                           ;
 ; txclkfreq       ; 0.0          ; Signed Float                           ;
-; tickdiv         ; 20           ; Signed Integer                         ;
+; tickdiv         ; 22           ; Signed Integer                         ;
 ; rximpl          ; impl_generic ; Enumerated                             ;
 ; rxchunk         ; 1            ; Signed Integer                         ;
 ; tximpl          ; impl_generic ; Enumerated                             ;
 ; rxfifosize_bits ; 11           ; Signed Integer                         ;
-; txfifosize_bits ; 11           ; Signed Integer                         ;
+; txfifosize_bits ; 10           ; Signed Integer                         ;
 +-----------------+--------------+----------------------------------------+
 Note: In order to hide this table in the UI and the text report file, please set the "Show Parameter Settings in Synthesis Report" option in "Analysis and Synthesis Settings -> More Settings" to "Off".
 
@@ -420,13 +417,13 @@ Note: In order to hide this table in the UI and the text report file, please set
 +-----------------+--------------+-----------------------------------------------------------------+
 ; Parameter Name  ; Value        ; Type                                                            ;
 +-----------------+--------------+-----------------------------------------------------------------+
-; sysfreq         ; 60000000.0   ; Signed Float                                                    ;
+; sysfreq         ; 50000000.0   ; Signed Float                                                    ;
 ; txclkfreq       ; 0.0          ; Signed Float                                                    ;
 ; rximpl          ; impl_generic ; Enumerated                                                      ;
 ; rxchunk         ; 1            ; Signed Integer                                                  ;
 ; tximpl          ; impl_generic ; Enumerated                                                      ;
 ; rxfifosize_bits ; 11           ; Signed Integer                                                  ;
-; txfifosize_bits ; 11           ; Signed Integer                                                  ;
+; txfifosize_bits ; 10           ; Signed Integer                                                  ;
 +-----------------+--------------+-----------------------------------------------------------------+
 Note: In order to hide this table in the UI and the text report file, please set the "Show Parameter Settings in Synthesis Report" option in "Analysis and Synthesis Settings -> More Settings" to "Off".
 
@@ -436,7 +433,7 @@ Note: In order to hide this table in the UI and the text report file, please set
 +----------------+-------+-------------------------------------------------------------------------------------------+
 ; Parameter Name ; Value ; Type                                                                                      ;
 +----------------+-------+-------------------------------------------------------------------------------------------+
-; reset_time     ; 384   ; Signed Integer                                                                            ;
+; reset_time     ; 320   ; Signed Integer                                                                            ;
 +----------------+-------+-------------------------------------------------------------------------------------------+
 Note: In order to hide this table in the UI and the text report file, please set the "Show Parameter Settings in Synthesis Report" option in "Analysis and Synthesis Settings -> More Settings" to "Off".
 
@@ -446,7 +443,7 @@ Note: In order to hide this table in the UI and the text report file, please set
 +-----------------+-------+------------------------------------------------------------------------------------------+
 ; Parameter Name  ; Value ; Type                                                                                     ;
 +-----------------+-------+------------------------------------------------------------------------------------------+
-; disconnect_time ; 51    ; Signed Integer                                                                           ;
+; disconnect_time ; 43    ; Signed Integer                                                                           ;
 ; rxchunk         ; 1     ; Signed Integer                                                                           ;
 +-----------------+-------+------------------------------------------------------------------------------------------+
 Note: In order to hide this table in the UI and the text report file, please set the "Show Parameter Settings in Synthesis Report" option in "Analysis and Synthesis Settings -> More Settings" to "Off".
@@ -468,7 +465,7 @@ Note: In order to hide this table in the UI and the text report file, please set
 +----------------+-------+--------------------------------------------------------------------------------------+
 ; Parameter Name ; Value ; Type                                                                                 ;
 +----------------+-------+--------------------------------------------------------------------------------------+
-; abits          ; 11    ; Signed Integer                                                                       ;
+; abits          ; 10    ; Signed Integer                                                                       ;
 ; dbits          ; 9     ; Signed Integer                                                                       ;
 +----------------+-------+--------------------------------------------------------------------------------------+
 Note: In order to hide this table in the UI and the text report file, please set the "Show Parameter Settings in Synthesis Report" option in "Analysis and Synthesis Settings -> More Settings" to "Off".
@@ -545,7 +542,7 @@ Note: In order to hide this table in the UI and the text report file, please set
 Info: *******************************************************************
 Info: Running Quartus II 64-Bit Analysis & Synthesis
     Info: Version 13.0.1 Build 232 06/12/2013 Service Pack 1 SJ Web Edition
-    Info: Processing started: Sat Nov  4 17:59:42 2023
+    Info: Processing started: Thu Nov  9 15:01:56 2023
 Info: Command: quartus_map --read_settings_files=on --write_settings_files=off spacewire_top -c spacewire_top
 Warning (20028): Parallel compilation is not licensed and has been disabled
 Info (12021): Found 2 design units, including 1 entities, in source file bench/vhdl/streamtest_tb.vhd
@@ -606,14 +603,15 @@ Warning (12125): Using design file streamtest_top.vhd, which is not specified as
     Info (12022): Found design unit 1: streamtest_top-streamtest_top_arch
     Info (12023): Found entity 1: streamtest_top
 Info (12127): Elaborating entity "streamtest_top" for the top level hierarchy
-Warning (10541): VHDL Signal Declaration warning at streamtest_top.vhd(50): used implicit default value for signal "spw_do" because signal was never assigned a value or an explicit default value. Use of implicit default value may introduce unintended design optimizations.
-Warning (10541): VHDL Signal Declaration warning at streamtest_top.vhd(51): used implicit default value for signal "spw_so" because signal was never assigned a value or an explicit default value. Use of implicit default value may introduce unintended design optimizations.
-Warning (10541): VHDL Signal Declaration warning at streamtest_top.vhd(59): used implicit default value for signal "sysclk" because signal was never assigned a value or an explicit default value. Use of implicit default value may introduce unintended design optimizations.
-Warning (10541): VHDL Signal Declaration warning at streamtest_top.vhd(82): used implicit default value for signal "s_spwdi" because signal was never assigned a value or an explicit default value. Use of implicit default value may introduce unintended design optimizations.
-Warning (10541): VHDL Signal Declaration warning at streamtest_top.vhd(83): used implicit default value for signal "s_spwsi" because signal was never assigned a value or an explicit default value. Use of implicit default value may introduce unintended design optimizations.
-Warning (10036): Verilog HDL or VHDL warning at streamtest_top.vhd(84): object "s_spwdo" assigned a value but never read
-Warning (10036): Verilog HDL or VHDL warning at streamtest_top.vhd(85): object "s_spwso" assigned a value but never read
-Warning (10873): Using initial value X (don't care) for net "led" at streamtest_top.vhd(47)
+Warning (10541): VHDL Signal Declaration warning at streamtest_top.vhd(55): used implicit default value for signal "spw_do" because signal was never assigned a value or an explicit default value. Use of implicit default value may introduce unintended design optimizations.
+Warning (10541): VHDL Signal Declaration warning at streamtest_top.vhd(56): used implicit default value for signal "spw_so" because signal was never assigned a value or an explicit default value. Use of implicit default value may introduce unintended design optimizations.
+Warning (10541): VHDL Signal Declaration warning at streamtest_top.vhd(63): used implicit default value for signal "sysclk" because signal was never assigned a value or an explicit default value. Use of implicit default value may introduce unintended design optimizations.
+Warning (10036): Verilog HDL or VHDL warning at streamtest_top.vhd(80): object "s_linkstarted" assigned a value but never read
+Warning (10036): Verilog HDL or VHDL warning at streamtest_top.vhd(81): object "s_linkconnecting" assigned a value but never read
+Warning (10541): VHDL Signal Declaration warning at streamtest_top.vhd(87): used implicit default value for signal "s_spwdi" because signal was never assigned a value or an explicit default value. Use of implicit default value may introduce unintended design optimizations.
+Warning (10541): VHDL Signal Declaration warning at streamtest_top.vhd(88): used implicit default value for signal "s_spwsi" because signal was never assigned a value or an explicit default value. Use of implicit default value may introduce unintended design optimizations.
+Warning (10036): Verilog HDL or VHDL warning at streamtest_top.vhd(89): object "s_spwdo" assigned a value but never read
+Warning (10036): Verilog HDL or VHDL warning at streamtest_top.vhd(90): object "s_spwso" assigned a value but never read
 Info (12128): Elaborating entity "streamtest" for hierarchy "streamtest:streamtest_inst"
 Info (12128): Elaborating entity "spwstream" for hierarchy "streamtest:streamtest_inst|spwstream:spwstream_inst"
 Info (12128): Elaborating entity "spwlink" for hierarchy "streamtest:streamtest_inst|spwstream:spwstream_inst|spwlink:link_inst"
@@ -621,42 +619,33 @@ Info (12128): Elaborating entity "spwrecv" for hierarchy "streamtest:streamtest_
 Info (12128): Elaborating entity "spwxmit" for hierarchy "streamtest:streamtest_inst|spwstream:spwstream_inst|spwxmit:\xmit_sel0:xmit_inst"
 Info (12128): Elaborating entity "spwrecvfront_generic" for hierarchy "streamtest:streamtest_inst|spwstream:spwstream_inst|spwrecvfront_generic:\recvfront_sel0:recvfront_generic_inst"
 Info (12128): Elaborating entity "spwram" for hierarchy "streamtest:streamtest_inst|spwstream:spwstream_inst|spwram:rxmem"
+Info (12128): Elaborating entity "spwram" for hierarchy "streamtest:streamtest_inst|spwstream:spwstream_inst|spwram:txmem"
 Warning (13024): Output pins are stuck at VCC or GND
     Warning (13410): Pin "led[0]" is stuck at GND
     Warning (13410): Pin "led[1]" is stuck at GND
     Warning (13410): Pin "led[2]" is stuck at GND
     Warning (13410): Pin "led[3]" is stuck at GND
-    Warning (13410): Pin "led[4]" is stuck at GND
-    Warning (13410): Pin "led[5]" is stuck at GND
-    Warning (13410): Pin "led[6]" is stuck at GND
-    Warning (13410): Pin "led[7]" is stuck at GND
     Warning (13410): Pin "spw_do" is stuck at GND
     Warning (13410): Pin "spw_so" is stuck at GND
-Info (17049): 191 registers lost all their fanouts during netlist optimizations.
+Info (17049): 190 registers lost all their fanouts during netlist optimizations.
 Info (16010): Generating hard_block partition "hard_block:auto_generated_inst"
     Info (16011): Adding 0 node(s), including 0 DDIO, 0 PLL, 0 transceiver and 0 LCELL
-Warning (21074): Design contains 15 input pin(s) that do not drive logic
-    Warning (15610): No output dependent on input pin "clk50"
-    Warning (15610): No output dependent on input pin "button[0]"
-    Warning (15610): No output dependent on input pin "button[1]"
-    Warning (15610): No output dependent on input pin "button[2]"
-    Warning (15610): No output dependent on input pin "button[3]"
+Warning (21074): Design contains 9 input pin(s) that do not drive logic
+    Warning (15610): No output dependent on input pin "clk"
+    Warning (15610): No output dependent on input pin "btn_reset"
+    Warning (15610): No output dependent on input pin "btn_clear"
     Warning (15610): No output dependent on input pin "switch[0]"
     Warning (15610): No output dependent on input pin "switch[1]"
     Warning (15610): No output dependent on input pin "switch[2]"
     Warning (15610): No output dependent on input pin "switch[3]"
-    Warning (15610): No output dependent on input pin "switch[4]"
-    Warning (15610): No output dependent on input pin "switch[5]"
-    Warning (15610): No output dependent on input pin "switch[6]"
-    Warning (15610): No output dependent on input pin "switch[7]"
     Warning (15610): No output dependent on input pin "spw_di"
     Warning (15610): No output dependent on input pin "spw_si"
-Info (21057): Implemented 25 device resources after synthesis - the final resource count might be different
-    Info (21058): Implemented 15 input pins
-    Info (21059): Implemented 10 output pins
-Info: Quartus II 64-Bit Analysis & Synthesis was successful. 0 errors, 50 warnings
-    Info: Peak virtual memory: 628 megabytes
-    Info: Processing ended: Sat Nov  4 17:59:43 2023
+Info (21057): Implemented 15 device resources after synthesis - the final resource count might be different
+    Info (21058): Implemented 9 input pins
+    Info (21059): Implemented 6 output pins
+Info: Quartus II 64-Bit Analysis & Synthesis was successful. 0 errors, 41 warnings
+    Info: Peak virtual memory: 642 megabytes
+    Info: Processing ended: Thu Nov  9 15:01:57 2023
     Info: Elapsed time: 00:00:01
     Info: Total CPU time (on all processors): 00:00:01
 
