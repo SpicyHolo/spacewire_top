@@ -1,3 +1,4 @@
+# QSF
 # -------------------------------------------------------------------------- #
 #
 # Copyright (C) 1991-2013 Altera Corporation
@@ -66,7 +67,62 @@ set_global_assignment -name VHDL_FILE rtl/vhdl/spwpkg.vhd
 set_global_assignment -name VHDL_FILE rtl/vhdl/spwlink.vhd
 
 # Attach pin assignmens
-set_global_assignment -name SOURCE_TCL_SCRIPT_FILE pins.tcl
+#set_global_assignment -name SOURCE_TCL_SCRIPT_FILE pins.tcl
 set_global_assignment -name STRATIX_DEVICE_IO_STANDARD "2.5 V"
-set_global_assignment -name SDC_FILE output_files/clock_constraints.sdc
+set_global_assignment -name SDC_FILE clock_constraints.sdc
+
+# Spw Data
+#set_instance_assignment -name IO_STANDARD LVDS -to spw_do
+
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to spw_do
+set_location_assignment PIN_R16 -to spw_do
+
+#set_location_assignment PIN_P16 -to "spw_do(n)"
+
+#set_instance_assignment -name IO_STANDARD LVDS -to spw_so
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to spw_so
+set_location_assignment PIN_G15 -to spw_so
+#set_location_assignment PIN_G16 -to "spw_so(n)"
+
+#set_instance_assignment -name IO_STANDARD LVDS -to spw_di
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to spw_di
+set_location_assignment PIN_B6 -to spw_di
+#set_location_assignment PIN_A6 -to "spw_di(n)"
+
+#set_instance_assignment -name IO_STANDARD LVDS -to spw_si
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to spw_si
+set_location_assignment PIN_R11 -to spw_si
+#set_location_assignment PIN_T11 -to "spw_si(n)"
+
+# CLOCK
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to clk50
+set_location_assignment PIN_R8 -to clk50
+
+# LED
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to led[0]
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to led[1]
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to led[2]
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to led[3]
+set_location_assignment PIN_A15 -to led[0]
+set_location_assignment PIN_A13 -to led[1]
+set_location_assignment PIN_B13 -to led[2]
+set_location_assignment PIN_A11 -to led[3]
+
+# KEY
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to btn_reset
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to btn_clear
+set_location_assignment PIN_J15 -to btn_reset
+set_location_assignment PIN_E1 -to btn_clear
+
+# SW
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to switch[0]
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to switch[1]
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to switch[2]
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to switch[3]
+set_location_assignment PIN_M1 -to switch[0]
+set_location_assignment PIN_T8 -to switch[1]
+set_location_assignment PIN_B9 -to switch[2]
+set_location_assignment PIN_M15 -to switch[3]
+
+
 set_instance_assignment -name PARTITION_HIERARCHY root_partition -to | -section_id Top
