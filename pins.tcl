@@ -20,13 +20,14 @@ set_location_assignment PIN_T11 -to "spw_si(n)"
 #============================================================
 # CLOCKS
 #============================================================
-set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to clk
-set_location_assignment PIN_R8 -to clk
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to clk50
+set_location_assignment PIN_R8 -to clk50
 
 #============================================================
 # LED - each representing data on the output
 #============================================================
 
+if {0} {
 # LED[0] s_linkrun
 set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to led(0)
 set_location_assignment PIN_A15 -to led(0)
@@ -46,12 +47,12 @@ set_location_assignment PIN_A11 -to led(3)
 #============================================================
 
 # KEY[0] resetbtn
-set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to button(0)
-set_location_assignment PIN_J15 -to button(0)
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to btn_reset
+set_location_assignment PIN_J15 -to btn_reset
 
 # KEY[1] clearbtn
-set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to button(1)
-set_location_assignment PIN_E1 -to button(1)
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to btn_clear
+set_location_assignment PIN_E1 -to btn_clear
 
 #============================================================
 # SWITCH
@@ -72,4 +73,4 @@ set_location_assignment PIN_B9 -to switch(2)
 # SW[3] sendtick
 set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to switch(3)
 set_location_assignment PIN_M15 -to switch(3)
-
+}

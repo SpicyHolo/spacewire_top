@@ -1,19 +1,40 @@
 |streamtest_top
-clk => ~NO_FANOUT~
-btn_reset => ~NO_FANOUT~
-btn_clear => ~NO_FANOUT~
-switch[0] => ~NO_FANOUT~
-switch[1] => ~NO_FANOUT~
-switch[2] => ~NO_FANOUT~
-switch[3] => ~NO_FANOUT~
-led[0] <= <GND>
-led[1] <= <GND>
-led[2] <= <GND>
-led[3] <= <GND>
-spw_di => ~NO_FANOUT~
-spw_si => ~NO_FANOUT~
-spw_do <= spw_do.DB_MAX_OUTPUT_PORT_TYPE
-spw_so <= comb.DB_MAX_OUTPUT_PORT_TYPE
+clk50 => streamtest:streamtest_inst.clk
+clk50 => led[0]~reg0.CLK
+clk50 => led[1]~reg0.CLK
+clk50 => led[2]~reg0.CLK
+clk50 => led[3]~reg0.CLK
+clk50 => s_linkerrorled.CLK
+clk50 => s_txdivcnt[0].CLK
+clk50 => s_txdivcnt[1].CLK
+clk50 => s_txdivcnt[2].CLK
+clk50 => s_txdivcnt[3].CLK
+clk50 => s_txdivcnt[4].CLK
+clk50 => s_txdivcnt[5].CLK
+clk50 => s_txdivcnt[6].CLK
+clk50 => s_txdivcnt[7].CLK
+clk50 => s_sendtick.CLK
+clk50 => s_senddata.CLK
+clk50 => s_linkdisable.CLK
+clk50 => s_linkstart.CLK
+clk50 => s_autostart.CLK
+clk50 => s_clearbtn.CLK
+clk50 => s_rst.CLK
+clk50 => s_resetbtn.CLK
+btn_reset => s_resetbtn.DATAIN
+btn_clear => s_clearbtn.DATAIN
+switch[0] => s_linkstart.DATAIN
+switch[1] => s_linkdisable.DATAIN
+switch[2] => s_senddata.DATAIN
+switch[3] => s_sendtick.DATAIN
+led[0] <= led[0]~reg0.DB_MAX_OUTPUT_PORT_TYPE
+led[1] <= led[1]~reg0.DB_MAX_OUTPUT_PORT_TYPE
+led[2] <= led[2]~reg0.DB_MAX_OUTPUT_PORT_TYPE
+led[3] <= led[3]~reg0.DB_MAX_OUTPUT_PORT_TYPE
+spw_di => streamtest:streamtest_inst.spw_di
+spw_si => streamtest:streamtest_inst.spw_si
+spw_do <= streamtest:streamtest_inst.spw_do
+spw_so <= streamtest:streamtest_inst.spw_so
 
 
 |streamtest_top|streamtest:streamtest_inst

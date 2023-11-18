@@ -45,15 +45,15 @@ use work.spwpkg.all;
 entity streamtest_top is
 
     port (
-        clk:        in  std_logic;
+        clk50:        in  std_logic;
         btn_reset:  in  std_logic;
         btn_clear:  in  std_logic;
         switch:     in  std_logic_vector(3 downto 0);
-        led:        out std_logic_vector(3 downto 0) := "0000";
-        spw_di:   in  std_logic;
-        spw_si:   in  std_logic;
-        spw_do:   out std_logic;
-        spw_so:   out std_logic);
+        led:        out std_logic_vector(3 downto 0);
+        spw_di:     in  std_logic;
+        spw_si:     in  std_logic;
+        spw_do:     out std_logic;
+        spw_so:     out std_logic );
 
 end entity streamtest_top;
 
@@ -61,7 +61,7 @@ architecture streamtest_top_arch of streamtest_top is
 
     -- Clock generation.
     signal sysclk:          std_logic;
-	 
+
     -- Synchronize buttons
     signal s_resetbtn:      std_logic := '0';
     signal s_clearbtn:      std_logic := '0';
@@ -88,6 +88,7 @@ architecture streamtest_top_arch of streamtest_top is
     signal s_spwsi:         std_logic;
     signal s_spwdo:         std_logic;
     signal s_spwso:         std_logic;
+
 
     component streamtest is
         generic (
@@ -157,15 +158,21 @@ begin
             spw_si      => s_spwsi,
             spw_do      => s_spwdo,
             spw_so      => s_spwso );
+				
+	 sysclk <= clk50;
+	 s_spwdi <= spw_di;
+    s_spwsi <= spw_si;
+    spw_do <= s_spwdo;
+    spw_so <= s_spwso;
 
     process (sysclk) is
     begin
         if rising_edge(sysclk) then
 
             -- Synchronize buttons
-            s_resetbtn  <= btn_reset;
+            s_resetbtn  <= not btn_reset;
             s_rst       <= s_resetbtn;
-            s_clearbtn  <= btn_clear;
+            s_clearbtn  <= not btn_clear;
 
             -- Synchronize switch settings
             s_autostart <= '0';

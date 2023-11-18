@@ -23,8 +23,8 @@ entity syncdff is
     );
 
     -- Turn off register replication in XST.
-    attribute REGISTER_DUPLICATION: string;
-    attribute REGISTER_DUPLICATION of syncdff: entity is "NO";
+    --attribute REGISTER_DUPLICATION: string;
+    --attribute REGISTER_DUPLICATION of syncdff: entity is "NO";
 
 end entity syncdff;
 
@@ -35,14 +35,14 @@ architecture syncdff_arch of syncdff is
     signal syncdff_ff2: std_ulogic := '0';
 
     -- Turn of shift-register extraction in XST.
-    attribute SHIFT_EXTRACT: string;
-    attribute SHIFT_EXTRACT of syncdff_ff1: signal is "NO";
-    attribute SHIFT_EXTRACT of syncdff_ff2: signal is "NO";
+    --attribute SHIFT_EXTRACT: string;
+    --attribute SHIFT_EXTRACT of syncdff_ff1: signal is "NO";
+    --attribute SHIFT_EXTRACT of syncdff_ff2: signal is "NO";
 
     -- Tell XST to place both flip-flops in the same slice.
-    attribute RLOC: string;
-    attribute RLOC of syncdff_ff1: signal is "X0Y0";
-    attribute RLOC of syncdff_ff2: signal is "X0Y0";
+    --attribute RLOC: string;
+    --attribute RLOC of syncdff_ff1: signal is "X0Y0";
+    --attribute RLOC of syncdff_ff2: signal is "X0Y0";
 
     -- Tell XST to keep the flip-flop net names to be used in timing constraints.
     attribute KEEP: string;

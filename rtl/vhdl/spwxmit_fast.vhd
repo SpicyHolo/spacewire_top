@@ -180,8 +180,8 @@ entity spwxmit_fast is
     );
 
     -- Turn off FSM extraction to avoid synchronization problems.
-    attribute FSM_EXTRACT: string;
-    attribute FSM_EXTRACT of spwxmit_fast: entity is "NO";
+    --attribute FSM_EXTRACT: string;
+    --attribute FSM_EXTRACT of spwxmit_fast: entity is "NO";
 
 end entity spwxmit_fast;
 
@@ -321,9 +321,9 @@ architecture spwxmit_fast_arch of spwxmit_fast is
     signal s_spwso: std_logic;
 
     -- Force use of IOB flip-flops
-    attribute IOB: string;
-    attribute IOB of s_spwdo: signal is "TRUE";
-    attribute IOB of s_spwso: signal is "TRUE";
+    --attribute IOB: string;
+    --attribute IOB of s_spwdo: signal is "TRUE";
+    --attribute IOB of s_spwso: signal is "TRUE";
 
 begin
 

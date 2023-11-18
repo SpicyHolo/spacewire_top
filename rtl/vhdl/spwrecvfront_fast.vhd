@@ -102,8 +102,8 @@ entity spwrecvfront_fast is
 
     -- Turn off FSM extraction.
     -- Without this, XST will happily apply one-hot encoding to rrx.headptr.
-    attribute FSM_EXTRACT: string;
-    attribute FSM_EXTRACT of spwrecvfront_fast: entity is "NO";
+    --attribute FSM_EXTRACT: string;
+    --attribute FSM_EXTRACT of spwrecvfront_fast: entity is "NO";
 
 end entity spwrecvfront_fast;
 
@@ -190,11 +190,11 @@ architecture spwrecvfront_arch of spwrecvfront_fast is
     signal s_a_si2:     std_logic;
 
     -- force use of IOB flip-flops
-    attribute IOB: string;
-    attribute IOB of s_a_di1: signal is "TRUE";
-    attribute IOB of s_a_si1: signal is "TRUE";
-    attribute IOB of s_a_di2: signal is "TRUE";
-    attribute IOB of s_a_si2: signal is "TRUE";
+    --attribute IOB: string;
+    --attribute IOB of s_a_di1: signal is "TRUE";
+    --attribute IOB of s_a_si1: signal is "TRUE";
+    --attribute IOB of s_a_di2: signal is "TRUE";
+    --attribute IOB of s_a_si2: signal is "TRUE";
 
 begin
 
