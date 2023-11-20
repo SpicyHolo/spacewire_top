@@ -78,25 +78,21 @@ set_global_assignment -name SDC_FILE clock_constraints.sdc
 # SpW data
 #============================================================
 
-#set_instance_assignment -name IO_STANDARD LVDS -to spw_do
 set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to spw_do
 set_location_assignment PIN_R16 -to spw_do
-#set_location_assignment PIN_P16 -to "spw_do(n)"
+set_location_assignment PIN_P16 -to "spw_do(n)"
 
-#set_instance_assignment -name IO_STANDARD LVDS -to spw_so
 set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to spw_so
 set_location_assignment PIN_G15 -to spw_so
-#set_location_assignment PIN_G16 -to "spw_so(n)"
+set_location_assignment PIN_G16 -to "spw_so(n)"
 
-#set_instance_assignment -name IO_STANDARD LVDS -to spw_di
 set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to spw_di
 set_location_assignment PIN_B6 -to spw_di
-#set_location_assignment PIN_A6 -to "spw_di(n)"
+set_location_assignment PIN_A6 -to "spw_di(n)"
 
-#set_instance_assignment -name IO_STANDARD LVDS -to spw_si
 set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to spw_si
 set_location_assignment PIN_R11 -to spw_si
-#set_location_assignment PIN_T11 -to "spw_si(n)"
+set_location_assignment PIN_T11 -to "spw_si(n)"
 
 #============================================================
 # Clock 50MHz

@@ -1,5 +1,5 @@
 TimeQuest Timing Analyzer report for spacewire_top
-Sat Nov 18 14:19:59 2023
+Mon Nov 20 23:07:09 2023
 Quartus II 64-Bit Version 13.0.1 Build 232 06/12/2013 Service Pack 1 SJ Web Edition
 
 
@@ -110,7 +110,7 @@ Parallel compilation was disabled, but you have multiple processors available. E
 +----------------------------+--------+
 ; Processors                 ; Number ;
 +----------------------------+--------+
-; Number detected on machine ; 5      ;
+; Number detected on machine ; 4      ;
 ; Maximum allowed            ; 1      ;
 +----------------------------+--------+
 
@@ -120,7 +120,7 @@ Parallel compilation was disabled, but you have multiple processors available. E
 +-----------------------+--------+--------------------------+
 ; SDC File Path         ; Status ; Read at                  ;
 +-----------------------+--------+--------------------------+
-; clock_constraints.sdc ; OK     ; Sat Nov 18 14:19:57 2023 ;
+; clock_constraints.sdc ; OK     ; Mon Nov 20 23:07:07 2023 ;
 +-----------------------+--------+--------------------------+
 
 
@@ -1670,7 +1670,7 @@ No dedicated SERDES Receiver circuitry present in device or used in design
 Info: *******************************************************************
 Info: Running Quartus II 64-Bit TimeQuest Timing Analyzer
     Info: Version 13.0.1 Build 232 06/12/2013 Service Pack 1 SJ Web Edition
-    Info: Processing started: Sat Nov 18 14:19:56 2023
+    Info: Processing started: Mon Nov 20 23:07:07 2023
 Info: Command: quartus_sta spacewire_top -c spacewire_top
 Info: qsta_default_script.tcl version: #1
 Warning (20028): Parallel compilation is not licensed and has been disabled
@@ -1735,9 +1735,9 @@ Info (332146): Worst-case minimum pulse width slack is 8.209
 Info (332102): Design is not fully constrained for setup requirements
 Info (332102): Design is not fully constrained for hold requirements
 Info: Quartus II 64-Bit TimeQuest Timing Analyzer was successful. 0 errors, 7 warnings
-    Info: Peak virtual memory: 599 megabytes
-    Info: Processing ended: Sat Nov 18 14:19:59 2023
-    Info: Elapsed time: 00:00:03
-    Info: Total CPU time (on all processors): 00:00:04
+    Info: Peak virtual memory: 607 megabytes
+    Info: Processing ended: Mon Nov 20 23:07:09 2023
+    Info: Elapsed time: 00:00:02
+    Info: Total CPU time (on all processors): 00:00:02
 
 
