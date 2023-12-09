@@ -135,7 +135,8 @@ BEGIN
     port map (
         CLOCK_50        => sysclk, -- DE0 CLOCK_50 (50MHz CLK)
 		KEY             => btn_reset, -- DE0 KEY (button) [reset]
-		
+		LED             => led,
+
 		-- External LCD ports
 		LCD_EN          => LCD_EN,
 		LCD_RS          => LCD_RS,
@@ -143,7 +144,7 @@ BEGIN
 		LCD_DATA        => LCD_DATA,
 
 		-- LCD Register control
-		lcd_register_data_in => sensor_data --ja nie ogarniam tych we/wy, to jest dobrze? +1 +1
+		lcd_register_data_in => sensor_data 
     );
 
     -- Streamtest instance
@@ -212,14 +213,15 @@ BEGIN
                 (NOT s_resetbtn);
 
             -- Drive LEDs (inverted logic)
-            led(0) <= s_linkstarted;
-            led(1) <= s_linkconnecting;
-            led(2) <= s_linkrun;
-            led(3) <= s_linkerrorled;
-            led(4) <= s_gotdata;
-            led(5) <= '0';
-            led(6) <= s_dataerror;
-            led(7) <= s_tickerror;
+            -- led <= sensor_data(7 DOWNTO 0);
+            -- led(0) <= s_linkstarted;
+            -- led(1) <= s_linkconnecting;
+            -- led(2) <= s_linkrun;
+            -- led(3) <= s_linkerrorled;
+            -- led(4) <= s_gotdata;
+            -- led(5) <= '0';
+            -- led(6) <= s_dataerror;
+            -- led(7) <= s_tickerror;
 
         END IF;
     END PROCESS;

@@ -94,18 +94,18 @@ ARCHITECTURE hardware OF spacewire_lcd_driver IS
 		suffix : STRING;
 		selected_range : INTEGER;
 		precision : NATURAL) RETURN STRING IS
-		VARIABLE accel_value : REAL;
+		VARIABLE accel_value : INTEGER;
 		VARIABLE accel_value_str : STRING(1 TO 20);
 		VARIABLE temp_string : STRING(1 TO 20); -- Adjust the length based on your needs
 	BEGIN
 		-- Convert to REAL, scaled for correct interpretation (check accelerometer datasheet)
-		accel_value := REAL(TO_INTEGER(SIGNED(accel_data))) * (REAL(selected_range) / (2.0 ** 12.0)); -- TODO fix this xD
+		accel_value := TO_INTEGER(SIGNED(accel_data)); -- TODO fix this xD
 
 		-- Convert REAL to string, add padding to 20 to avoid length errors
-		accel_value_str := stringPadding(real'image(accel_value), 20);
+		accel_value_str := stringPadding(integer'image(accel_value), 20);
 
 		-- Return formatted string, with correct decimal point precision
-		RETURN stringPadding(prefix & accel_value_str(1 TO (precision + 2)) & suffix, 20);
+		RETURN stringPadding(prefix & accel_value_str(1 TO 4) & suffix, 20);
 
 	END FUNCTION;
 
@@ -162,8 +162,7 @@ ARCHITECTURE hardware OF spacewire_lcd_driver IS
 	SIGNAL busy : STD_LOGIC;
 
 	TYPE state_type IS (reset, write_char, write_char_wait, update, update_linecount,
-		update_linecount_wait, write_char_1, write_char_1_wait,
-		write_char_2, write_char_2_wait, write_char_3, write_char_4, hold);
+		update_linecount_wait, hold, update_home, update_home_wait);
 	SIGNAL state : state_type;
 
 	-- A string of 20 characters
@@ -213,11 +212,11 @@ BEGIN
 			goto10 <= '0';
 			goto20 <= '0';
 			goto30 <= '0';
-			LED(0) <= '0';
 			data <= "00000000";
 			character_counter <= 1;
 			state <= reset;
 		ELSIF rising_edge(clk) THEN
+			LED <= (others => '0');
 			wr <= '0';
 			init <= '0';
 			cls <= '0';
@@ -225,20 +224,23 @@ BEGIN
 			goto10 <= '0';
 			goto20 <= '0';
 			goto30 <= '0';
-			LED(0) <= '0';
 			data <= "00000000";
 			CASE state IS
 
 				WHEN reset => -- Initial state
+					LED(0) <= '1';
 					-- Wait for the LCD module ready
 					IF busy = '0' THEN -- TODO check if this will be saved between processes
-						message <= empty_message;
-						-- (
-						-- 	1 => stringPadding("Spacewire", 20),
+						message(2) <= stringPadding(integer'image(TO_INTEGER(SIGNED(lcd_register_data_in))), 20); 
+						--convertData(lcd_register_data_in, "x: ", "g", 2, 4);
+						-- message <= empty_message;
+						-- message <= (
+						-- 	1 => stringPadding("    Spacewire", 20),
 						-- 	2 => convertData(lcd_register_data_in, "x: ", "g", 2, 4),
 						-- 	3 => convertData("0000000000000000", "    y: ", "g", 2, 4),
 						-- 	4 => convertData("0000000000000000", "    z: ", "g", 2, 4)
 						-- );
+						
 						state <= write_char;
 					END IF;
 					-- Setup message counter, start at 1.
@@ -246,7 +248,7 @@ BEGIN
 					line_counter <= 1;
 
 				WHEN write_char =>
-					LED(0) <= '1';
+					LED(1) <= '1';
 					-- Set up WRITE!
 					-- Use the data from the string
 					aline := message(line_counter);
@@ -255,6 +257,7 @@ BEGIN
 					state <= write_char_wait;
 
 				WHEN write_char_wait =>
+					LED(2) <= '1';
 					-- This state is needed so that the LCD driver
 					-- can process the write command. Note that data
 					-- and wr are registered outputs and get their
@@ -264,7 +267,7 @@ BEGIN
 					state <= update;
 
 				WHEN update =>
-					LED(0) <= '1';
+					LED(3) <= '1';
 					-- Wait for the write complete
 					IF busy = '0' THEN
 						-- If end of string, goto hold mode...
@@ -293,6 +296,7 @@ BEGIN
 					END IF;
 
 				WHEN update_linecount =>
+					LED(4) <= '1';
 					-- This state is needed so that the LCD driver
 					-- can process the gotoXX command. Note that the gotoXX
 					-- signals are registered outputs and get their
@@ -302,17 +306,25 @@ BEGIN
 					state <= update_linecount_wait;
 
 				WHEN update_linecount_wait =>
+					LED(5) <= '1';
 					-- Wait for the LCD module ready
 					IF busy = '0' THEN
 						state <= write_char;
 					END IF;
-					-- The "hohouwer"
+					-- The "hohouwer" (hangover of santa claus +1) +1
+					
 				WHEN hold =>
-					state <= hold;
+					LED(6) <= '1';
+					home <= '1';
+					state <= update_home;
 
-				WHEN OTHERS =>
-					NULL;
+				WHEN update_home =>
+					state <= update_home_wait;
 
+				WHEN update_home_wait =>
+					IF busy = '0' THEN
+						state <= reset;
+					END IF;
 			END CASE;
 		END IF;
 	END PROCESS;
