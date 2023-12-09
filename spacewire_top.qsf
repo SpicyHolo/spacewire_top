@@ -66,59 +66,77 @@ set_global_assignment -name VHDL_FILE rtl/vhdl/spwpkg.vhd
 set_global_assignment -name VHDL_FILE rtl/vhdl/spwlink.vhd
 
 #============================================================
-# Attach pin assignments
-#============================================================
-#set_global_assignment -name SOURCE_TCL_SCRIPT_FILE pins.tcl
-
-# 
-set_global_assignment -name STRATIX_DEVICE_IO_STANDARD "2.5 V"
-set_global_assignment -name SDC_FILE clock_constraints.sdc
-
-#============================================================
-# SpW data
-#============================================================
-
-set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to spw_do
-set_location_assignment PIN_R16 -to spw_do
-set_location_assignment PIN_P16 -to "spw_do(n)"
-
-set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to spw_so
-set_location_assignment PIN_G15 -to spw_so
-set_location_assignment PIN_G16 -to "spw_so(n)"
-
-set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to spw_di
-set_location_assignment PIN_B6 -to spw_di
-set_location_assignment PIN_A6 -to "spw_di(n)"
-
-set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to spw_si
-set_location_assignment PIN_R11 -to spw_si
-set_location_assignment PIN_T11 -to "spw_si(n)"
-
-#============================================================
 # Clock 50MHz
 #============================================================
 set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to clk50
 set_location_assignment PIN_R8 -to clk50
 
+
+#============================================================
+# SpW data
+#============================================================
+
+set_instance_assignment -name IO_STANDARD LVDS -to spw_do
+
+#oba sa blizej switchy
+set_location_assignment PIN_R16 -to spw_do
+#po wewnatrznej stronie plytki
+set_location_assignment PIN_P16 -to "spw_do(n)"
+#po zew. stronie plytki
+
+
+set_instance_assignment -name IO_STANDARD LVDS -to spw_so
+
+# zaraz obok, dalej od switchow
+set_location_assignment PIN_L15 -to spw_so
+#po zew. stronie plytki
+set_location_assignment PIN_L16 -to "spw_so(n)"
+#po wew stronie plytki
+
+set_instance_assignment -name IO_STANDARD LVDS -to spw_di
+
+#oba sa najblizej naklejki
+set_location_assignment PIN_T14 -to spw_di
+#po wew. stronie plytki
+set_location_assignment PIN_T15 -to "spw_di(n)"
+#po zew. stronie plytki
+
+set_instance_assignment -name IO_STANDARD LVDS -to spw_si
+
+#obok, jeden pin dalej od naklejki
+set_location_assignment PIN_R13 -to spw_si
+#po wew. stronie
+set_location_assignment PIN_T13 -to "spw_si(n)"
+#po zew. stronie
+
 #============================================================
 # LED outputs
 #============================================================
-set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to led[0]
-set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to led[1]
-set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to led[2]
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to led[4]
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to led[5]
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to led[6]
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to led[7]
 set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to led[3]
-set_location_assignment PIN_A15 -to led[0]
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to led[2]
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to led[1]
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to led[0]
+set_location_assignment PIN_D1 -to led[4]
+set_location_assignment PIN_F3 -to led[5]
+set_location_assignment PIN_B1 -to led[6]
+set_location_assignment PIN_L3 -to led[7]
 set_location_assignment PIN_A13 -to led[1]
-set_location_assignment PIN_B13 -to led[2]
 set_location_assignment PIN_A11 -to led[3]
+set_location_assignment PIN_B13 -to led[2]
+set_location_assignment PIN_A15 -to led[0]
 
 #============================================================
 # KEY
 #============================================================
-set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to btn_reset
+
+set_location_assignment PIN_J15 -to btn_clear
+set_location_assignment PIN_E1 -to btn_reset
 set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to btn_clear
-set_location_assignment PIN_J15 -to btn_reset
-set_location_assignment PIN_E1 -to btn_clear
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to btn_reset
 
 #============================================================
 # SW
@@ -131,6 +149,5 @@ set_location_assignment PIN_M1 -to switch[0]
 set_location_assignment PIN_T8 -to switch[1]
 set_location_assignment PIN_B9 -to switch[2]
 set_location_assignment PIN_M15 -to switch[3]
-
 
 set_instance_assignment -name PARTITION_HIERARCHY root_partition -to | -section_id Top
