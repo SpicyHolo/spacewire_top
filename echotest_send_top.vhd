@@ -3,8 +3,10 @@
 library ieee;
 use ieee.std_logic_1164.all, ieee.numeric_std.all;
 use work.spwpkg.all;
+use work.all;
 
-entity streamtest_top is
+entity 
+echotest_send_top is
 
     port (
         clk50:        in  std_logic;
@@ -17,9 +19,9 @@ entity streamtest_top is
         spw_do:     out std_logic;
         spw_so:     out std_logic );
 
-end entity streamtest_top;
+end entity echotest_send_top;
 
-architecture streamtest_top_arch of streamtest_top is
+architecture echotest_send_top_arch of echotest_send_top is
 
     -- Clock generation.
     signal sysclk:          std_logic;
@@ -94,7 +96,7 @@ architecture streamtest_top_arch of streamtest_top is
 
 begin
 
-    echotest_inst: streamtest
+    echotest_send_inst: echotest_send
         generic map (
             sysfreq     => 50.0e6,
             txclkfreq   => 0.0,
@@ -164,4 +166,4 @@ begin
         end if;
     end process;
 
-end architecture streamtest_top_arch;
+end architecture echotest_send_top_arch;

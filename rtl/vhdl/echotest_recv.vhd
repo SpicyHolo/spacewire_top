@@ -25,7 +25,7 @@ use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 use work.spwpkg.all;
 
-entity streamtest is
+entity echotest_recv is
 
     generic (
         sysfreq:    real;
@@ -65,12 +65,17 @@ entity streamtest is
         spw_di:     in  std_logic;
         spw_si:     in  std_logic;
         spw_do:     out std_logic;
-        spw_so:     out std_logic
+        spw_so:     out std_logic;
+
+        linkerror_disc: out std_logic;
+        linkerror_par: out std_logic;
+        linkerror_esc: out std_logic;
+        linkerror_cred: out std_logic
     );
 
-end entity streamtest;
+end entity echotest_recv;
 
-architecture streamtest_arch of streamtest is
+architecture echotest_recv_arch of echotest_recv is
 
     -- Receiving side state.
     type rx_state_type is ( rxst_idle, rxst_data );
@@ -181,11 +186,16 @@ begin
             spw_di      => spw_di,
             spw_si      => spw_si,
             spw_do      => spw_do,
-            spw_so      => spw_so );
+            spw_so      => spw_so
+            );
 
     -- Drive status indications.
     linkrun     <= s_running;
     linkerror   <= s_errdisc or s_errpar or s_erresc or s_errcred;
+    linkerror_disc  <= s_errdisc;
+    linkerror_par   <= s_errpar;
+    linkerror_esc   <= s_erresc;
+    linkerror_cred  <= s_errcred;
     gotdata     <= r.gotdata;
     dataerror   <= r.dataerror;
     tickerror   <= r.tickerror;
@@ -203,6 +213,8 @@ begin
             if unsigned(s_timeout) + 1 /= unsigned(r.time_in) then
                 -- Received time code does not match last transmitted code.
                 v.tickerror := '1';
+				else
+					 v.tickerror := '0';
             end if;
         end if;
 
@@ -254,39 +266,26 @@ begin
  
 
         -- -- Turn data receiving on/off at regular intervals
-        -- v.rx_quietcnt := std_logic_vector(unsigned(r.rx_quietcnt) + 1);
-        -- if unsigned(r.rx_quietcnt) = 55000 then
-        --     v.rx_quietcnt := (others => '0');
-        -- end if;
-        -- v.rx_enabledata := not r.rx_quietcnt(15);
+        v.rx_quietcnt := std_logic_vector(unsigned(r.rx_quietcnt) + 1);
+        if unsigned(r.rx_quietcnt) = 55000 then
+            v.rx_quietcnt := (others => '0');
+        end if;
+        v.rx_enabledata := not r.rx_quietcnt(15);
 
-        -- case r.rx_state is
-        --     when rxst_idle =>
-        --         v.rxread    := r.rx_enabledata;
-        --         if r.rxread = '1' and s_rxvalid = '1' then -- and flag is 0
-        --             v.rx_state  := rxst_data; -- and pop it into reg
-        --         end if;
-        --     when rxst_data =>
-        --         v.rxread    := r.rx_enabledata;
-        --         if r.rxread = '1' and s_rxvalid = '1' then
-        --             -- got next byte
-        --             if s_rxflag = '1' then
-        --                 -- got EOP or EEP
-        --                 v.rxread    := '0';
-        --                 v.rx_state  := rxst_idle;
-        --                 if s_rxdata = "00000000" then
-        --                     -- got EOP
-        --                 else
-        --                     -- got EEP
-        --                 end if;
-        --             else
-        --                 -- got next byte in packet
-        --             end if;
-        --         end if;
-        -- end case;
+
+        v.rxread    := r.rx_enabledata;
+        if r.rxread = '1' and s_rxvalid = '1' then
+            -- got next byte
+            v.txwrite   := '1';
+            v.txflag    := s_rxflag;
+            v.txdata    := s_rxdata;
+        else
+            v.txwrite   := '0';    
+        end if;
+
 
         -- -- Blink light when receiving data.
-        -- v.gotdata   := s_rxvalid and r.rxread;
+        v.gotdata   := s_rxvalid and r.rxread;
 
 
         -- If the link goes away, we should expect inconsistency on the receiving side.
@@ -309,4 +308,4 @@ begin
         end if;
     end process;
 
-end architecture streamtest_arch;
+end architecture echotest_recv_arch;
