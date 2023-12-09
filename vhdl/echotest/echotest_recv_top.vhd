@@ -3,23 +3,24 @@
 library ieee;
 use ieee.std_logic_1164.all, ieee.numeric_std.all;
 use work.spwpkg.all;
+use work.all;
 
-entity streamtest_top is
+entity echotest_recv_top is
 
     port (
         clk50:        in  std_logic;
         btn_reset:  in  std_logic;
         btn_clear:  in  std_logic;
         switch:     in  std_logic_vector(3 downto 0);
-        led:        out std_logic_vector(3 downto 0);
+        led:        out std_logic_vector(7 downto 0);
         spw_di:     in  std_logic;
         spw_si:     in  std_logic;
         spw_do:     out std_logic;
         spw_so:     out std_logic );
 
-end entity streamtest_top;
+end entity echotest_recv_top;
 
-architecture streamtest_top_arch of streamtest_top is
+architecture echotest_recv_top_arch of echotest_recv_top is
 
     -- Clock generation.
     signal sysclk:          std_logic;
@@ -29,18 +30,16 @@ architecture streamtest_top_arch of streamtest_top is
     signal s_clearbtn:      std_logic := '0';
 
     -- Sticky LED
-    signal s_linkerrorled:  std_logic := '0';
+    signal s_linkerrorled:  std_logic_vector(4 downto 0) := "00000";
 
     -- Interface signals.
-    --
-    -- Config
+    signal s_rst:           std_logic := '1';
     signal s_linkstart:     std_logic := '0';
     signal s_autostart:     std_logic := '0';
     signal s_linkdisable:   std_logic := '0';
     signal s_senddata:      std_logic := '0';
     signal s_sendtick:      std_logic := '0';
     signal s_txdivcnt:      std_logic_vector(7 downto 0) := "00000000";
-    -- Status
     signal s_linkstarted:   std_logic;
     signal s_linkconnecting: std_logic;
     signal s_linkrun:       std_logic;
@@ -48,15 +47,18 @@ architecture streamtest_top_arch of streamtest_top is
     signal s_gotdata:       std_logic;
     signal s_dataerror:     std_logic;
     signal s_tickerror:     std_logic;
-    -- IO
-    signal s_rst:           std_logic := '1';
     signal s_spwdi:         std_logic;
     signal s_spwsi:         std_logic;
     signal s_spwdo:         std_logic;
     signal s_spwso:         std_logic;
 
+    signal s_linkerror_disc:     std_logic;
+    signal s_linkerror_par:     std_logic;
+    signal s_linkerror_esc:     std_logic;
+    signal s_linkerror_cred:     std_logic;
 
-    component streamtest is
+
+    component echotest_recv is
         generic (
             sysfreq:    real;
             txclkfreq:  real;
@@ -88,13 +90,17 @@ architecture streamtest_top_arch of streamtest_top is
             spw_di:     in  std_logic;
             spw_si:     in  std_logic;
             spw_do:     out std_logic;
-            spw_so:     out std_logic
+            spw_so:     out std_logic;
+            linkerror_disc: out std_logic;
+            linkerror_par: out std_logic;
+            linkerror_esc: out std_logic;
+            linkerror_cred: out std_logic
         );
     end component;
 
 begin
 
-    echotest_inst: streamtest
+    echotest_recv_inst: echotest_recv
         generic map (
             sysfreq     => 50.0e6,
             txclkfreq   => 0.0,
@@ -103,7 +109,8 @@ begin
             rxchunk     => 1,
             tximpl      => impl_generic,
             rxfifosize_bits => 11,
-            txfifosize_bits => 10 )
+            txfifosize_bits => 10
+        )
         port map (
             clk         => sysclk,
             rxclk       => '0',
@@ -125,7 +132,12 @@ begin
             spw_di      => s_spwdi,
             spw_si      => s_spwsi,
             spw_do      => s_spwdo,
-            spw_so      => s_spwso );
+            spw_so      => s_spwso,
+            linkerror_disc => s_linkerror_disc,
+            linkerror_par => s_linkerror_par,
+            linkerror_esc => s_linkerror_esc,
+            linkerror_cred => s_linkerror_cred
+        );
 				
 	sysclk <= clk50;
 	s_spwdi <= spw_di;
@@ -151,17 +163,34 @@ begin
             s_txdivcnt(7 downto 0) <= "00000000";
 
             -- Sticky link error LED
-            s_linkerrorled <= (s_linkerrorled or s_linkerror) and
-                              (not s_clearbtn) and
-                              (not s_resetbtn);
+            s_linkerrorled(0) <= (s_linkerrorled(0) or s_linkerror) and
+                (not s_clearbtn) and (not s_resetbtn);
+
+            s_linkerrorled(1) <= (s_linkerrorled(1) or s_linkerror_disc) and
+                (not s_clearbtn) and (not s_resetbtn);
+
+            s_linkerrorled(2) <= (s_linkerrorled(2) or s_linkerror_par) and
+                (not s_clearbtn) and (not s_resetbtn);
+
+            s_linkerrorled(3) <= (s_linkerrorled(3) or s_linkerror_esc) and
+                (not s_clearbtn) and (not s_resetbtn);
+
+            s_linkerrorled(4) <= (s_linkerrorled(4) or s_linkerror_cred) and
+                (not s_clearbtn) and (not s_resetbtn);
+
+                              
 
             -- Drive LEDs (inverted logic)
             led(0)  <= s_linkrun;
-            led(1)  <= s_linkerrorled;
-            led(2)  <= s_gotdata;
-            led(3)  <= (s_dataerror or s_tickerror);
+            led(1)  <= s_linkerrorled(0);
+            led(2)  <= s_linkerrorled(1);
+            led(3)  <= s_linkerrorled(2);
+            led(4)  <= s_linkerrorled(3);
+            led(5)  <= s_linkerrorled(4);
+            led(6)  <= s_gotdata;
+			led(7)  <= s_tickerror;
 
         end if;
     end process;
 
-end architecture streamtest_top_arch;
+end architecture echotest_recv_top_arch;
