@@ -1,42 +1,45 @@
 --
---  Test of spwstream on Pender GR-XC3S-1500 board.
---  60 MHz system clock; 200 MHz receive clock and transmit clock.
+--  Test of spwstream on Digilent XC3S200 board.
+--  60 MHz system clock, 200 MHz receive clock and transmit clock.
 --
---  LED 0 = link run
---  LED 1 = link error (sticky until clear button)
---  LED 2 = gotdata
---  LED 3 = data/timecode error (sticky until reset)
+--  LED 0 = link started
+--  LED 1 = link connecting
+--  LED 2 = link run
+--  LED 3 = link error (sticky until clear button)
+--  LED 4 = gotdata
+--  LED 5 = off
+--  LED 6 = data error (sticky until reset)
+--  LED 7 = time code error (sticky until reset)
 --
---  Button S2 = reset
---  Button S3 = clear LED 1
+--  Button 0 = reset
+--  Button 1 = clear LED 3
 --
---  Switch 0 = link start
---  Switch 1 = link disable
---  Switch 2 = send data
---  Switch 3 = send time codes
+--  Switch 0 = link autostart
+--  Switch 1 = link start
+--  Switch 2 = link disable
+--  Switch 3 = send data and time codes
 --  Switch 4-7 = bits 0-3 of tx bit rate scale factor
 --
---  SpaceWire signals on expansion connector J12:
---    Data In    pos,neg  =  m1,m2  =  pin 3,2
---    Strobe In  pos,neg  =  m3,m4  =  pin 6,5
---    Data Out   pos,neg  =  n1,n2  =  pin 9,8
---    Strobe Out pos,neg  =  n3,n4  =  pin 12,11
+--  SpaceWire signals on A2 expansion connector:
+--    Data In    pos,neg  =  B5,C5  =  pin 19,6
+--    Strobe In  pos,neg  =  D6,E6  =  pin 7,4
+--    Data Out   pos,neg  =  B6,C6  =  pin 21,8
+--    Strobe Out pos,neg  =  D7,E7  =  pin 11,9
 --
---  To get proper LVDS signals from connector J12, the voltage on I/O bank 6
---  must be set to 2.5V. This is the default on GR-XC3S-1500-rev2, but on
---  GR-XC3S-1500-rev1 a change is required on the board (described in
---  the board manual).
+--  Note: these are not true LVDS signals; they are configured as LVDS25
+--  but powered from 3.3V instead of 2.5V, not differentially routed and
+--  not properly terminated.
 --
---  To terminate the incoming LVDS signals, 100 Ohm termination resistors
---  must be installed on the board in positions R120 and R121.
+--  The SpaceWire port should be looped back to itself with wires from
+--  outputs to corresponding inputs.
 --
+
 --  The SpaceWire port should be looped back to itself, either directly
 --  or via an other SpaceWire device. For a direct loopback, place 4 wires
 --  from the output pins to the corresponding input pins. For an indirect
 --  loopback, connect the SpaceWire signals to an additional SpaceWire device
 --  which is programmed to echo everything it receives (characters, packets,
---  time codes). See the datasheet for a wiring diagram from J12 to MDM9.
---
+--  time codes).
 
 library ieee;
 use ieee.std_logic_1164.all, ieee.numeric_std.all;
@@ -130,12 +133,12 @@ begin
         generic map (
             sysfreq     => 50.0e6,
             txclkfreq   => 0.0,
-            tickdiv     => 22,
+            tickdiv     => 20,
             rximpl      => impl_generic,
             rxchunk     => 1,
             tximpl      => impl_generic,
             rxfifosize_bits => 11,
-            txfifosize_bits => 10 )
+            txfifosize_bits => 11 )
         port map (
             clk         => sysclk,
             rxclk       => '0',
@@ -188,10 +191,14 @@ begin
                               (not s_resetbtn);
 
             -- Drive LEDs (inverted logic)
-            led(0)  <= s_linkrun;
-            led(1)  <= s_linkerrorled;
-            led(2)  <= s_gotdata;
-            led(3)  <= (s_dataerror or s_tickerror);
+            led(0)  <= s_linkstarted;
+            led(1)  <= s_linkconnecting;
+            led(2)  <= s_linkrun;
+            led(3)  <= s_linkerrorled;
+            led(4)  <= s_gotdata;
+            led(5)  <= '0';
+            led(6)  <= s_dataerror;
+            led(7)  <= s_tickerror;
 
         end if;
     end process;

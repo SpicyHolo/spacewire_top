@@ -52,7 +52,7 @@ entity streamtest_top is
         btn_reset:  in  std_logic;
         btn_clear:  in  std_logic;
         switch:     in  std_logic_vector(3 downto 0);
-        led:        out std_logic_vector(3 downto 0);
+        led:        out std_logic_vector(7 downto 0);
         spw_di:     in  std_logic;
         spw_si:     in  std_logic;
         spw_do:     out std_logic;
