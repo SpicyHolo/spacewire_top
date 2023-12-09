@@ -173,14 +173,14 @@ ARCHITECTURE hardware OF spacewire_lcd_driver IS
 	CONSTANT empty_message : message4x20_type := (
 		1 => stringPadding("No Data", 20),
 		2 => convertData("0000000000000000", "x: ", "g", 2, 4),
-		3 => convertData("0000000000000000", "    y: ", "g", 2, 4),
-		4 => convertData("0000000000000000", "    z: ", "g", 2, 4)
+		3 => convertData("0000000000000000", "y: ", "g", 2, 4),
+		4 => convertData("0000000000000000", "z: ", "g", 2, 4)
 	);
 	CONSTANT debug_message : message4x20_type := (
 		1 => stringPadding("Debug", 20),
 		2 => convertData("0111111111111111", "x: ", "g", 2, 4),
-		3 => convertData("0000000000000000", "    y: ", "g", 2, 4),
-		4 => convertData("0111111111111111", "    z: ", "g", 2, 4)
+		3 => convertData("0000000000000000", "y: ", "g", 2, 4),
+		4 => convertData("0111111111111111", "z: ", "g", 2, 4)
 	);
 	SIGNAL message : message4x20_type := empty_message; 
 
