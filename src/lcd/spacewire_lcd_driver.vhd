@@ -219,12 +219,10 @@ BEGIN
 
 		IF test = '1' THEN
 			LED(0) <= '1';
-			test <= '0';
 			temp_message(2) := "    ACTIVE          ";
 			
 		ELSE
 			LED(0) <= '0';
-			test <= '1';
 			temp_message(2) := "    NOT ACTIVE      "; 
 		END IF;
 
@@ -240,7 +238,6 @@ BEGIN
 			character_counter <= 1;
 			state <= reset;
 		ELSIF rising_edge(clk) THEN
-			message <= empty_message;
 
 			LED(7 DOWNTO 1) <= (others => '0');
 			wr <= '0';
@@ -251,6 +248,8 @@ BEGIN
 			goto20 <= '0';
 			goto30 <= '0';
 			data <= "00000000";
+
+			message <= message_in;
 			--wchodzimy na pewno do ifa, ale nie wyswietlaja sie poprawne wartosci na ekranie, mimo ze na ledach tak
 			
 			CASE state IS
@@ -258,6 +257,7 @@ BEGIN
 				WHEN reset => -- Initial state
 					-- Wait for the LCD module ready
 					IF busy = '0' THEN
+						test <= not test;
 						state <= write_char;
 					END IF;
 					
@@ -309,7 +309,6 @@ BEGIN
 							state <= write_char;
 						END IF;
 					END IF;
-				message <= message_in;
 				WHEN update_linecount =>
 					-- This state is needed so that the LCD driver
 					-- can process the gotoXX command. Note that the gotoXX
