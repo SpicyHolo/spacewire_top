@@ -41,166 +41,164 @@
 --  which is programmed to echo everything it receives (characters, packets,
 --  time codes).
 
-library ieee;
-use ieee.std_logic_1164.all, ieee.numeric_std.all;
-use work.spwpkg.all;
+LIBRARY ieee;
+USE ieee.std_logic_1164.ALL, ieee.numeric_std.ALL;
+USE work.spwpkg.ALL;
 
-entity streamtest_top is
+ENTITY streamtest_top IS
 
-    port (
-        clk50:        in  std_logic;
-        btn_reset:  in  std_logic;
-        btn_clear:  in  std_logic;
-        switch:     in  std_logic_vector(3 downto 0);
-        led:        out std_logic_vector(7 downto 0);
-        spw_di:     in  std_logic;
-        spw_si:     in  std_logic;
-        spw_do:     out std_logic;
-        spw_so:     out std_logic );
+    PORT (
+        clk50 : IN STD_LOGIC;
+        btn_reset : IN STD_LOGIC;
+        btn_clear : IN STD_LOGIC;
+        switch : IN STD_LOGIC_VECTOR(3 DOWNTO 0);
+        led : OUT STD_LOGIC_VECTOR(7 DOWNTO 0);
+        spw_di : IN STD_LOGIC;
+        spw_si : IN STD_LOGIC;
+        spw_do : OUT STD_LOGIC;
+        spw_so : OUT STD_LOGIC);
 
-end entity streamtest_top;
+END ENTITY streamtest_top;
 
-architecture streamtest_top_arch of streamtest_top is
+ARCHITECTURE streamtest_top_arch OF streamtest_top IS
 
     -- Clock generation.
-    signal sysclk:          std_logic;
+    SIGNAL sysclk : STD_LOGIC;
 
     -- Synchronize buttons
-    signal s_resetbtn:      std_logic := '0';
-    signal s_clearbtn:      std_logic := '0';
+    SIGNAL s_resetbtn : STD_LOGIC := '0';
+    SIGNAL s_clearbtn : STD_LOGIC := '0';
 
     -- Sticky LED
-    signal s_linkerrorled:  std_logic := '0';
+    SIGNAL s_linkerrorled : STD_LOGIC := '0';
 
     -- Interface signals.
-    signal s_rst:           std_logic := '1';
-    signal s_linkstart:     std_logic := '0';
-    signal s_autostart:     std_logic := '0';
-    signal s_linkdisable:   std_logic := '0';
-    signal s_senddata:      std_logic := '0';
-    signal s_sendtick:      std_logic := '0';
-    signal s_txdivcnt:      std_logic_vector(7 downto 0) := "00000000";
-    signal s_linkstarted:   std_logic;
-    signal s_linkconnecting: std_logic;
-    signal s_linkrun:       std_logic;
-    signal s_linkerror:     std_logic;
-    signal s_gotdata:       std_logic;
-    signal s_dataerror:     std_logic;
-    signal s_tickerror:     std_logic;
-    signal s_spwdi:         std_logic;
-    signal s_spwsi:         std_logic;
-    signal s_spwdo:         std_logic;
-    signal s_spwso:         std_logic;
+    SIGNAL s_rst : STD_LOGIC := '1';
+    SIGNAL s_linkstart : STD_LOGIC := '0';
+    SIGNAL s_autostart : STD_LOGIC := '0';
+    SIGNAL s_linkdisable : STD_LOGIC := '0';
+    SIGNAL s_senddata : STD_LOGIC := '0';
+    SIGNAL s_sendtick : STD_LOGIC := '0';
+    SIGNAL s_txdivcnt : STD_LOGIC_VECTOR(7 DOWNTO 0) := "00000000";
+    SIGNAL s_linkstarted : STD_LOGIC;
+    SIGNAL s_linkconnecting : STD_LOGIC;
+    SIGNAL s_linkrun : STD_LOGIC;
+    SIGNAL s_linkerror : STD_LOGIC;
+    SIGNAL s_gotdata : STD_LOGIC;
+    SIGNAL s_dataerror : STD_LOGIC;
+    SIGNAL s_tickerror : STD_LOGIC;
+    SIGNAL s_spwdi : STD_LOGIC;
+    SIGNAL s_spwsi : STD_LOGIC;
+    SIGNAL s_spwdo : STD_LOGIC;
+    SIGNAL s_spwso : STD_LOGIC;
+    COMPONENT streamtest IS
+        GENERIC (
+            sysfreq : real;
+            txclkfreq : real;
+            tickdiv : INTEGER RANGE 12 TO 24 := 20;
+            rximpl : spw_implementation_type := impl_generic;
+            rxchunk : INTEGER RANGE 1 TO 4 := 1;
+            tximpl : spw_implementation_type := impl_generic;
+            rxfifosize_bits : INTEGER RANGE 6 TO 14 := 11;
+            txfifosize_bits : INTEGER RANGE 2 TO 14 := 11);
+        PORT (
+            clk : IN STD_LOGIC;
+            rxclk : IN STD_LOGIC;
+            txclk : IN STD_LOGIC;
+            rst : IN STD_LOGIC;
+            linkstart : IN STD_LOGIC;
+            autostart : IN STD_LOGIC;
+            linkdisable : IN STD_LOGIC;
+            senddata : IN STD_LOGIC;
+            sendtick : IN STD_LOGIC;
+            txdivcnt : IN STD_LOGIC_VECTOR(7 DOWNTO 0);
+            linkstarted : OUT STD_LOGIC;
+            linkconnecting : OUT STD_LOGIC;
+            linkrun : OUT STD_LOGIC;
+            linkerror : OUT STD_LOGIC;
+            gotdata : OUT STD_LOGIC;
+            dataerror : OUT STD_LOGIC;
+            tickerror : OUT STD_LOGIC;
+            spw_di : IN STD_LOGIC;
+            spw_si : IN STD_LOGIC;
+            spw_do : OUT STD_LOGIC;
+            spw_so : OUT STD_LOGIC);
+    END COMPONENT;
 
-
-    component streamtest is
-        generic (
-            sysfreq:    real;
-            txclkfreq:  real;
-            tickdiv:    integer range 12 to 24 := 20;
-            rximpl:     spw_implementation_type := impl_generic;
-            rxchunk:    integer range 1 to 4 := 1;
-            tximpl:     spw_implementation_type := impl_generic;
-            rxfifosize_bits: integer range 6 to 14 := 11;
-            txfifosize_bits: integer range 2 to 14 := 11 );
-        port (
-            clk:        in  std_logic;
-            rxclk:      in  std_logic;
-            txclk:      in  std_logic;
-            rst:        in  std_logic;
-            linkstart:  in  std_logic;
-            autostart:  in  std_logic;
-            linkdisable: in std_logic;
-            senddata:   in  std_logic;
-            sendtick:   in  std_logic;
-            txdivcnt:   in  std_logic_vector(7 downto 0);
-            linkstarted: out std_logic;
-            linkconnecting: out std_logic;
-            linkrun:    out std_logic;
-            linkerror:  out std_logic;
-            gotdata:    out std_logic;
-            dataerror:  out std_logic;
-            tickerror:  out std_logic;
-            spw_di:     in  std_logic;
-            spw_si:     in  std_logic;
-            spw_do:     out std_logic;
-            spw_so:     out std_logic );
-    end component;
-
-begin
+BEGIN
     -- Streamtest instance
-    streamtest_inst: streamtest
-        generic map (
-            sysfreq     => 50.0e6,
-            txclkfreq   => 0.0,
-            tickdiv     => 20,
-            rximpl      => impl_generic,
-            rxchunk     => 1,
-            tximpl      => impl_generic,
-            rxfifosize_bits => 11,
-            txfifosize_bits => 11 )
-        port map (
-            clk         => sysclk,
-            rxclk       => '0',
-            txclk       => '0',
-            rst         => s_rst,
-            linkstart   => s_linkstart,
-            autostart   => s_autostart,
-            linkdisable => s_linkdisable,
-            senddata    => s_senddata,
-            sendtick    => s_sendtick,
-            txdivcnt    => s_txdivcnt,
-            linkstarted => s_linkstarted,
-            linkconnecting => s_linkconnecting,
-            linkrun     => s_linkrun,
-            linkerror   => s_linkerror,
-            gotdata     => s_gotdata,
-            dataerror   => s_dataerror,
-            tickerror   => s_tickerror,
-            spw_di      => s_spwdi,
-            spw_si      => s_spwsi,
-            spw_do      => s_spwdo,
-            spw_so      => s_spwso );
-				
-	 sysclk <= clk50;
-	 s_spwdi <= spw_di;
+    streamtest_inst : streamtest
+    GENERIC MAP(
+        sysfreq => 50.0e6,
+        txclkfreq => 0.0,
+        tickdiv => 20,
+        rximpl => impl_generic,
+        rxchunk => 1,
+        tximpl => impl_generic,
+        rxfifosize_bits => 11,
+        txfifosize_bits => 11)
+    PORT MAP(
+        clk => sysclk,
+        rxclk => '0',
+        txclk => '0',
+        rst => s_rst,
+        linkstart => s_linkstart,
+        autostart => s_autostart,
+        linkdisable => s_linkdisable,
+        senddata => s_senddata,
+        sendtick => s_sendtick,
+        txdivcnt => s_txdivcnt,
+        linkstarted => s_linkstarted,
+        linkconnecting => s_linkconnecting,
+        linkrun => s_linkrun,
+        linkerror => s_linkerror,
+        gotdata => s_gotdata,
+        dataerror => s_dataerror,
+        tickerror => s_tickerror,
+        spw_di => s_spwdi,
+        spw_si => s_spwsi,
+        spw_do => s_spwdo,
+        spw_so => s_spwso);
+
+    sysclk <= clk50;
+    s_spwdi <= spw_di;
     s_spwsi <= spw_si;
     spw_do <= s_spwdo;
     spw_so <= s_spwso;
 
-    process (sysclk) is
-    begin
-        if rising_edge(sysclk) then
+    PROCESS (sysclk) IS
+    BEGIN
+        IF rising_edge(sysclk) THEN
 
             -- Synchronize buttons
-            s_resetbtn  <= not btn_reset;
-            s_rst       <= s_resetbtn;
-            s_clearbtn  <= not btn_clear;
+            s_resetbtn <= NOT btn_reset;
+            s_rst <= s_resetbtn;
+            s_clearbtn <= NOT btn_clear;
 
             -- Synchronize switch settings
             s_autostart <= '0';
             s_linkstart <= switch(0);
             s_linkdisable <= switch(1);
-            s_senddata  <= switch(2);
-            s_sendtick  <= switch(3);
-            s_txdivcnt(7 downto 0) <= "00000000";
+            s_senddata <= switch(2);
+            s_sendtick <= switch(3);
+            s_txdivcnt(7 DOWNTO 0) <= "00000000";
 
             -- Sticky link error LED
-            s_linkerrorled <= (s_linkerrorled or s_linkerror) and
-                              (not s_clearbtn) and
-                              (not s_resetbtn);
+            s_linkerrorled <= (s_linkerrorled OR s_linkerror) AND
+                (NOT s_clearbtn) AND
+                (NOT s_resetbtn);
 
             -- Drive LEDs (inverted logic)
-            led(0)  <= s_linkstarted;
-            led(1)  <= s_linkconnecting;
-            led(2)  <= s_linkrun;
-            led(3)  <= s_linkerrorled;
-            led(4)  <= s_gotdata;
-            led(5)  <= '0';
-            led(6)  <= s_dataerror;
-            led(7)  <= s_tickerror;
+            led(0) <= s_linkstarted;
+            led(1) <= s_linkconnecting;
+            led(2) <= s_linkrun;
+            led(3) <= s_linkerrorled;
+            led(4) <= s_gotdata;
+            led(5) <= '0';
+            led(6) <= s_dataerror;
+            led(7) <= s_tickerror;
 
-        end if;
-    end process;
+        END IF;
+    END PROCESS;
 
-end architecture streamtest_top_arch;
+END ARCHITECTURE streamtest_top_arch;

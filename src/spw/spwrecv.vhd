@@ -9,259 +9,259 @@
 --  than rxchunk times the system clock frequency. 
 --
 
-library ieee;
-use ieee.std_logic_1164.all, ieee.numeric_std.all;
-use work.spwpkg.all;
+LIBRARY ieee;
+USE ieee.std_logic_1164.ALL, ieee.numeric_std.ALL;
+USE work.spwpkg.ALL;
 
-entity spwrecv is
+ENTITY spwrecv IS
 
-    generic (
+    GENERIC (
         -- Disconnect timeout, expressed in system clock cycles.
         -- Should be 850 ns (727 ns .. 1000 ns) according to the standard.
-        disconnect_time: integer range 1 to 255;
+        disconnect_time : INTEGER RANGE 1 TO 255;
 
         -- Nr of bits sampled per system clock.
-        rxchunk:        integer range 1 to 4
+        rxchunk : INTEGER RANGE 1 TO 4
     );
 
-    port (
+    PORT (
         -- System clock.
-	clk:        in  std_logic;
+        clk : IN STD_LOGIC;
 
         -- High to enable receiver; low to disable and reset receiver.
-        rxen:       in  std_logic;
+        rxen : IN STD_LOGIC;
 
         -- Output signals to spwlink.
-        recvo:      out spw_recv_out_type;
+        recvo : OUT spw_recv_out_type;
 
         -- High if there has been recent activity on the input lines.
-        inact:      in  std_logic;
+        inact : IN STD_LOGIC;
 
         -- High if inbits contains a valid group of received bits.
-        inbvalid:   in  std_logic;
+        inbvalid : IN STD_LOGIC;
 
         -- Received bits from receiver front-end.
-        inbits:     in  std_logic_vector(rxchunk-1 downto 0)
+        inbits : IN STD_LOGIC_VECTOR(rxchunk - 1 DOWNTO 0)
     );
 
-end entity spwrecv;
+END ENTITY spwrecv;
 
-architecture spwrecv_arch of spwrecv is
+ARCHITECTURE spwrecv_arch OF spwrecv IS
 
     -- registers
-    type regs_type is record
+    TYPE regs_type IS RECORD
         -- receiver state
-        bit_seen:   std_ulogic;         -- got a bit transition
-        null_seen:  std_ulogic;         -- got a NULL token
+        bit_seen : STD_ULOGIC; -- got a bit transition
+        null_seen : STD_ULOGIC; -- got a NULL token
         -- input shift register
-        bitshift:   std_logic_vector(8 downto 0);
-        bitcnt:     std_logic_vector(9 downto 0);   -- one-hot counter
+        bitshift : STD_LOGIC_VECTOR(8 DOWNTO 0);
+        bitcnt : STD_LOGIC_VECTOR(9 DOWNTO 0); -- one-hot counter
         -- parity flag
-        parity:     std_ulogic;
+        parity : STD_ULOGIC;
         -- decoding
-        control:    std_ulogic;         -- next code is control code
-        escaped:    std_ulogic;         -- last code was ESC
+        control : STD_ULOGIC; -- next code is control code
+        escaped : STD_ULOGIC; -- last code was ESC
         -- output registers
-        gotfct:     std_ulogic;
-        tick_out:   std_ulogic;
-        rxchar:     std_ulogic;
-        rxflag:     std_ulogic;
-        timereg:    std_logic_vector(7 downto 0);
-        datareg:    std_logic_vector(7 downto 0);
+        gotfct : STD_ULOGIC;
+        tick_out : STD_ULOGIC;
+        rxchar : STD_ULOGIC;
+        rxflag : STD_ULOGIC;
+        timereg : STD_LOGIC_VECTOR(7 DOWNTO 0);
+        datareg : STD_LOGIC_VECTOR(7 DOWNTO 0);
         -- disconnect timer
-        disccnt:    unsigned(7 downto 0);
+        disccnt : unsigned(7 DOWNTO 0);
         -- error flags
-        errpar:     std_ulogic;
-        erresc:     std_ulogic;
-    end record;
+        errpar : STD_ULOGIC;
+        erresc : STD_ULOGIC;
+    END RECORD;
 
     -- Initial state
-    constant regs_reset: regs_type := (
-        bit_seen    => '0',
-        null_seen   => '0',
-        bitshift    => (others => '1'),
-        bitcnt      => (others => '0'),
-        parity      => '0',
-        control     => '0',
-        escaped     => '0',
-        gotfct      => '0',
-        tick_out    => '0',
-        rxchar      => '0',
-        rxflag      => '0',
-        timereg     => (others => '0'),
-        datareg     => (others => '0'),
-        disccnt     => "00000000",
-        errpar      => '0',
-        erresc      => '0' );
+    CONSTANT regs_reset : regs_type := (
+        bit_seen => '0',
+        null_seen => '0',
+        bitshift => (OTHERS => '1'),
+        bitcnt => (OTHERS => '0'),
+        parity => '0',
+        control => '0',
+        escaped => '0',
+        gotfct => '0',
+        tick_out => '0',
+        rxchar => '0',
+        rxflag => '0',
+        timereg => (OTHERS => '0'),
+        datareg => (OTHERS => '0'),
+        disccnt => "00000000",
+        errpar => '0',
+        erresc => '0');
 
     -- registers
-    signal r:       regs_type := regs_reset;
-    signal rin:     regs_type;
+    SIGNAL r : regs_type := regs_reset;
+    SIGNAL rin : regs_type;
 
-begin
+BEGIN
 
     -- combinatorial process
-    process  (r, rxen, inact, inbvalid, inbits)
-        variable v:         regs_type;
-        variable v_inbit:   std_ulogic;
-    begin
-        v           := r;
-        v_inbit     := '0';
+    PROCESS (r, rxen, inact, inbvalid, inbits)
+        VARIABLE v : regs_type;
+        VARIABLE v_inbit : STD_ULOGIC;
+    BEGIN
+        v := r;
+        v_inbit := '0';
 
         -- disconnect timer
-        if inact = '1' then
+        IF inact = '1' THEN
             -- activity on input; reset timer
-            v.disccnt   := to_unsigned(disconnect_time, v.disccnt'length);
-        elsif r.disccnt /= 0 then
+            v.disccnt := to_unsigned(disconnect_time, v.disccnt'length);
+        ELSIF r.disccnt /= 0 THEN
             -- count down
-            v.disccnt   := r.disccnt - 1;
-        end if;
+            v.disccnt := r.disccnt - 1;
+        END IF;
 
         -- assume no new token
-        v.gotfct    := '0';
-        v.tick_out  := '0';
-        v.rxchar    := '0';
+        v.gotfct := '0';
+        v.tick_out := '0';
+        v.rxchar := '0';
 
-        if inbvalid = '1' then
+        IF inbvalid = '1' THEN
 
             -- process incoming bits
-            for i in 0 to rxchunk-1 loop
-                v_inbit     := inbits(i);
+            FOR i IN 0 TO rxchunk - 1 LOOP
+                v_inbit := inbits(i);
 
                 -- got a bit transition
-                v.bit_seen  := '1';
+                v.bit_seen := '1';
 
-                if v.bitcnt(0) = '1' then
+                IF v.bitcnt(0) = '1' THEN
                     -- received new token
                     -- note that this will not happen before null_seen='1'
-                    if (v.parity xor v_inbit) = '0' then
+                    IF (v.parity XOR v_inbit) = '0' THEN
                         -- Parity check failed.
-                        v.errpar    := '1';
-                    else
-                        if v.control = '1' then
+                        v.errpar := '1';
+                    ELSE
+                        IF v.control = '1' THEN
                             -- received control code
-                            case v.bitshift(7 downto 6) is
-                                when "00" => -- FCT or NULL
-                                    v.gotfct    := not r.escaped;
-                                    v.escaped   := '0';
-                                when "10" => -- EOP
-                                    if r.escaped = '1' then
-                                        v.erresc    := '1';
-                                    end if;
-                                    v.escaped   := '0';
-                                    v.rxchar    := not r.escaped;
-                                    v.rxflag    := '1';
-                                    v.datareg   := "00000000";
-                                when "01" => -- EEP
-                                    if r.escaped = '1' then
-                                        v.erresc    := '1';
-                                    end if;
-                                    v.escaped   := '0';
-                                    v.rxchar    := not r.escaped;
-                                    v.rxflag    := '1';
-                                    v.datareg   := "00000001";
-                                when others => -- ESC
-                                    if r.escaped = '1' then
-                                        v.erresc    := '1';
-                                    end if;
-                                    v.escaped   := '1';
-                            end case;
-                        else
+                            CASE v.bitshift(7 DOWNTO 6) IS
+                                WHEN "00" => -- FCT or NULL
+                                    v.gotfct := NOT r.escaped;
+                                    v.escaped := '0';
+                                WHEN "10" => -- EOP
+                                    IF r.escaped = '1' THEN
+                                        v.erresc := '1';
+                                    END IF;
+                                    v.escaped := '0';
+                                    v.rxchar := NOT r.escaped;
+                                    v.rxflag := '1';
+                                    v.datareg := "00000000";
+                                WHEN "01" => -- EEP
+                                    IF r.escaped = '1' THEN
+                                        v.erresc := '1';
+                                    END IF;
+                                    v.escaped := '0';
+                                    v.rxchar := NOT r.escaped;
+                                    v.rxflag := '1';
+                                    v.datareg := "00000001";
+                                WHEN OTHERS => -- ESC
+                                    IF r.escaped = '1' THEN
+                                        v.erresc := '1';
+                                    END IF;
+                                    v.escaped := '1';
+                            END CASE;
+                        ELSE
                             -- received 8-bit character
-                            if r.escaped = '1' then
+                            IF r.escaped = '1' THEN
                                 -- received Time-Code
-                                v.tick_out  := '1';
-                                v.timereg   := v.bitshift(7 downto 0);
-                            else
+                                v.tick_out := '1';
+                                v.timereg := v.bitshift(7 DOWNTO 0);
+                            ELSE
                                 -- received data character
-                                v.rxflag    := '0';
-                                v.rxchar    := '1';
-                                v.datareg   := v.bitshift(7 downto 0);
-                            end if;
-                            v.escaped   := '0';
-                        end if;
-                    end if;
+                                v.rxflag := '0';
+                                v.rxchar := '1';
+                                v.datareg := v.bitshift(7 DOWNTO 0);
+                            END IF;
+                            v.escaped := '0';
+                        END IF;
+                    END IF;
                     -- prepare for next code
-                    v.parity    := '0';
-                    v.control   := v_inbit;
-                    if v_inbit = '1' then
+                    v.parity := '0';
+                    v.control := v_inbit;
+                    IF v_inbit = '1' THEN
                         -- next word will be control code.
-                        v.bitcnt    := (3 => '1', others => '0');
-                    else
+                        v.bitcnt := (3 => '1', OTHERS => '0');
+                    ELSE
                         -- next word will be a data byte.
-                        v.bitcnt    := (9 => '1', others => '0');
-                    end if;
-                else
+                        v.bitcnt := (9 => '1', OTHERS => '0');
+                    END IF;
+                ELSE
                     -- wait until next code is completely received;
                     -- accumulate parity
-                    v.bitcnt    := '0' & v.bitcnt(9 downto 1);
-                    v.parity    := v.parity xor v_inbit;
-                end if;
+                    v.bitcnt := '0' & v.bitcnt(9 DOWNTO 1);
+                    v.parity := v.parity XOR v_inbit;
+                END IF;
 
                 -- detect first NULL
-                if v.null_seen = '0' then
-                    if v.bitshift = "000101110" then
+                IF v.null_seen = '0' THEN
+                    IF v.bitshift = "000101110" THEN
                         -- got first NULL pattern
                         v.null_seen := '1';
-                        v.control   := v_inbit; -- should always be '1'
-                        v.parity    := '0';
-                        v.bitcnt    := (3 => '1', others => '0');
-                    end if;
-                end if;
+                        v.control := v_inbit; -- should always be '1'
+                        v.parity := '0';
+                        v.bitcnt := (3 => '1', OTHERS => '0');
+                    END IF;
+                END IF;
 
                 -- shift new bit into register.
-                v.bitshift  := v_inbit & v.bitshift(v.bitshift'high downto 1);
+                v.bitshift := v_inbit & v.bitshift(v.bitshift'high DOWNTO 1);
 
-            end loop;
-        end if;
+            END LOOP;
+        END IF;
 
         -- synchronous reset
-        if rxen = '0' then
-            v.bit_seen  := '0';
+        IF rxen = '0' THEN
+            v.bit_seen := '0';
             v.null_seen := '0';
-            v.bitshift  := "111111111";
-            v.bitcnt    := (others => '0');
-            v.gotfct    := '0';
-            v.tick_out  := '0';
-            v.rxchar    := '0';
-            v.rxflag    := '0';
-            v.escaped   := '0';
-            v.timereg   := "00000000";
-            v.datareg   := "00000000";
-            v.disccnt   := to_unsigned(0, v.disccnt'length);
-            v.errpar    := '0';
-            v.erresc    := '0';
-        end if;
+            v.bitshift := "111111111";
+            v.bitcnt := (OTHERS => '0');
+            v.gotfct := '0';
+            v.tick_out := '0';
+            v.rxchar := '0';
+            v.rxflag := '0';
+            v.escaped := '0';
+            v.timereg := "00000000";
+            v.datareg := "00000000";
+            v.disccnt := to_unsigned(0, v.disccnt'length);
+            v.errpar := '0';
+            v.erresc := '0';
+        END IF;
 
         -- drive outputs
-        recvo.gotbit    <= r.bit_seen;
-        recvo.gotnull   <= r.null_seen;
-        recvo.gotfct    <= r.gotfct;
-        recvo.tick_out  <= r.tick_out;
-        recvo.ctrl_out  <= r.timereg(7 downto 6);
-        recvo.time_out  <= r.timereg(5 downto 0);
-        recvo.rxchar    <= r.rxchar;
-        recvo.rxflag    <= r.rxflag;
-        recvo.rxdata    <= r.datareg;
-        if r.bit_seen = '1' and r.disccnt = 0 then
-            recvo.errdisc   <= '1';
-        else
-            recvo.errdisc   <= '0';
-        end if;
-        recvo.errpar    <= r.errpar;
-        recvo.erresc    <= r.erresc;
+        recvo.gotbit <= r.bit_seen;
+        recvo.gotnull <= r.null_seen;
+        recvo.gotfct <= r.gotfct;
+        recvo.tick_out <= r.tick_out;
+        recvo.ctrl_out <= r.timereg(7 DOWNTO 6);
+        recvo.time_out <= r.timereg(5 DOWNTO 0);
+        recvo.rxchar <= r.rxchar;
+        recvo.rxflag <= r.rxflag;
+        recvo.rxdata <= r.datareg;
+        IF r.bit_seen = '1' AND r.disccnt = 0 THEN
+            recvo.errdisc <= '1';
+        ELSE
+            recvo.errdisc <= '0';
+        END IF;
+        recvo.errpar <= r.errpar;
+        recvo.erresc <= r.erresc;
 
         -- update registers
-        rin         <= v;
+        rin <= v;
 
-    end process;
+    END PROCESS;
 
     -- update registers on rising edge of system clock
-    process (clk) is
-    begin
-        if rising_edge(clk) then
+    PROCESS (clk) IS
+    BEGIN
+        IF rising_edge(clk) THEN
             r <= rin;
-        end if;
-    end process;
+        END IF;
+    END PROCESS;
 
-end architecture spwrecv_arch;
+END ARCHITECTURE spwrecv_arch;

@@ -25,160 +25,163 @@
 --
 
 -- Libraries et al.
-library ieee;
-use ieee.std_logic_1164.all;
-use ieee.numeric_std.all;
-use ieee.math_real.all;
+LIBRARY ieee;
+USE ieee.std_logic_1164.ALL;
+USE ieee.numeric_std.ALL;
+USE ieee.math_real.ALL;
 
 -- The entity of a Terasic DE0-board.
-entity spacewire_lcd_driver is
-	port (CLOCK_50 : in std_logic; -- DE0 CLOCK_50 (50MHz CLK)
-			KEY      : in std_logic_vector(1 downto 0); -- DE0 KEY (button) [reset]
-			LED      : out std_logic_vector(7 downto 0) := (others => '0'); -- DE0 LEDs [LED0 is 1 when writing a char]
-			
-			
-			-- External LCD ports
-			LCD_EN   : out std_logic;
-			LCD_RS   : out std_logic;
-			LCD_RW   : out std_logic;
-			LCD_DATA : inout std_logic_vector(7 downto 0)
+ENTITY spacewire_lcd_driver IS
+	PORT (
+		CLOCK_50 : IN STD_LOGIC; -- DE0 CLOCK_50 (50MHz CLK)
+		KEY : IN STD_LOGIC_VECTOR(1 DOWNTO 0); -- DE0 KEY (button) [reset]
+		LED : OUT STD_LOGIC_VECTOR(7 DOWNTO 0) := (OTHERS => '0'); -- DE0 LEDs [LED0 is 1 when writing a char]
+		-- External LCD ports
+		LCD_EN : OUT STD_LOGIC;
+		LCD_RS : OUT STD_LOGIC;
+		LCD_RW : OUT STD_LOGIC;
+		LCD_DATA : INOUT STD_LOGIC_VECTOR(7 DOWNTO 0)
 	);
-	
-end entity spacewire_lcd_driver;
+
+END ENTITY spacewire_lcd_driver;
 
 -- The architecture!
-architecture hardware of spacewire_lcd_driver is
+ARCHITECTURE hardware OF spacewire_lcd_driver IS
 
--- Adds empty characters at the end of string, to 
-function stringPadding(str : string; length : natural) return string is
-	variable paddedString : string(1 to length) := (others => ' ');
-	begin
-		paddedString(1 to str'length) := str;
-		return paddedString;
-end function;
+	-- Adds empty characters at the end of string, to 
+	FUNCTION stringPadding(str : STRING; length : NATURAL) RETURN STRING IS
+		VARIABLE paddedString : STRING(1 TO length) := (OTHERS => ' ');
+	BEGIN
+		paddedString(1 TO str'length) := str;
+		RETURN paddedString;
+	END FUNCTION;
 
--- Data converting function
+	-- Data converting function
 
--- accel_data is 16 bit vector (2s Complement) 
--- function converts it to a REAL value
--- than converts it to a string to the given decimal point precision
--- Returns a formatted string with a prefix and suffix.
--- Make sure your string won't exceed 20 characters (16 due to bug with LCD display)
+	-- accel_data is 16 bit vector (2s Complement) 
+	-- function converts it to a REAL value
+	-- than converts it to a string to the given decimal point precision
+	-- Returns a formatted string with a prefix and suffix.
+	-- Make sure your string won't exceed 20 characters (16 due to bug with LCD display)
 
--- "selected range" is the value range chosen on the accelerometer, default is +/- 2g, for correct interpretation of data
-function convertData(accel_data: STD_LOGIC_VECTOR(15 downto 0);
-							prefix: string;
-							suffix: string; 
-							selected_range: INTEGER; 
-							precision: natural) return STRING is
-	variable accel_value : REAL;
-	variable accel_value_str : STRING(1 to 20);
-	variable temp_string : STRING(1 to 20); -- Adjust the length based on your needs
-begin
-	 -- Convert to REAL, scaled for correct interpretation (check accelerometer datasheet)
-    accel_value := REAL(TO_INTEGER(SIGNED(accel_data))) * (REAL(selected_range) / 2.0**12.0);
-	 
-	 -- Convert REAL to string, add padding to 20 to avoid length errors
-    accel_value_str := stringPadding(real'image(accel_value), 20);
-	 
-	 -- Return formatted string, with correct decimal point precision
-	 return stringPadding(prefix & accel_value_str(1 to (precision+2)) & suffix, 20);
-	 
-end function;
+	-- "selected range" is the value range chosen on the accelerometer, default is +/- 2g, for correct interpretation of data
+	FUNCTION convertData(accel_data : STD_LOGIC_VECTOR(15 DOWNTO 0);
+		prefix : STRING;
+		suffix : STRING;
+		selected_range : INTEGER;
+		precision : NATURAL) RETURN STRING IS
+		VARIABLE accel_value : REAL;
+		VARIABLE accel_value_str : STRING(1 TO 20);
+		VARIABLE temp_string : STRING(1 TO 20); -- Adjust the length based on your needs
+	BEGIN
+		-- Convert to REAL, scaled for correct interpretation (check accelerometer datasheet)
+		accel_value := REAL(TO_INTEGER(SIGNED(accel_data))) * (REAL(selected_range) / 2.0 ** 12.0);
 
--- Component declaration of the LCD module
-component lcd_driver_hd44780_module is
-	generic (freq         : integer := 50000000;
-				areset_pol   : std_logic := '1';
-				time_init1   : time := 40 ms;
-				time_init2   : time := 4100 us;
-				time_init3   : time := 100 us;
-				time_tas     : time := 60 ns;
-				time_cycle_e : time := 1000 ns;
-				time_pweh    : time := 500 ns;
-				time_no_bf   : time := 2 ms;
-				cursor_on    : boolean := false;
-				blink_on     : boolean := false;
-				use_bf       : boolean := true
-			  );
-	port	  (clk      : in std_logic;
-			   areset   : in std_logic;
-			   -- User site
-			   init     : in std_logic;
-  			   data     : in std_logic_vector(7 downto 0);
-			   wr       : in std_logic;
-			   cls      : in std_logic;
-			   home     : in std_logic;
-			   goto10   : in std_logic;
-			   goto20   : in std_logic;
-			   goto30   : in std_logic;
-			   busy     : out std_logic;
-			   -- LCD side
-			   LCD_E    : out std_logic;
-			   LCD_RS   : out std_logic;
-			   LCD_RW   : out std_logic;
-			   LCD_DB   : inout std_logic_vector(7 downto 0)
-			  );
-end component lcd_driver_hd44780_module;
+		-- Convert REAL to string, add padding to 20 to avoid length errors
+		accel_value_str := stringPadding(real'image(accel_value), 20);
 
--- The system's frequency
-constant sys_freq : integer := 50000000;
+		-- Return formatted string, with correct decimal point precision
+		RETURN stringPadding(prefix & accel_value_str(1 TO (precision + 2)) & suffix, 20);
 
-signal areset   : std_logic;
-signal clk      : std_logic;
-signal init     : std_logic;
-signal data     : std_logic_vector(7 downto 0);
-signal wr       : std_logic;
-signal cls      : std_logic;
-signal home     : std_logic;
-signal goto10   : std_logic;
-signal goto20   : std_logic;
-signal goto30   : std_logic;
-signal busy		 : std_logic;
+	END FUNCTION;
 
-type state_type is (reset, write_char, write_char_wait, update, update_linecount,
-						  update_linecount_wait, write_char_1, write_char_1_wait,
-						  write_char_2, write_char_2_wait, write_char_3, write_char_4, hold);
-signal state : state_type;
+	-- Component declaration of the LCD module
+	COMPONENT lcd_driver_hd44780_module IS
+		GENERIC (
+			freq : INTEGER := 50000000;
+			areset_pol : STD_LOGIC := '1';
+			time_init1 : TIME := 40 ms;
+			time_init2 : TIME := 4100 us;
+			time_init3 : TIME := 100 us;
+			time_tas : TIME := 60 ns;
+			time_cycle_e : TIME := 1000 ns;
+			time_pweh : TIME := 500 ns;
+			time_no_bf : TIME := 2 ms;
+			cursor_on : BOOLEAN := false;
+			blink_on : BOOLEAN := false;
+			use_bf : BOOLEAN := true
+		);
+		PORT (
+			clk : IN STD_LOGIC;
+			areset : IN STD_LOGIC;
+			-- User site
+			init : IN STD_LOGIC;
+			data : IN STD_LOGIC_VECTOR(7 DOWNTO 0);
+			wr : IN STD_LOGIC;
+			cls : IN STD_LOGIC;
+			home : IN STD_LOGIC;
+			goto10 : IN STD_LOGIC;
+			goto20 : IN STD_LOGIC;
+			goto30 : IN STD_LOGIC;
+			busy : OUT STD_LOGIC;
+			-- LCD side
+			LCD_E : OUT STD_LOGIC;
+			LCD_RS : OUT STD_LOGIC;
+			LCD_RW : OUT STD_LOGIC;
+			LCD_DB : INOUT STD_LOGIC_VECTOR(7 DOWNTO 0)
+		);
+	END COMPONENT lcd_driver_hd44780_module;
 
--- A string of 20 characters
-subtype string20_type is string(1 to 20);
--- An array of 4 strings of 20 characters.
-type message4x20_type is array (1 to 4) of string20_type;
+	-- The system's frequency
+	CONSTANT sys_freq : INTEGER := 50000000;
 
--- The four-line message
-constant message : message4x20_type :=
-							( 1 => stringPadding("Spacewire", 20),
-							  2 => convertData("1101101111011011", "x: ", "g", 2, 4),
-							  3 => convertData("0011100100101010", "    y: ", "g", 2, 4),
-							  4 => convertData("1111110000101110", "    z: ", "g", 2, 4));
+	SIGNAL areset : STD_LOGIC;
+	SIGNAL clk : STD_LOGIC;
+	SIGNAL init : STD_LOGIC;
+	SIGNAL data : STD_LOGIC_VECTOR(7 DOWNTO 0);
+	SIGNAL wr : STD_LOGIC;
+	SIGNAL cls : STD_LOGIC;
+	SIGNAL home : STD_LOGIC;
+	SIGNAL goto10 : STD_LOGIC;
+	SIGNAL goto20 : STD_LOGIC;
+	SIGNAL goto30 : STD_LOGIC;
+	SIGNAL busy : STD_LOGIC;
 
--- Counts the characters on a line.
-signal character_counter : integer range 1 to 20;
--- Counts the lines.
-signal line_counter : integer range 1 to 4;
+	TYPE state_type IS (reset, write_char, write_char_wait, update, update_linecount,
+		update_linecount_wait, write_char_1, write_char_1_wait,
+		write_char_2, write_char_2_wait, write_char_3, write_char_4, hold);
+	SIGNAL state : state_type;
 
-begin
+	-- A string of 20 characters
+	SUBTYPE string20_type IS STRING(1 TO 20);
+	-- An array of 4 strings of 20 characters.
+	TYPE message4x20_type IS ARRAY (1 TO 4) OF string20_type;
+
+	-- The four-line message
+	CONSTANT message : message4x20_type :=
+	(1 => stringPadding("Spacewire", 20),
+	2 => convertData("1101101111011011", "x: ", "g", 2, 4),
+	3 => convertData("0011100100101010", "    y: ", "g", 2, 4),
+	4 => convertData("1111110000101110", "    z: ", "g", 2, 4));
+
+	-- Counts the characters on a line.
+	SIGNAL character_counter : INTEGER RANGE 1 TO 20;
+	-- Counts the lines.
+	SIGNAL line_counter : INTEGER RANGE 1 TO 4;
+
+BEGIN
 
 	-- Push buttons are active low.
-	areset <= not KEY(0);
+	areset <= NOT KEY(0);
 
 	-- The clock
 	clk <= CLOCK_50;
-	
+
 	-- Use LCD module.
 	lcdm : lcd_driver_hd44780_module
-	generic map (freq => sys_freq, areset_pol => '1', time_cycle_e => 2000 ns, time_pweh => 500 ns,
-					 cursor_on => false, blink_on => false, use_bf => false)
-	port map (clk => clk, areset => areset, init => init, data => data, wr => wr, cls => cls,
-				 home => home, goto10 => goto10, goto20 => goto20, goto30 => goto30, busy => busy,
-				 LCD_E => LCD_EN, LCD_RS => LCD_RS, LCD_RW => LCD_RW, LCD_DB => LCD_DATA);
-				 
+	GENERIC MAP(
+		freq => sys_freq, areset_pol => '1', time_cycle_e => 2000 ns, time_pweh => 500 ns,
+		cursor_on => false, blink_on => false, use_bf => false)
+	PORT MAP(
+		clk => clk, areset => areset, init => init, data => data, wr => wr, cls => cls,
+		home => home, goto10 => goto10, goto20 => goto20, goto30 => goto30, busy => busy,
+		LCD_E => LCD_EN, LCD_RS => LCD_RS, LCD_RW => LCD_RW, LCD_DB => LCD_DATA);
+
 	-- The client side
-	drive: process (clk, areset) is
-	variable aline : string20_type;
-	begin
-		if areset = '1' then
+	drive : PROCESS (clk, areset) IS
+		VARIABLE aline : string20_type;
+	BEGIN
+		IF areset = '1' THEN
 			wr <= '0';
 			init <= '0';
 			cls <= '0';
@@ -190,7 +193,7 @@ begin
 			data <= "00000000";
 			character_counter <= 1;
 			state <= reset;
-		elsif rising_edge(clk) then
+		ELSIF rising_edge(clk) THEN
 			wr <= '0';
 			init <= '0';
 			cls <= '0';
@@ -200,29 +203,27 @@ begin
 			goto30 <= '0';
 			LED(0) <= '0';
 			data <= "00000000";
-			
-			
-			case state is
+			CASE state IS
 
-				when reset =>
+				WHEN reset =>
 					-- Wait for the LCD module ready
-					if busy = '0' then
+					IF busy = '0' THEN
 						state <= write_char;
-					end if;
+					END IF;
 					-- Setup message counter, start at 1.
 					character_counter <= 1;
 					line_counter <= 1;
-					
-				when write_char =>
+
+				WHEN write_char =>
 					LED(0) <= '1';
 					-- Set up WRITE!
 					-- Use the data from the string
 					aline := message(line_counter);
-					data <= std_logic_vector( to_unsigned( character'pos(aline(character_counter)),8));
- 					wr <= '1';
+					data <= STD_LOGIC_VECTOR(to_unsigned(CHARACTER'pos(aline(character_counter)), 8));
+					wr <= '1';
 					state <= write_char_wait;
 
-				when write_char_wait =>
+				WHEN write_char_wait =>
 					-- This state is needed so that the LCD driver
 					-- can process the write command. Note that data
 					-- and wr are registered outputs and get their
@@ -230,37 +231,37 @@ begin
 					-- want this behaviour, please make your outputs
 					-- non-registered.
 					state <= update;
-					
-				when update =>
+
+				WHEN update =>
 					LED(0) <= '1';
 					-- Wait for the write complete
-					if busy = '0' then
+					IF busy = '0' THEN
 						-- If end of string, goto hold mode...
-						if line_counter = 4 and character_counter = 20 then
+						IF line_counter = 4 AND character_counter = 20 THEN
 							state <= hold;
-						-- If end of line...	
-						elsif character_counter = 20 then
-							case line_counter is
-								when 1 => goto10 <= '1';
-								when 2 => goto20 <= '1';
-								when 3 => goto30 <= '1';
-								-- Never reached, but nice anyway...
-								when 4 => home <= '1';
-								when others => null;
-							end case;
+							-- If end of line...	
+						ELSIF character_counter = 20 THEN
+							CASE line_counter IS
+								WHEN 1 => goto10 <= '1';
+								WHEN 2 => goto20 <= '1';
+								WHEN 3 => goto30 <= '1';
+									-- Never reached, but nice anyway...
+								WHEN 4 => home <= '1';
+								WHEN OTHERS => NULL;
+							END CASE;
 							-- Set new values of the counters
-							line_counter <= line_counter+1;
+							line_counter <= line_counter + 1;
 							character_counter <= 1;
 							-- Goto the update state
 							state <= update_linecount;
-						else
-						   -- Not the end of a lines, update the character counter.
-							character_counter <= character_counter+1;
+						ELSE
+							-- Not the end of a lines, update the character counter.
+							character_counter <= character_counter + 1;
 							state <= write_char;
-						end if;
-					end if;
-				
-				when update_linecount =>
+						END IF;
+					END IF;
+
+				WHEN update_linecount =>
 					-- This state is needed so that the LCD driver
 					-- can process the gotoXX command. Note that the gotoXX
 					-- signals are registered outputs and get their
@@ -268,21 +269,21 @@ begin
 					-- want this behaviour, please make your outputs
 					-- non-registered.
 					state <= update_linecount_wait;
-					
-				when update_linecount_wait =>
-					-- Wait for the LCD module ready
-					if busy = '0' then
-						state <= write_char;
-					end if;
-				
-				-- The "hohouwer"
-				when hold =>
-					state <= hold;
-					
-				when others =>
-					null;
 
-			end case;
-		end if;
-	end process;
-end architecture hardware;
+				WHEN update_linecount_wait =>
+					-- Wait for the LCD module ready
+					IF busy = '0' THEN
+						state <= write_char;
+					END IF;
+
+					-- The "hohouwer"
+				WHEN hold =>
+					state <= hold;
+
+				WHEN OTHERS =>
+					NULL;
+
+			END CASE;
+		END IF;
+	END PROCESS;
+END ARCHITECTURE hardware;

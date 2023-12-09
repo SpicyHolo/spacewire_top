@@ -2,38 +2,39 @@
 --that delays the reset signal by a certain number of clock cycles. 
 --The delayed reset is then available at the output port oRST.
 
-library IEEE;
-use IEEE.STD_LOGIC_1164.ALL;
-use IEEE.STD_LOGIC_UNSIGNED.ALL;
+LIBRARY IEEE;
+USE IEEE.STD_LOGIC_1164.ALL;
+USE IEEE.STD_LOGIC_UNSIGNED.ALL;
 
-entity reset_delay IS
-port ( iRSTN  : IN  STD_LOGIC;   --input reset signal
-       iCLK   : IN  STD_LOGIC;   --input port for the clock signal
-       oRST   : OUT STD_LOGIC);  --output port for the delayed reset signal 
-end reset_delay;
+ENTITY reset_delay IS
+   PORT (
+      iRSTN : IN STD_LOGIC; --input reset signal
+      iCLK : IN STD_LOGIC; --input port for the clock signal
+      oRST : OUT STD_LOGIC); --output port for the delayed reset signal 
+END reset_delay;
 
-architecture reset_delay_arc OF reset_delay IS
+ARCHITECTURE reset_delay_arc OF reset_delay IS
 
-   signal cont    :  STD_LOGIC_VECTOR(20 DOWNTO 0); --shift register
-   signal oRST_T  :  STD_LOGIC; --inside signal for deleyed reset
+   SIGNAL cont : STD_LOGIC_VECTOR(20 DOWNTO 0); --shift register
+   SIGNAL oRST_T : STD_LOGIC; --inside signal for deleyed reset
 
-begin
+BEGIN
 
- oRST <= oRST_T;
+   oRST <= oRST_T;
 
- rst_proc: process (iCLK,iRSTN)
-  begin
-    if(iRSTN = '0') then
-         cont <= "000000000000000000000";    
-         oRST_T <= '1';    
-    elsif(rising_edge(iCLK)) then
-         if (not cont(20) = '1') then
-            cont <= cont + "000000000000000000001";    
-            oRST_T <= '1';    
-         else
-            oRST_T <= '0';    
-         end if;
-    end if;
- end process rst_proc;
+   rst_proc : PROCESS (iCLK, iRSTN)
+   BEGIN
+      IF (iRSTN = '0') THEN
+         cont <= "000000000000000000000";
+         oRST_T <= '1';
+      ELSIF (rising_edge(iCLK)) THEN
+         IF (NOT cont(20) = '1') THEN
+            cont <= cont + "000000000000000000001";
+            oRST_T <= '1';
+         ELSE
+            oRST_T <= '0';
+         END IF;
+      END IF;
+   END PROCESS rst_proc;
 
-end reset_delay_arc;
+END reset_delay_arc;

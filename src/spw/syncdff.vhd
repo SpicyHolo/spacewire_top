@@ -10,29 +10,29 @@
 --  meta-stability of ff1 is resolved before ff2 captures the signal.
 --
 
-library ieee;
-use ieee.std_logic_1164.all;
+LIBRARY ieee;
+USE ieee.std_logic_1164.ALL;
 
-entity syncdff is
+ENTITY syncdff IS
 
-    port (
-        clk:        in  std_logic;          -- clock (destination domain)
-        rst:        in  std_logic;          -- asynchronous reset, active-high
-        di:         in  std_logic;          -- input data
-        do:         out std_logic           -- output data
+    PORT (
+        clk : IN STD_LOGIC; -- clock (destination domain)
+        rst : IN STD_LOGIC; -- asynchronous reset, active-high
+        di : IN STD_LOGIC; -- input data
+        do : OUT STD_LOGIC -- output data
     );
 
     -- Turn off register replication in XST.
     --attribute REGISTER_DUPLICATION: string;
     --attribute REGISTER_DUPLICATION of syncdff: entity is "NO";
 
-end entity syncdff;
+END ENTITY syncdff;
 
-architecture syncdff_arch of syncdff is
+ARCHITECTURE syncdff_arch OF syncdff IS
 
     -- flip-flops
-    signal syncdff_ff1: std_ulogic := '0';
-    signal syncdff_ff2: std_ulogic := '0';
+    SIGNAL syncdff_ff1 : STD_ULOGIC := '0';
+    SIGNAL syncdff_ff2 : STD_ULOGIC := '0';
 
     -- Turn of shift-register extraction in XST.
     --attribute SHIFT_EXTRACT: string;
@@ -45,26 +45,26 @@ architecture syncdff_arch of syncdff is
     --attribute RLOC of syncdff_ff2: signal is "X0Y0";
 
     -- Tell XST to keep the flip-flop net names to be used in timing constraints.
-    attribute KEEP: string;
-    attribute KEEP of syncdff_ff1: signal is "SOFT";
-    attribute KEEP of syncdff_ff2: signal is "SOFT";
+    ATTRIBUTE KEEP : STRING;
+    ATTRIBUTE KEEP OF syncdff_ff1 : SIGNAL IS "SOFT";
+    ATTRIBUTE KEEP OF syncdff_ff2 : SIGNAL IS "SOFT";
 
-begin
+BEGIN
 
     -- second flip-flop drives the output signal
     do <= syncdff_ff2;
 
-    process (clk, rst) is
-    begin
-        if rst = '1' then
+    PROCESS (clk, rst) IS
+    BEGIN
+        IF rst = '1' THEN
             -- asynchronous reset
             syncdff_ff1 <= '0';
             syncdff_ff2 <= '0';
-        elsif rising_edge(clk) then
+        ELSIF rising_edge(clk) THEN
             -- data synchronization
             syncdff_ff1 <= di;
             syncdff_ff2 <= syncdff_ff1;
-        end if;
-    end process;
+        END IF;
+    END PROCESS;
 
-end architecture syncdff_arch;
+END ARCHITECTURE syncdff_arch;

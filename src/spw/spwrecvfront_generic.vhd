@@ -9,88 +9,88 @@
 --  than system clock frequency.
 --
 
-library ieee;
-use ieee.std_logic_1164.all;
-use ieee.numeric_std.all;
+LIBRARY ieee;
+USE ieee.std_logic_1164.ALL;
+USE ieee.numeric_std.ALL;
 
-entity spwrecvfront_generic is
+ENTITY spwrecvfront_generic IS
 
-    port (
+    PORT (
         -- System clock.
-        clk:        in  std_logic;
+        clk : IN STD_LOGIC;
 
         -- High to enable receiver; low to disable and reset receiver.
-        rxen:       in  std_logic;
+        rxen : IN STD_LOGIC;
 
         -- High if there has been recent activity on the input lines.
-        inact:      out std_logic;
+        inact : OUT STD_LOGIC;
 
         -- High if inbits contains a valid received bit.
         -- If inbvalid='1', the application must sample inbits on
         -- the rising edge of clk.
-        inbvalid:   out std_logic;
+        inbvalid : OUT STD_LOGIC;
 
         -- Received bit
-        inbits:     out std_logic_vector(0 downto 0);
+        inbits : OUT STD_LOGIC_VECTOR(0 DOWNTO 0);
 
         -- Data In signal from SpaceWire bus.
-        spw_di:     in  std_logic;
+        spw_di : IN STD_LOGIC;
 
         -- Strobe In signal from SpaceWire bus.
-        spw_si:     in  std_logic );
+        spw_si : IN STD_LOGIC);
 
-end entity spwrecvfront_generic;
+END ENTITY spwrecvfront_generic;
 
-architecture spwrecvfront_arch of spwrecvfront_generic is
+ARCHITECTURE spwrecvfront_arch OF spwrecvfront_generic IS
 
     -- input flip-flops
-    signal s_spwdi1:    std_ulogic;
-    signal s_spwsi1:    std_ulogic;
-    signal s_spwdi2:    std_ulogic;
-    signal s_spwsi2:    std_ulogic;
+    SIGNAL s_spwdi1 : STD_ULOGIC;
+    SIGNAL s_spwsi1 : STD_ULOGIC;
+    SIGNAL s_spwdi2 : STD_ULOGIC;
+    SIGNAL s_spwsi2 : STD_ULOGIC;
 
     -- data/strobe decoding
-    signal s_spwsi3:    std_ulogic;
+    SIGNAL s_spwsi3 : STD_ULOGIC;
 
     -- output registers
-    signal s_inbvalid:  std_ulogic;
-    signal s_inbit:     std_ulogic;
+    SIGNAL s_inbvalid : STD_ULOGIC;
+    SIGNAL s_inbit : STD_ULOGIC;
 
-begin
+BEGIN
 
     -- drive outputs
-    inact       <= s_inbvalid;
-    inbvalid    <= s_inbvalid;
-    inbits(0)   <= s_inbit;
+    inact <= s_inbvalid;
+    inbvalid <= s_inbvalid;
+    inbits(0) <= s_inbit;
 
     -- synchronous process
-    process (clk) is
-    begin
-        if rising_edge(clk) then
+    PROCESS (clk) IS
+    BEGIN
+        IF rising_edge(clk) THEN
 
             -- sample input signal
-            s_spwdi1    <= spw_di;
-            s_spwsi1    <= spw_si;
+            s_spwdi1 <= spw_di;
+            s_spwsi1 <= spw_si;
 
             -- more flip-flops for safe synchronization
-            s_spwdi2    <= s_spwdi1;
-            s_spwsi2    <= s_spwsi1;
+            s_spwdi2 <= s_spwdi1;
+            s_spwsi2 <= s_spwsi1;
 
             -- keep strobe signal for data/strobe decoding
-            s_spwsi3    <= s_spwsi2;
+            s_spwsi3 <= s_spwsi2;
 
             -- keep data bit for data/strobe decoding
-            s_inbit     <= s_spwdi2;
+            s_inbit <= s_spwdi2;
 
-            if rxen = '1' then
+            IF rxen = '1' THEN
                 -- data/strobe decoding
-                s_inbvalid  <= s_spwdi2 xor s_spwsi2 xor s_inbit xor s_spwsi3;
-            else
+                s_inbvalid <= s_spwdi2 XOR s_spwsi2 XOR s_inbit XOR s_spwsi3;
+            ELSE
                 -- reset receiver
-                s_inbvalid  <= '0';
-            end if;
+                s_inbvalid <= '0';
+            END IF;
 
-        end if;
-    end process;
+        END IF;
+    END PROCESS;
 
-end architecture spwrecvfront_arch;
+END ARCHITECTURE spwrecvfront_arch;

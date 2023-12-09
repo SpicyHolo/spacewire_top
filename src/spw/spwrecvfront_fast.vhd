@@ -62,132 +62,132 @@
 --   * FROM-TO constraint from system clock to "rxclk", equal to one "rxclk" period.
 --
 
-library ieee;
-use ieee.std_logic_1164.all;
-use ieee.numeric_std.all;
-use work.spwpkg.all;
+LIBRARY ieee;
+USE ieee.std_logic_1164.ALL;
+USE ieee.numeric_std.ALL;
+USE work.spwpkg.ALL;
 
-entity spwrecvfront_fast is
+ENTITY spwrecvfront_fast IS
 
-    generic (
+    GENERIC (
         -- Number of bits to pass to the application per system clock.
-        rxchunk:        integer range 1 to 4 );
+        rxchunk : INTEGER RANGE 1 TO 4);
 
-    port (
+    PORT (
         -- System clock.
-        clk:        in  std_logic;
+        clk : IN STD_LOGIC;
 
         -- Sample clock.
-        rxclk:      in  std_logic;
+        rxclk : IN STD_LOGIC;
 
         -- High to enable receiver; low to disable and reset receiver.
-        rxen:       in  std_logic;
+        rxen : IN STD_LOGIC;
 
         -- High if there has been recent activity on the input lines.
-        inact:      out std_logic;
+        inact : OUT STD_LOGIC;
 
         -- High if inbits contains a valid group of received bits.
         -- If inbvalid='1', the application must sample inbits on
         -- the rising edge of clk.
-        inbvalid:   out std_logic;
+        inbvalid : OUT STD_LOGIC;
 
         -- Received bits (bit 0 is the earliest received bit).
-        inbits:     out std_logic_vector(rxchunk-1 downto 0);
+        inbits : OUT STD_LOGIC_VECTOR(rxchunk - 1 DOWNTO 0);
 
         -- Data In signal from SpaceWire bus.
-        spw_di:     in  std_logic;
+        spw_di : IN STD_LOGIC;
 
         -- Strobe In signal from SpaceWire bus.
-        spw_si:     in  std_logic );
+        spw_si : IN STD_LOGIC);
 
     -- Turn off FSM extraction.
     -- Without this, XST will happily apply one-hot encoding to rrx.headptr.
     --attribute FSM_EXTRACT: string;
     --attribute FSM_EXTRACT of spwrecvfront_fast: entity is "NO";
 
-end entity spwrecvfront_fast;
+END ENTITY spwrecvfront_fast;
 
-architecture spwrecvfront_arch of spwrecvfront_fast is
+ARCHITECTURE spwrecvfront_arch OF spwrecvfront_fast IS
 
     -- width of bit groups in cyclic buffer;
     -- typically equal to rxchunk, except when rxchunk = 1
-    type memwidth_array_type is array(1 to 4) of integer;
-    constant chunk_to_memwidth: memwidth_array_type := ( 2, 2, 3, 4 );
-    constant memwidth: integer := chunk_to_memwidth(rxchunk);
+    TYPE memwidth_array_type IS ARRAY(1 TO 4) OF INTEGER;
+    CONSTANT chunk_to_memwidth : memwidth_array_type := (2, 2, 3, 4);
+    CONSTANT memwidth : INTEGER := chunk_to_memwidth(rxchunk);
 
     -- registers in rxclk domain
-    type rxregs_type is record
+    TYPE rxregs_type IS RECORD
         -- stage B: re-register input samples
-        b_di0:      std_ulogic;
-        b_si0:      std_ulogic;
-        b_di1:      std_ulogic;
-        b_si1:      std_ulogic;
+        b_di0 : STD_ULOGIC;
+        b_si0 : STD_ULOGIC;
+        b_di1 : STD_ULOGIC;
+        b_si1 : STD_ULOGIC;
         -- stage C: data/strobe decoding
-        c_bit:      std_logic_vector(1 downto 0);
-        c_val:      std_logic_vector(1 downto 0);
-        c_xor1:     std_ulogic;
+        c_bit : STD_LOGIC_VECTOR(1 DOWNTO 0);
+        c_val : STD_LOGIC_VECTOR(1 DOWNTO 0);
+        c_xor1 : STD_ULOGIC;
         -- stage D: collect groups of memwidth bits
-        d_shift:    std_logic_vector(memwidth-1 downto 0);
-        d_count:    std_logic_vector(memwidth-1 downto 0);
+        d_shift : STD_LOGIC_VECTOR(memwidth - 1 DOWNTO 0);
+        d_count : STD_LOGIC_VECTOR(memwidth - 1 DOWNTO 0);
         -- cyclic buffer access
-        bufdata:    std_logic_vector(memwidth-1 downto 0);
-        bufwrite:   std_ulogic;
-        headptr:    std_logic_vector(2 downto 0);
+        bufdata : STD_LOGIC_VECTOR(memwidth - 1 DOWNTO 0);
+        bufwrite : STD_ULOGIC;
+        headptr : STD_LOGIC_VECTOR(2 DOWNTO 0);
         -- activity detection
-        bitcnt:     std_logic_vector(2 downto 0);
-    end record;
+        bitcnt : STD_LOGIC_VECTOR(2 DOWNTO 0);
+    END RECORD;
 
     -- registers in system clock domain
-    type regs_type is record
+    TYPE regs_type IS RECORD
         -- data path from buffer to output
-        tailptr:    std_logic_vector(2 downto 0);
-        inbvalid:   std_ulogic;
+        tailptr : STD_LOGIC_VECTOR(2 DOWNTO 0);
+        inbvalid : STD_ULOGIC;
         -- split 2-bit groups if rxchunk=1
-        splitbit:   std_ulogic;
-        splitinx:   std_ulogic;
-        splitvalid: std_ulogic;
+        splitbit : STD_ULOGIC;
+        splitinx : STD_ULOGIC;
+        splitvalid : STD_ULOGIC;
         -- activity detection
-        bitcntp:    std_logic_vector(2 downto 0);
-        inact:      std_ulogic;
+        bitcntp : STD_LOGIC_VECTOR(2 DOWNTO 0);
+        inact : STD_ULOGIC;
         -- reset signal towards rxclk domain
-        rxdis:      std_ulogic;
-    end record;
+        rxdis : STD_ULOGIC;
+    END RECORD;
 
-    constant regs_reset: regs_type := (
-        tailptr     => "000",
-        inbvalid    => '0',
-        splitbit    => '0',
-        splitinx    => '0',
-        splitvalid  => '0',
-        bitcntp     => "000",
-        inact       => '0',
-        rxdis       => '1' );
+    CONSTANT regs_reset : regs_type := (
+        tailptr => "000",
+        inbvalid => '0',
+        splitbit => '0',
+        splitinx => '0',
+        splitvalid => '0',
+        bitcntp => "000",
+        inact => '0',
+        rxdis => '1');
 
     -- Signals that are re-synchronized from rxclk to system clock domain.
-    type syncsys_type is record
-        headptr:    std_logic_vector(2 downto 0);   -- pointer in cyclic buffer
-        bitcnt:     std_logic_vector(2 downto 0);   -- activity detection
-    end record;
+    TYPE syncsys_type IS RECORD
+        headptr : STD_LOGIC_VECTOR(2 DOWNTO 0); -- pointer in cyclic buffer
+        bitcnt : STD_LOGIC_VECTOR(2 DOWNTO 0); -- activity detection
+    END RECORD;
 
     -- Registers.
-    signal r:           regs_type := regs_reset;
-    signal rin:         regs_type;
-    signal rrx, rrxin:  rxregs_type;
+    SIGNAL r : regs_type := regs_reset;
+    SIGNAL rin : regs_type;
+    SIGNAL rrx, rrxin : rxregs_type;
 
     -- Synchronized signals after crossing clock domains.
-    signal syncrx_rstn: std_logic;
-    signal syncsys:     syncsys_type;
+    SIGNAL syncrx_rstn : STD_LOGIC;
+    SIGNAL syncsys : syncsys_type;
 
     -- Output data from cyclic buffer.
-    signal s_bufdout:   std_logic_vector(memwidth-1 downto 0);
+    SIGNAL s_bufdout : STD_LOGIC_VECTOR(memwidth - 1 DOWNTO 0);
 
     -- stage A: input flip-flops for rising/falling rxclk
-    signal s_a_di0:     std_logic;
-    signal s_a_si0:     std_logic;
-    signal s_a_di1:     std_logic;
-    signal s_a_si1:     std_logic;
-    signal s_a_di2:     std_logic;
-    signal s_a_si2:     std_logic;
+    SIGNAL s_a_di0 : STD_LOGIC;
+    SIGNAL s_a_si0 : STD_LOGIC;
+    SIGNAL s_a_di1 : STD_LOGIC;
+    SIGNAL s_a_si1 : STD_LOGIC;
+    SIGNAL s_a_di2 : STD_LOGIC;
+    SIGNAL s_a_si2 : STD_LOGIC;
 
     -- force use of IOB flip-flops
     --attribute IOB: string;
@@ -196,90 +196,90 @@ architecture spwrecvfront_arch of spwrecvfront_fast is
     --attribute IOB of s_a_di2: signal is "TRUE";
     --attribute IOB of s_a_si2: signal is "TRUE";
 
-begin
+BEGIN
 
     -- Cyclic data buffer.
-    bufmem: spwram
-        generic map (
-            abits   => 3,
-            dbits   => memwidth )
-        port map (
-            rclk    => clk,
-            wclk    => rxclk,
-            ren     => '1',
-            raddr   => r.tailptr,
-            rdata   => s_bufdout,
-            wen     => rrx.bufwrite,
-            waddr   => rrx.headptr,
-            wdata   => rrx.bufdata );
+    bufmem : spwram
+    GENERIC MAP(
+        abits => 3,
+        dbits => memwidth)
+    PORT MAP(
+        rclk => clk,
+        wclk => rxclk,
+        ren => '1',
+        raddr => r.tailptr,
+        rdata => s_bufdout,
+        wen => rrx.bufwrite,
+        waddr => rrx.headptr,
+        wdata => rrx.bufdata);
 
     -- Synchronize reset signal for rxclk domain.
-    syncrx_reset: syncdff
-        port map ( clk => rxclk, rst => r.rxdis, di => '1', do => syncrx_rstn );
+    syncrx_reset : syncdff
+    PORT MAP(clk => rxclk, rst => r.rxdis, di => '1', do => syncrx_rstn);
 
     -- Synchronize signals from rxclk domain to system clock domain.
-    syncsys_headptr0: syncdff
-        port map ( clk => clk, rst => r.rxdis, di => rrx.headptr(0), do => syncsys.headptr(0) );
-    syncsys_headptr1: syncdff
-        port map ( clk => clk, rst => r.rxdis, di => rrx.headptr(1), do => syncsys.headptr(1) );
-    syncsys_headptr2: syncdff
-        port map ( clk => clk, rst => r.rxdis, di => rrx.headptr(2), do => syncsys.headptr(2) );
-    syncsys_bitcnt0: syncdff
-        port map ( clk => clk, rst => r.rxdis, di => rrx.bitcnt(0), do => syncsys.bitcnt(0) );
-    syncsys_bitcnt1: syncdff
-        port map ( clk => clk, rst => r.rxdis, di => rrx.bitcnt(1), do => syncsys.bitcnt(1) );
-    syncsys_bitcnt2: syncdff
-        port map ( clk => clk, rst => r.rxdis, di => rrx.bitcnt(2), do => syncsys.bitcnt(2) );
+    syncsys_headptr0 : syncdff
+    PORT MAP(clk => clk, rst => r.rxdis, di => rrx.headptr(0), do => syncsys.headptr(0));
+    syncsys_headptr1 : syncdff
+    PORT MAP(clk => clk, rst => r.rxdis, di => rrx.headptr(1), do => syncsys.headptr(1));
+    syncsys_headptr2 : syncdff
+    PORT MAP(clk => clk, rst => r.rxdis, di => rrx.headptr(2), do => syncsys.headptr(2));
+    syncsys_bitcnt0 : syncdff
+    PORT MAP(clk => clk, rst => r.rxdis, di => rrx.bitcnt(0), do => syncsys.bitcnt(0));
+    syncsys_bitcnt1 : syncdff
+    PORT MAP(clk => clk, rst => r.rxdis, di => rrx.bitcnt(1), do => syncsys.bitcnt(1));
+    syncsys_bitcnt2 : syncdff
+    PORT MAP(clk => clk, rst => r.rxdis, di => rrx.bitcnt(2), do => syncsys.bitcnt(2));
 
     -- sample inputs on rising edge of rxclk
-    process (rxclk) is
-    begin
-        if rising_edge(rxclk) then
-            s_a_di1     <= spw_di;
-            s_a_si1     <= spw_si;
-        end if;
-    end process;
+    PROCESS (rxclk) IS
+    BEGIN
+        IF rising_edge(rxclk) THEN
+            s_a_di1 <= spw_di;
+            s_a_si1 <= spw_si;
+        END IF;
+    END PROCESS;
 
     -- sample inputs on falling edge of rxclk
-    process (rxclk) is
-    begin
-        if falling_edge(rxclk) then
-            s_a_di2     <= spw_di;
-            s_a_si2     <= spw_si;
+    PROCESS (rxclk) IS
+    BEGIN
+        IF falling_edge(rxclk) THEN
+            s_a_di2 <= spw_di;
+            s_a_si2 <= spw_si;
             -- reregister inputs in fabric flip-flops
-            s_a_di0     <= s_a_di2;
-            s_a_si0     <= s_a_si2;
-        end if;
-    end process;
+            s_a_di0 <= s_a_di2;
+            s_a_si0 <= s_a_si2;
+        END IF;
+    END PROCESS;
 
     -- combinatorial process
-    process  (r, rrx, rxen, syncrx_rstn, syncsys, s_bufdout, s_a_di0, s_a_si0, s_a_di1, s_a_si1)
-        variable v:     regs_type;
-        variable vrx:   rxregs_type;
-    begin
-        v       := r;
-        vrx     := rrx;
+    PROCESS (r, rrx, rxen, syncrx_rstn, syncsys, s_bufdout, s_a_di0, s_a_si0, s_a_di1, s_a_si1)
+        VARIABLE v : regs_type;
+        VARIABLE vrx : rxregs_type;
+    BEGIN
+        v := r;
+        vrx := rrx;
 
         -- ---- SAMPLE CLOCK DOMAIN ----
 
         -- stage B: re-register input samples
-        vrx.b_di0   := s_a_di0;
-        vrx.b_si0   := s_a_si0;
-        vrx.b_di1   := s_a_di1;
-        vrx.b_si1   := s_a_si1;
+        vrx.b_di0 := s_a_di0;
+        vrx.b_si0 := s_a_si0;
+        vrx.b_di1 := s_a_di1;
+        vrx.b_si1 := s_a_si1;
 
         -- stage C: decode data/strobe and detect valid bits
-        if (rrx.b_di0 xor rrx.b_si0 xor rrx.c_xor1) = '1' then
+        IF (rrx.b_di0 XOR rrx.b_si0 XOR rrx.c_xor1) = '1' THEN
             vrx.c_bit(0) := rrx.b_di0;
-        else
+        ELSE
             vrx.c_bit(0) := rrx.b_di1;
-        end if;
+        END IF;
         vrx.c_bit(1) := rrx.b_di1;
-        vrx.c_val(0) := (rrx.b_di0 xor rrx.b_si0 xor rrx.c_xor1) or
-                        (rrx.b_di0 xor rrx.b_si0 xor rrx.b_di1 xor rrx.b_si1);
-        vrx.c_val(1) := (rrx.b_di0 xor rrx.b_si0 xor rrx.c_xor1) and
-                        (rrx.b_di0 xor rrx.b_si0 xor rrx.b_di1 xor rrx.b_si1);
-        vrx.c_xor1   := rrx.b_di1 xor rrx.b_si1;
+        vrx.c_val(0) := (rrx.b_di0 XOR rrx.b_si0 XOR rrx.c_xor1) OR
+        (rrx.b_di0 XOR rrx.b_si0 XOR rrx.b_di1 XOR rrx.b_si1);
+        vrx.c_val(1) := (rrx.b_di0 XOR rrx.b_si0 XOR rrx.c_xor1) AND
+        (rrx.b_di0 XOR rrx.b_si0 XOR rrx.b_di1 XOR rrx.b_si1);
+        vrx.c_xor1 := rrx.b_di1 XOR rrx.b_si1;
 
         -- Note:
         -- c_val = "00" if no new bits are received
@@ -287,138 +287,138 @@ begin
         -- c_val = "11" if two new bits are received
 
         -- stage D: collect groups of memwidth bits
-        if rrx.c_val(0) = '1' then
+        IF rrx.c_val(0) = '1' THEN
 
             -- shift incoming bits into register
-            if rrx.c_val(1) = '1' then
-                vrx.d_shift := rrx.c_bit & rrx.d_shift(memwidth-1 downto 2);
-            else
-                vrx.d_shift := rrx.c_bit(0) & rrx.d_shift(memwidth-1 downto 1);
-            end if;
+            IF rrx.c_val(1) = '1' THEN
+                vrx.d_shift := rrx.c_bit & rrx.d_shift(memwidth - 1 DOWNTO 2);
+            ELSE
+                vrx.d_shift := rrx.c_bit(0) & rrx.d_shift(memwidth - 1 DOWNTO 1);
+            END IF;
 
             -- prepare to store a group of memwidth bits
-            if rrx.d_count(0) = '1' then
+            IF rrx.d_count(0) = '1' THEN
                 -- only one more bit needed
-                vrx.bufdata := rrx.c_bit(0) & rrx.d_shift(memwidth-1 downto 1);
-            else
-                vrx.bufdata := rrx.c_bit & rrx.d_shift(memwidth-1 downto 2);
-            end if;
+                vrx.bufdata := rrx.c_bit(0) & rrx.d_shift(memwidth - 1 DOWNTO 1);
+            ELSE
+                vrx.bufdata := rrx.c_bit & rrx.d_shift(memwidth - 1 DOWNTO 2);
+            END IF;
 
             -- countdown nr of needed bits (one-hot counter)
-            if rrx.c_val(1) = '1' then
-                vrx.d_count := rrx.d_count(1 downto 0) & rrx.d_count(memwidth-1 downto 2);
-            else
-                vrx.d_count := rrx.d_count(0 downto 0) & rrx.d_count(memwidth-1 downto 1);
-            end if;
+            IF rrx.c_val(1) = '1' THEN
+                vrx.d_count := rrx.d_count(1 DOWNTO 0) & rrx.d_count(memwidth - 1 DOWNTO 2);
+            ELSE
+                vrx.d_count := rrx.d_count(0 DOWNTO 0) & rrx.d_count(memwidth - 1 DOWNTO 1);
+            END IF;
 
-        end if;
+        END IF;
 
         -- stage D: store groups of memwidth bits
-        vrx.bufwrite := rrx.c_val(0) and (rrx.d_count(0) or (rrx.c_val(1) and rrx.d_count(1)));
+        vrx.bufwrite := rrx.c_val(0) AND (rrx.d_count(0) OR (rrx.c_val(1) AND rrx.d_count(1)));
 
         -- Increment head pointer.
-        if rrx.bufwrite = '1' then
-            vrx.headptr := std_logic_vector(unsigned(rrx.headptr) + 1);
-        end if;
+        IF rrx.bufwrite = '1' THEN
+            vrx.headptr := STD_LOGIC_VECTOR(unsigned(rrx.headptr) + 1);
+        END IF;
 
         -- Activity detection.
-        if rrx.c_val(0) = '1' then
-            vrx.bitcnt  := std_logic_vector(unsigned(rrx.bitcnt) + 1);
-        end if;
+        IF rrx.c_val(0) = '1' THEN
+            vrx.bitcnt := STD_LOGIC_VECTOR(unsigned(rrx.bitcnt) + 1);
+        END IF;
 
         -- Synchronous reset of rxclk domain.
-        if syncrx_rstn = '0' then
-            vrx.c_val   := "00";
-            vrx.c_xor1  := '0';
-            vrx.d_count := (others => '0');
-            vrx.d_count(memwidth-1) := '1';
+        IF syncrx_rstn = '0' THEN
+            vrx.c_val := "00";
+            vrx.c_xor1 := '0';
+            vrx.d_count := (OTHERS => '0');
+            vrx.d_count(memwidth - 1) := '1';
             vrx.bufwrite := '0';
             vrx.headptr := "000";
-            vrx.bitcnt  := "000";
-        end if;
+            vrx.bitcnt := "000";
+        END IF;
 
         -- ---- SYSTEM CLOCK DOMAIN ----
 
         -- Compare tailptr to headptr to decide whether there is new data.
         -- If the values are equal, we are about to read a location which has
         -- not yet been written by the rxclk domain.
-        if r.tailptr = syncsys.headptr then
+        IF r.tailptr = syncsys.headptr THEN
             -- No more data in cyclic buffer.
-            v.inbvalid  := '0';
-        else
+            v.inbvalid := '0';
+        ELSE
             -- Reading valid data from cyclic buffer.
-            v.inbvalid  := '1';
+            v.inbvalid := '1';
             -- Increment tail pointer.
-            if rxchunk /= 1 then
-                v.tailptr   := std_logic_vector(unsigned(r.tailptr) + 1);
-            end if;
-        end if;
+            IF rxchunk /= 1 THEN
+                v.tailptr := STD_LOGIC_VECTOR(unsigned(r.tailptr) + 1);
+            END IF;
+        END IF;
 
         -- If rxchunk=1, split 2-bit groups into separate bits.
-        if rxchunk = 1 then
+        IF rxchunk = 1 THEN
             -- Select one of the two bits.
-            if r.splitinx = '0' then
-                v.splitbit  := s_bufdout(0);
-            else
-                v.splitbit  := s_bufdout(1);
-            end if;
+            IF r.splitinx = '0' THEN
+                v.splitbit := s_bufdout(0);
+            ELSE
+                v.splitbit := s_bufdout(1);
+            END IF;
             -- Indicate valid bit.
             v.splitvalid := r.inbvalid;
             -- Increment tail pointer.
-            if r.inbvalid = '1' then
-                v.splitinx   := not r.splitinx;
-                if r.splitinx = '0' then
-                    v.tailptr   := std_logic_vector(unsigned(r.tailptr) + 1);
-                end if;
-            end if;
-        end if;
+            IF r.inbvalid = '1' THEN
+                v.splitinx := NOT r.splitinx;
+                IF r.splitinx = '0' THEN
+                    v.tailptr := STD_LOGIC_VECTOR(unsigned(r.tailptr) + 1);
+                END IF;
+            END IF;
+        END IF;
 
         -- Activity detection.
-        v.bitcntp   := syncsys.bitcnt;
-        if r.bitcntp = syncsys.bitcnt then
-            v.inact     := '0';
-        else
-            v.inact     := '1';
-        end if;
+        v.bitcntp := syncsys.bitcnt;
+        IF r.bitcntp = syncsys.bitcnt THEN
+            v.inact := '0';
+        ELSE
+            v.inact := '1';
+        END IF;
 
         -- Synchronous reset of system clock domain.
-        if rxen = '0' then
-            v   := regs_reset;
-        end if;
+        IF rxen = '0' THEN
+            v := regs_reset;
+        END IF;
 
         -- Register rxen to ensure glitch-free signal to rxclk domain
-        v.rxdis     := not rxen;
+        v.rxdis := NOT rxen;
 
         -- drive outputs
-        inact       <= r.inact;
-        if rxchunk = 1 then
-            inbvalid    <= r.splitvalid;
-            inbits(0)   <= r.splitbit;
-        else
-            inbvalid    <= r.inbvalid;
-            inbits      <= s_bufdout;
-        end if;
+        inact <= r.inact;
+        IF rxchunk = 1 THEN
+            inbvalid <= r.splitvalid;
+            inbits(0) <= r.splitbit;
+        ELSE
+            inbvalid <= r.inbvalid;
+            inbits <= s_bufdout;
+        END IF;
 
         -- update registers
-        rrxin       <= vrx;
-        rin         <= v;
+        rrxin <= vrx;
+        rin <= v;
 
-    end process;
+    END PROCESS;
 
     -- update registers on rising edge of rxclk
-    process (rxclk) is
-    begin
-        if rising_edge(rxclk) then
+    PROCESS (rxclk) IS
+    BEGIN
+        IF rising_edge(rxclk) THEN
             rrx <= rrxin;
-        end if;
-    end process;
+        END IF;
+    END PROCESS;
 
     -- update registers on rising edge of system clock
-    process (clk) is
-    begin
-        if rising_edge(clk) then
+    PROCESS (clk) IS
+    BEGIN
+        IF rising_edge(clk) THEN
             r <= rin;
-        end if;
-    end process;
+        END IF;
+    END PROCESS;
 
-end architecture spwrecvfront_arch;
+END ARCHITECTURE spwrecvfront_arch;

@@ -2,30 +2,26 @@
 --  SpaceWire VHDL package
 --
 
-library ieee;
-use ieee.std_logic_1164.all;
+LIBRARY ieee;
+USE ieee.std_logic_1164.ALL;
 
-package spwpkg is
-
-
+PACKAGE spwpkg IS
     -- Indicates a platform-specific implementation.
-    type spw_implementation_type is ( impl_generic, impl_fast );
-
-
+    TYPE spw_implementation_type IS (impl_generic, impl_fast);
     -- Input signals to spwlink.
-    type spw_link_in_type is record
+    TYPE spw_link_in_type IS RECORD
 
         -- Enables automatic link start on receipt of a NULL character.
-        autostart:  std_logic;
+        autostart : STD_LOGIC;
 
         -- Enables link start once the Ready state is reached.
         -- Without either "autostart" or "linkstart", the link remains in
         -- state Ready.
-        linkstart:  std_logic;
+        linkstart : STD_LOGIC;
 
         -- Do not start link (overrides "linkstart" and "autostart") and/or
         -- disconnect the currently running link.
-        linkdis:    std_logic;
+        linkdis : STD_LOGIC;
 
         -- Number of bytes available in the receive buffer. Used to for
         -- flow-control operation. At least 8 bytes must be available
@@ -35,369 +31,343 @@ package spwpkg is
         -- the "rxroom" signal must be updated on the clock following the clock
         -- on which "rxchar" is high. Under no other circumstances may "rxroom"
         -- be decreased.
-        rxroom:     std_logic_vector(5 downto 0);
+        rxroom : STD_LOGIC_VECTOR(5 DOWNTO 0);
 
         -- High for one clock cycle to request transmission of a TimeCode.
         -- The request is registered inside spwxmit until it can be processed.
-        tick_in:    std_logic;
+        tick_in : STD_LOGIC;
 
         -- Control bits of the TimeCode to be sent.
         -- Must be valid while tick_in is high.
-        ctrl_in:    std_logic_vector(1 downto 0);
+        ctrl_in : STD_LOGIC_VECTOR(1 DOWNTO 0);
 
         -- Counter value of the TimeCode to be sent.
         -- Must be valid while tick_in is high.
-        time_in:    std_logic_vector(5 downto 0);
+        time_in : STD_LOGIC_VECTOR(5 DOWNTO 0);
 
         -- Requests transmission of an N-Char.
         -- Keep this signal high until confirmed by "txack".
-        txwrite:    std_logic;
+        txwrite : STD_LOGIC;
 
         -- Control flag to be sent with the next N-Char.
         -- Must be valid while "txwrite" is high.
-        txflag:     std_logic;
+        txflag : STD_LOGIC;
 
         -- Byte to be sent, or "00000000" for EOP or "00000001" for EEP.
         -- Must be valid while "txwrite" is high.
-        txdata:     std_logic_vector(7 downto 0);
-    end record;
-
-
+        txdata : STD_LOGIC_VECTOR(7 DOWNTO 0);
+    END RECORD;
     -- Output signals from spwlink.
-    type spw_link_out_type is record
+    TYPE spw_link_out_type IS RECORD
 
         -- High if the link state machine is currently in state Started.
-        started:    std_logic;
+        started : STD_LOGIC;
 
         -- High if the link state machine is currently in state Connecting.
-        connecting: std_logic;
+        connecting : STD_LOGIC;
 
         -- High if the link state machine is currently in state Run.
-        running:    std_logic;
+        running : STD_LOGIC;
 
         -- Disconnect detected in state Run. Triggers a reset and reconnect.
         -- This indication is auto-clearing.
-        errdisc:    std_logic;
+        errdisc : STD_LOGIC;
 
         -- Parity error detected in state Run. Triggers a reset and reconnect.
         -- This indication is auto-clearing.
-        errpar:     std_logic;
+        errpar : STD_LOGIC;
 
         -- Invalid escape sequence detected in state Run.
         -- Triggers a reset and reconnect; auto-clearing.
-        erresc:     std_logic;
+        erresc : STD_LOGIC;
 
         -- Credit error detected. Triggers a reset and reconnect.
         -- This indication is auto-clearing.
-        errcred:    std_logic;
+        errcred : STD_LOGIC;
 
         -- High to confirm the transmission of an N-Char.
         -- This is a Wishbone-style handshake signal. It has a combinatorial
         -- dependency on "txwrite".
-        txack:      std_logic;
+        txack : STD_LOGIC;
 
         -- High for one clock cycle if a TimeCode was just received.
         -- Verification of the TimeCode as described in 8.12.2 of ECSS-E-50
         -- is not implemented; all received timecodes are reported.
-        tick_out:   std_logic;
+        tick_out : STD_LOGIC;
 
         -- Control bits of last received TimeCode.
-        ctrl_out:   std_logic_vector(1 downto 0);
+        ctrl_out : STD_LOGIC_VECTOR(1 DOWNTO 0);
 
         -- Counter value of last received TimeCode.
-        time_out:   std_logic_vector(5 downto 0);
+        time_out : STD_LOGIC_VECTOR(5 DOWNTO 0);
 
         -- High for one clock cycle if an N-Char (data byte or EOP or EEP) was
         -- just received. The data bits must be accepted immediately from
         -- "rxflag" and "rxdata".
-        rxchar:     std_logic;
+        rxchar : STD_LOGIC;
 
         -- High if the received character is EOP or EEP, low if it is a data
         -- byte. Valid when "rxchar" is high.
-        rxflag:     std_logic;
+        rxflag : STD_LOGIC;
 
         -- Received byte, or "00000000" for EOP or "00000001" for EEP.
         -- Valid when "rxchar" is high.
-        rxdata:     std_logic_vector(7 downto 0);
-    end record;
-
-
+        rxdata : STD_LOGIC_VECTOR(7 DOWNTO 0);
+    END RECORD;
     -- Output signals from spwrecv to spwlink.
-    type spw_recv_out_type is record
+    TYPE spw_recv_out_type IS RECORD
 
         -- High if at least one signal change was seen since enable.
         -- Resets to low when rxen is low.
-        gotbit:     std_logic;
+        gotbit : STD_LOGIC;
 
         -- High if at least one valid NULL pattern was detected since enable.
         -- Resets to low when rxen is low.
-        gotnull:    std_logic;
+        gotnull : STD_LOGIC;
 
         -- High for one clock cycle if an FCT token was just received.
-        gotfct:     std_logic;
+        gotfct : STD_LOGIC;
 
         -- High for one clock cycle if a TimeCode was just received.
-        tick_out:   std_logic;
+        tick_out : STD_LOGIC;
 
         -- Control bits of last received TimeCode.
-        ctrl_out:   std_logic_vector(1 downto 0);
+        ctrl_out : STD_LOGIC_VECTOR(1 DOWNTO 0);
 
         -- Counter value of last received TimeCode.
-        time_out:   std_logic_vector(5 downto 0);
+        time_out : STD_LOGIC_VECTOR(5 DOWNTO 0);
 
         -- High for one clock cycle if an N-Char (data byte or EOP/EEP) was just received.
-        rxchar:     std_logic;
+        rxchar : STD_LOGIC;
 
         -- High if rxchar is high and the received character is EOP or EEP.
         -- Low if rxchar is high and the received character is a data byte.
-        rxflag:     std_logic;
+        rxflag : STD_LOGIC;
 
         -- Received byte, or "00000000" for EOP or "00000001" for EEP.
         -- Valid when "rxchar" is high.
-        rxdata:     std_logic_vector(7 downto 0);
+        rxdata : STD_LOGIC_VECTOR(7 DOWNTO 0);
 
         -- Disconnect detected (after a signal change was seen).
         -- Resets to low when rxen is low or when a signal change is seen.
-        errdisc:    std_logic;
+        errdisc : STD_LOGIC;
 
         -- Parity error detected (after a valid NULL pattern was seen).
         -- Sticky; resets to low when rxen is low.
-        errpar:     std_logic;
+        errpar : STD_LOGIC;
 
         -- Escape sequence error detected (after a valid NULL pattern was seen).
         -- Sticky; resets to low when rxen is low.
-        erresc:     std_logic;
-    end record;
-
-
+        erresc : STD_LOGIC;
+    END RECORD;
     -- Input signals to spwxmit from spwlink.
-    type spw_xmit_in_type is record
+    TYPE spw_xmit_in_type IS RECORD
 
         -- High to enable transmitter; low to disable and reset transmitter.
-        txen:       std_logic;
+        txen : STD_LOGIC;
 
         -- Indicates that only NULL characters may be transmitted.
-        stnull:     std_logic;
+        stnull : STD_LOGIC;
 
         -- Indicates that only NULL and/or FCT characters may be transmitted.
-        stfct:      std_logic;
+        stfct : STD_LOGIC;
 
         -- Requests transmission of an FCT character.
         -- Keep this signal high until confirmed by "fctack".
-        fct_in:     std_logic;
+        fct_in : STD_LOGIC;
 
         -- High for one clock cycle to request transmission of a TimeCode.
         -- The request is registered inside spwxmit until it can be processed.
-        tick_in:    std_logic;
+        tick_in : STD_LOGIC;
 
         -- Control bits of the TimeCode to be sent.
         -- Must be valid while "tick_in" is high.
-        ctrl_in:    std_logic_vector(1 downto 0);
+        ctrl_in : STD_LOGIC_VECTOR(1 DOWNTO 0);
 
         -- Counter value of the TimeCode to be sent.
         -- Must be valid while "tick_in" is high.
-        time_in:    std_logic_vector(5 downto 0);
+        time_in : STD_LOGIC_VECTOR(5 DOWNTO 0);
 
         -- Request transmission of an N-Char.
         -- Keep this signal high until confirmed by "txack".
-        txwrite:    std_logic;
+        txwrite : STD_LOGIC;
 
         -- Control flag to be sent with the next N-Char.
         -- Must be valid while "txwrite" is high.
-        txflag:     std_logic;
+        txflag : STD_LOGIC;
 
         -- Byte to send, or "00000000" for EOP or "00000001" for EEP.
         -- Must be valid while "txwrite" is high.
-        txdata:     std_logic_vector(7 downto 0);
-    end record;
-
-
+        txdata : STD_LOGIC_VECTOR(7 DOWNTO 0);
+    END RECORD;
     -- Output signals from spwxmit to spwlink.
-    type spw_xmit_out_type is record
+    TYPE spw_xmit_out_type IS RECORD
 
         -- High to confirm transmission on an FCT character.
         -- This is a Wishbone-style handshaking signal; it is combinatorially
         -- dependent on "fct_in".
-        fctack:     std_logic;
+        fctack : STD_LOGIC;
 
         -- High to confirm transmission of an N-Char.
         -- This is a Wishbone-style handshaking signal; it is combinatorially
         -- dependent on both "fct_in" and "txwrite".
-        txack:      std_logic;
-    end record;
-
-
+        txack : STD_LOGIC;
+    END RECORD;
     -- Character-stream interface
-    component spwstream is
-        generic (
-            sysfreq:        real;                           -- clk freq in Hz
-            txclkfreq:      real := 0.0;                    -- txclk freq in Hz
-            rximpl:         spw_implementation_type := impl_generic;
-            rxchunk:        integer range 1 to 4 := 1;      -- max bits per clk
-            tximpl:         spw_implementation_type := impl_generic;
-            rxfifosize_bits: integer range 6 to 14 := 11;   -- rx fifo size
-            txfifosize_bits: integer range 2 to 14 := 11    -- tx fifo size
+    COMPONENT spwstream IS
+        GENERIC (
+            sysfreq : real; -- clk freq in Hz
+            txclkfreq : real := 0.0; -- txclk freq in Hz
+            rximpl : spw_implementation_type := impl_generic;
+            rxchunk : INTEGER RANGE 1 TO 4 := 1; -- max bits per clk
+            tximpl : spw_implementation_type := impl_generic;
+            rxfifosize_bits : INTEGER RANGE 6 TO 14 := 11; -- rx fifo size
+            txfifosize_bits : INTEGER RANGE 2 TO 14 := 11 -- tx fifo size
         );
-        port (
-            clk:        in  std_logic;          -- system clock
-            rxclk:      in  std_logic;          -- receiver sample clock
-            txclk:      in  std_logic;          -- transmit clock
-            rst:        in  std_logic;          -- synchronous reset
-            autostart:  in  std_logic;          -- automatic link start
-            linkstart:  in  std_logic;          -- forced link start
-            linkdis:    in  std_logic;          -- stop link
-            txdivcnt:   in  std_logic_vector(7 downto 0);   -- tx scale factor
-            tick_in:    in  std_logic;          -- request timecode xmit
-            ctrl_in:    in  std_logic_vector(1 downto 0);   
-            time_in:    in  std_logic_vector(5 downto 0);
-            txwrite:    in  std_logic;          -- request character xmit
-            txflag:     in  std_logic;          -- control flag of tx char
-            txdata:     in  std_logic_vector(7 downto 0);
-            txrdy:      out std_logic;          -- room in tx fifo
-            txhalff:    out std_logic;          -- tx fifo half full
-            tick_out:   out std_logic;          -- timecode received
-            ctrl_out:   out std_logic_vector(1 downto 0);
-            time_out:   out std_logic_vector(5 downto 0);
-            rxvalid:    out std_logic;          -- rx fifo not empty
-            rxhalff:    out std_logic;          -- rx fifo half full
-            rxflag:     out std_logic;          -- control flag of rx char
-            rxdata:     out std_logic_vector(7 downto 0);
-            rxread:     in  std_logic;          -- accept rx character
-            started:    out std_logic;          -- link in Started state
-            connecting: out std_logic;          -- link in Connecting state
-            running:    out std_logic;          -- link in Run state
-            errdisc:    out std_logic;          -- disconnect error
-            errpar:     out std_logic;          -- parity error
-            erresc:     out std_logic;          -- escape error
-            errcred:    out std_logic;          -- credit error
-            spw_di:     in  std_logic;
-            spw_si:     in  std_logic;
-            spw_do:     out std_logic;
-            spw_so:     out std_logic
+        PORT (
+            clk : IN STD_LOGIC; -- system clock
+            rxclk : IN STD_LOGIC; -- receiver sample clock
+            txclk : IN STD_LOGIC; -- transmit clock
+            rst : IN STD_LOGIC; -- synchronous reset
+            autostart : IN STD_LOGIC; -- automatic link start
+            linkstart : IN STD_LOGIC; -- forced link start
+            linkdis : IN STD_LOGIC; -- stop link
+            txdivcnt : IN STD_LOGIC_VECTOR(7 DOWNTO 0); -- tx scale factor
+            tick_in : IN STD_LOGIC; -- request timecode xmit
+            ctrl_in : IN STD_LOGIC_VECTOR(1 DOWNTO 0);
+            time_in : IN STD_LOGIC_VECTOR(5 DOWNTO 0);
+            txwrite : IN STD_LOGIC; -- request character xmit
+            txflag : IN STD_LOGIC; -- control flag of tx char
+            txdata : IN STD_LOGIC_VECTOR(7 DOWNTO 0);
+            txrdy : OUT STD_LOGIC; -- room in tx fifo
+            txhalff : OUT STD_LOGIC; -- tx fifo half full
+            tick_out : OUT STD_LOGIC; -- timecode received
+            ctrl_out : OUT STD_LOGIC_VECTOR(1 DOWNTO 0);
+            time_out : OUT STD_LOGIC_VECTOR(5 DOWNTO 0);
+            rxvalid : OUT STD_LOGIC; -- rx fifo not empty
+            rxhalff : OUT STD_LOGIC; -- rx fifo half full
+            rxflag : OUT STD_LOGIC; -- control flag of rx char
+            rxdata : OUT STD_LOGIC_VECTOR(7 DOWNTO 0);
+            rxread : IN STD_LOGIC; -- accept rx character
+            started : OUT STD_LOGIC; -- link in Started state
+            connecting : OUT STD_LOGIC; -- link in Connecting state
+            running : OUT STD_LOGIC; -- link in Run state
+            errdisc : OUT STD_LOGIC; -- disconnect error
+            errpar : OUT STD_LOGIC; -- parity error
+            erresc : OUT STD_LOGIC; -- escape error
+            errcred : OUT STD_LOGIC; -- credit error
+            spw_di : IN STD_LOGIC;
+            spw_si : IN STD_LOGIC;
+            spw_do : OUT STD_LOGIC;
+            spw_so : OUT STD_LOGIC
         );
-    end component spwstream;
-
-
+    END COMPONENT spwstream;
     -- Link Level Interface
-    component spwlink is
-        generic (
-            reset_time:      integer        -- reset time in clocks (6.4 us)
+    COMPONENT spwlink IS
+        GENERIC (
+            reset_time : INTEGER -- reset time in clocks (6.4 us)
         );
-        port (
-            clk:        in  std_logic;      -- system clock
-            rst:        in  std_logic;      -- synchronous reset (active-high)
-            linki:      in  spw_link_in_type;
-            linko:      out spw_link_out_type;
-            rxen:       out std_logic;
-            recvo:      in  spw_recv_out_type;
-            xmiti:      out spw_xmit_in_type;
-            xmito:      in  spw_xmit_out_type
+        PORT (
+            clk : IN STD_LOGIC; -- system clock
+            rst : IN STD_LOGIC; -- synchronous reset (active-high)
+            linki : IN spw_link_in_type;
+            linko : OUT spw_link_out_type;
+            rxen : OUT STD_LOGIC;
+            recvo : IN spw_recv_out_type;
+            xmiti : OUT spw_xmit_in_type;
+            xmito : IN spw_xmit_out_type
         );
-    end component spwlink;
-
-
+    END COMPONENT spwlink;
     -- Receiver
-    component spwrecv is
-        generic (
-            disconnect_time: integer range 1 to 255;    -- disconnect period in system clock cycles
-            rxchunk:        integer range 1 to 4        -- nr of bits per system clock
+    COMPONENT spwrecv IS
+        GENERIC (
+            disconnect_time : INTEGER RANGE 1 TO 255; -- disconnect period in system clock cycles
+            rxchunk : INTEGER RANGE 1 TO 4 -- nr of bits per system clock
         );
-        port (
-            clk:        in  std_logic;      -- system clock
-            rxen:       in  std_logic;      -- receiver enabled
-            recvo:      out spw_recv_out_type;
-            inact:      in  std_logic;
-            inbvalid:   in  std_logic;
-            inbits:     in  std_logic_vector(rxchunk-1 downto 0)
+        PORT (
+            clk : IN STD_LOGIC; -- system clock
+            rxen : IN STD_LOGIC; -- receiver enabled
+            recvo : OUT spw_recv_out_type;
+            inact : IN STD_LOGIC;
+            inbvalid : IN STD_LOGIC;
+            inbits : IN STD_LOGIC_VECTOR(rxchunk - 1 DOWNTO 0)
         );
-    end component spwrecv;
-
-
+    END COMPONENT spwrecv;
     -- Transmitter (generic implementation)
-    component spwxmit is
-        port (
-            clk:        in  std_logic;      -- system clock
-            rst:        in  std_logic;      -- synchronous reset (active-high)
-            divcnt:     in  std_logic_vector(7 downto 0);
-            xmiti:      in  spw_xmit_in_type;
-            xmito:      out spw_xmit_out_type;
-            spw_do:     out std_logic;      -- tx data to SPW bus
-            spw_so:     out std_logic       -- tx strobe to SPW bus
+    COMPONENT spwxmit IS
+        PORT (
+            clk : IN STD_LOGIC; -- system clock
+            rst : IN STD_LOGIC; -- synchronous reset (active-high)
+            divcnt : IN STD_LOGIC_VECTOR(7 DOWNTO 0);
+            xmiti : IN spw_xmit_in_type;
+            xmito : OUT spw_xmit_out_type;
+            spw_do : OUT STD_LOGIC; -- tx data to SPW bus
+            spw_so : OUT STD_LOGIC -- tx strobe to SPW bus
         );
-    end component spwxmit;
-
-
+    END COMPONENT spwxmit;
     -- Transmitter (separate tx clock domain)
-    component spwxmit_fast is
-        port (
-            clk:        in  std_logic;      -- system clock
-            txclk:      in  std_logic;      -- transmit clock
-            rst:        in  std_logic;      -- synchronous reset (active-high)
-            divcnt:     in  std_logic_vector(7 downto 0);
-            xmiti:      in  spw_xmit_in_type;
-            xmito:      out spw_xmit_out_type;
-            spw_do:     out std_logic;      -- tx data to SPW bus
-            spw_so:     out std_logic       -- tx strobe to SPW bus
+    COMPONENT spwxmit_fast IS
+        PORT (
+            clk : IN STD_LOGIC; -- system clock
+            txclk : IN STD_LOGIC; -- transmit clock
+            rst : IN STD_LOGIC; -- synchronous reset (active-high)
+            divcnt : IN STD_LOGIC_VECTOR(7 DOWNTO 0);
+            xmiti : IN spw_xmit_in_type;
+            xmito : OUT spw_xmit_out_type;
+            spw_do : OUT STD_LOGIC; -- tx data to SPW bus
+            spw_so : OUT STD_LOGIC -- tx strobe to SPW bus
         );
-    end component spwxmit_fast;
-
-
+    END COMPONENT spwxmit_fast;
     -- Front-end for SpaceWire Receiver (generic implementation)
-    component spwrecvfront_generic is
-        port (
-            clk:        in  std_logic;      -- system clock
-            rxen:       in  std_logic;      -- high to enable receiver
-            inact:      out std_logic;      -- high if activity on input
-            inbvalid:   out std_logic;      -- high if inbits contains a valid received bit
-            inbits:     out std_logic_vector(0 downto 0);   -- received bit
-            spw_di:     in  std_logic;      -- Data In signal from SpaceWire bus
-            spw_si:     in  std_logic       -- Strobe In signal from SpaceWire bus
+    COMPONENT spwrecvfront_generic IS
+        PORT (
+            clk : IN STD_LOGIC; -- system clock
+            rxen : IN STD_LOGIC; -- high to enable receiver
+            inact : OUT STD_LOGIC; -- high if activity on input
+            inbvalid : OUT STD_LOGIC; -- high if inbits contains a valid received bit
+            inbits : OUT STD_LOGIC_VECTOR(0 DOWNTO 0); -- received bit
+            spw_di : IN STD_LOGIC; -- Data In signal from SpaceWire bus
+            spw_si : IN STD_LOGIC -- Strobe In signal from SpaceWire bus
         );
-    end component spwrecvfront_generic;
-
-
+    END COMPONENT spwrecvfront_generic;
     -- Front-end for SpaceWire Receiver (separate rx clock domain)
-    component spwrecvfront_fast is
-        generic (
-            rxchunk:        integer range 1 to 4    -- max number of bits per system clock
+    COMPONENT spwrecvfront_fast IS
+        GENERIC (
+            rxchunk : INTEGER RANGE 1 TO 4 -- max number of bits per system clock
         );
-        port (
-            clk:        in  std_logic;      -- system clock
-            rxclk:      in  std_logic;      -- sample clock (DDR)
-            rxen:       in  std_logic;      -- high to enable receiver
-            inact:      out std_logic;      -- high if activity on input
-            inbvalid:   out std_logic;      -- high if inbits contains a valid group of received bits
-            inbits:     out std_logic_vector(rxchunk-1 downto 0);    -- received bits
-            spw_di:     in  std_logic;      -- Data In signal from SpaceWire bus
-            spw_si:     in  std_logic       -- Strobe In signal from SpaceWire bus
+        PORT (
+            clk : IN STD_LOGIC; -- system clock
+            rxclk : IN STD_LOGIC; -- sample clock (DDR)
+            rxen : IN STD_LOGIC; -- high to enable receiver
+            inact : OUT STD_LOGIC; -- high if activity on input
+            inbvalid : OUT STD_LOGIC; -- high if inbits contains a valid group of received bits
+            inbits : OUT STD_LOGIC_VECTOR(rxchunk - 1 DOWNTO 0); -- received bits
+            spw_di : IN STD_LOGIC; -- Data In signal from SpaceWire bus
+            spw_si : IN STD_LOGIC -- Strobe In signal from SpaceWire bus
         );
-    end component spwrecvfront_fast;
-
-
+    END COMPONENT spwrecvfront_fast;
     -- Synchronous two-port memory.
-    component spwram is
-        generic (
-            abits:      integer;
-            dbits:      integer );
-        port (
-            rclk:       in  std_logic;
-            wclk:       in  std_logic;
-            ren:        in  std_logic;
-            raddr:      in  std_logic_vector(abits-1 downto 0);
-            rdata:      out std_logic_vector(dbits-1 downto 0);
-            wen:        in  std_logic;
-            waddr:      in  std_logic_vector(abits-1 downto 0);
-            wdata:      in  std_logic_vector(dbits-1 downto 0) );
-    end component spwram;
-
-
+    COMPONENT spwram IS
+        GENERIC (
+            abits : INTEGER;
+            dbits : INTEGER);
+        PORT (
+            rclk : IN STD_LOGIC;
+            wclk : IN STD_LOGIC;
+            ren : IN STD_LOGIC;
+            raddr : IN STD_LOGIC_VECTOR(abits - 1 DOWNTO 0);
+            rdata : OUT STD_LOGIC_VECTOR(dbits - 1 DOWNTO 0);
+            wen : IN STD_LOGIC;
+            waddr : IN STD_LOGIC_VECTOR(abits - 1 DOWNTO 0);
+            wdata : IN STD_LOGIC_VECTOR(dbits - 1 DOWNTO 0));
+    END COMPONENT spwram;
     --  Double flip-flop synchronizer.
-    component syncdff is
-        port (
-            clk:        in  std_logic;          -- clock (destination domain)
-            rst:        in  std_logic;          -- asynchronous reset, active-high
-            di:         in  std_logic;          -- input data
-            do:         out std_logic );        -- output data
-    end component syncdff;
+    COMPONENT syncdff IS
+        PORT (
+            clk : IN STD_LOGIC; -- clock (destination domain)
+            rst : IN STD_LOGIC; -- asynchronous reset, active-high
+            di : IN STD_LOGIC; -- input data
+            do : OUT STD_LOGIC); -- output data
+    END COMPONENT syncdff;
 
-end package;
+END PACKAGE;

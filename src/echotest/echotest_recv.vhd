@@ -20,205 +20,201 @@
 --  after the link goes up.
 --
 
-library ieee;
-use ieee.std_logic_1164.all;
-use ieee.numeric_std.all;
-use work.spwpkg.all;
+LIBRARY ieee;
+USE ieee.std_logic_1164.ALL;
+USE ieee.numeric_std.ALL;
+USE work.spwpkg.ALL;
 
-entity echotest_recv is
+ENTITY echotest_recv IS
 
-    generic (
-        sysfreq:    real;
-        txclkfreq:  real; -- (if tximpl = impl_fast).
+    GENERIC (
+        sysfreq : real;
+        txclkfreq : real; -- (if tximpl = impl_fast).
         -- log2 of division factor from system clock freq to timecode freq.
-        tickdiv:    integer range 12 to 24 := 20;
-        rximpl:     spw_implementation_type := impl_generic;
-        rxchunk:    integer range 1 to 4 := 1; -- Max bits per sysclock (impl_fast only).
-        tximpl:     spw_implementation_type := impl_generic;
-        rxfifosize_bits: integer range 6 to 14 := 11;
-        txfifosize_bits: integer range 2 to 14 := 11
+        tickdiv : INTEGER RANGE 12 TO 24 := 20;
+        rximpl : spw_implementation_type := impl_generic;
+        rxchunk : INTEGER RANGE 1 TO 4 := 1; -- Max bits per sysclock (impl_fast only).
+        tximpl : spw_implementation_type := impl_generic;
+        rxfifosize_bits : INTEGER RANGE 6 TO 14 := 11;
+        txfifosize_bits : INTEGER RANGE 2 TO 14 := 11
     );
-    port (
-        clk:        in  std_logic;
-        rxclk:      in  std_logic; -- Receiver sample clock (only for impl_fast).
-        txclk:      in  std_logic; -- Transmit clock (only for impl_fast).
-        rst:        in  std_logic;
-        linkstart:  in  std_logic; -- Enables spontaneous link start.
-        autostart:  in  std_logic; -- link start on NULL
-        linkdisable: in std_logic;
-        senddata:   in  std_logic;
-        sendtick:   in  std_logic;
+    PORT (
+        clk : IN STD_LOGIC;
+        rxclk : IN STD_LOGIC; -- Receiver sample clock (only for impl_fast).
+        txclk : IN STD_LOGIC; -- Transmit clock (only for impl_fast).
+        rst : IN STD_LOGIC;
+        linkstart : IN STD_LOGIC; -- Enables spontaneous link start.
+        autostart : IN STD_LOGIC; -- link start on NULL
+        linkdisable : IN STD_LOGIC;
+        senddata : IN STD_LOGIC;
+        sendtick : IN STD_LOGIC;
         -- Scaling factor minus 1 for TX bitrate.
-        txdivcnt:   in  std_logic_vector(7 downto 0);
+        txdivcnt : IN STD_LOGIC_VECTOR(7 DOWNTO 0);
 
         -- State
-        linkstarted: out std_logic;
-        linkconnecting: out std_logic;
-        linkrun:    out std_logic;
-        linkerror:  out std_logic; -- one pulse, not for LED
+        linkstarted : OUT STD_LOGIC;
+        linkconnecting : OUT STD_LOGIC;
+        linkrun : OUT STD_LOGIC;
+        linkerror : OUT STD_LOGIC; -- one pulse, not for LED
         -- High when taking a byte from the receive FIFO.
-        gotdata:    out std_logic;
-        dataerror:  out std_logic; -- (sticky)
-        tickerror:  out std_logic; -- (sticky)
+        gotdata : OUT STD_LOGIC;
+        dataerror : OUT STD_LOGIC; -- (sticky)
+        tickerror : OUT STD_LOGIC; -- (sticky)
 
         -- SpaceWire signals.
-        spw_di:     in  std_logic;
-        spw_si:     in  std_logic;
-        spw_do:     out std_logic;
-        spw_so:     out std_logic;
+        spw_di : IN STD_LOGIC;
+        spw_si : IN STD_LOGIC;
+        spw_do : OUT STD_LOGIC;
+        spw_so : OUT STD_LOGIC;
 
-        linkerror_disc: out std_logic;
-        linkerror_par: out std_logic;
-        linkerror_esc: out std_logic;
-        linkerror_cred: out std_logic
+        linkerror_disc : OUT STD_LOGIC;
+        linkerror_par : OUT STD_LOGIC;
+        linkerror_esc : OUT STD_LOGIC;
+        linkerror_cred : OUT STD_LOGIC
     );
 
-end entity echotest_recv;
+END ENTITY echotest_recv;
 
-architecture echotest_recv_arch of echotest_recv is
+ARCHITECTURE echotest_recv_arch OF echotest_recv IS
 
     -- Receiving side state.
-    type rx_state_type is ( rxst_idle, rxst_data );
-    type tx_state_type is ( txst_idle, txst_prepare, txst_data );
+    TYPE rx_state_type IS (rxst_idle, rxst_data);
+    TYPE tx_state_type IS (txst_idle, txst_prepare, txst_data);
     -- Registers.
-    type regs_type is record
-        tx_state:       tx_state_type;
-        tx_timecnt:     std_logic_vector((tickdiv-1) downto 0);
-        tx_quietcnt:    std_logic_vector(15 downto 0);
-        tx_enabledata:  std_ulogic;
-        rx_state:       rx_state_type;
-        rx_quietcnt:    std_logic_vector(15 downto 0);
-        rx_enabledata:  std_ulogic;
-        rx_badpacket:   std_ulogic;
-        running:        std_ulogic;
-        tick_in:        std_ulogic;
-        time_in:        std_logic_vector(5 downto 0);
-        txwrite:        std_ulogic;
-        txflag:         std_ulogic;
-        txdata:         std_logic_vector(7 downto 0);
-        rxread:         std_ulogic;
-        gotdata:        std_ulogic;
-        dataerror:      std_ulogic;
-        tickerror:      std_ulogic;
-    end record;
+    TYPE regs_type IS RECORD
+        tx_state : tx_state_type;
+        tx_timecnt : STD_LOGIC_VECTOR((tickdiv - 1) DOWNTO 0);
+        tx_quietcnt : STD_LOGIC_VECTOR(15 DOWNTO 0);
+        tx_enabledata : STD_ULOGIC;
+        rx_state : rx_state_type;
+        rx_quietcnt : STD_LOGIC_VECTOR(15 DOWNTO 0);
+        rx_enabledata : STD_ULOGIC;
+        rx_badpacket : STD_ULOGIC;
+        running : STD_ULOGIC;
+        tick_in : STD_ULOGIC;
+        time_in : STD_LOGIC_VECTOR(5 DOWNTO 0);
+        txwrite : STD_ULOGIC;
+        txflag : STD_ULOGIC;
+        txdata : STD_LOGIC_VECTOR(7 DOWNTO 0);
+        rxread : STD_ULOGIC;
+        gotdata : STD_ULOGIC;
+        dataerror : STD_ULOGIC;
+        tickerror : STD_ULOGIC;
+    END RECORD;
 
     -- Reset state.
-    constant regs_reset: regs_type := (
-        tx_state        => txst_idle,
-        tx_timecnt      => (others => '0'),
-        tx_quietcnt     => (others => '0'),
-        tx_enabledata   => '0',
-        rx_state        => rxst_idle,
-        rx_quietcnt     => (others => '0'),
-        rx_enabledata   => '0',
-        rx_badpacket    => '0',
-        running         => '0',
-        tick_in         => '0',
-        time_in         => (others => '0'),
-        txwrite         => '0',
-        txflag          => '0',
-        txdata          => (others => '0'),
-        rxread          => '0',
-        gotdata         => '0',
-        dataerror       => '0',
-        tickerror       => '0' );
+    CONSTANT regs_reset : regs_type := (
+        tx_state => txst_idle,
+        tx_timecnt => (OTHERS => '0'),
+        tx_quietcnt => (OTHERS => '0'),
+        tx_enabledata => '0',
+        rx_state => rxst_idle,
+        rx_quietcnt => (OTHERS => '0'),
+        rx_enabledata => '0',
+        rx_badpacket => '0',
+        running => '0',
+        tick_in => '0',
+        time_in => (OTHERS => '0'),
+        txwrite => '0',
+        txflag => '0',
+        txdata => (OTHERS => '0'),
+        rxread => '0',
+        gotdata => '0',
+        dataerror => '0',
+        tickerror => '0');
 
-    signal r:   regs_type := regs_reset;
-    signal rin: regs_type;
+    SIGNAL r : regs_type := regs_reset;
+    SIGNAL rin : regs_type;
 
     -- Interface signals.
-    signal s_txrdy:     std_logic;
-    signal s_tickout:   std_logic;
-    signal s_timeout:   std_logic_vector(5 downto 0);
-    signal s_rxvalid:   std_logic;
-    signal s_rxflag:    std_logic;
-    signal s_rxdata:    std_logic_vector(7 downto 0);
-    signal s_running:   std_logic;
-    signal s_errdisc:   std_logic;
-    signal s_errpar:    std_logic;
-    signal s_erresc:    std_logic;
-    signal s_errcred:   std_logic;
+    SIGNAL s_txrdy : STD_LOGIC;
+    SIGNAL s_tickout : STD_LOGIC;
+    SIGNAL s_timeout : STD_LOGIC_VECTOR(5 DOWNTO 0);
+    SIGNAL s_rxvalid : STD_LOGIC;
+    SIGNAL s_rxflag : STD_LOGIC;
+    SIGNAL s_rxdata : STD_LOGIC_VECTOR(7 DOWNTO 0);
+    SIGNAL s_running : STD_LOGIC;
+    SIGNAL s_errdisc : STD_LOGIC;
+    SIGNAL s_errpar : STD_LOGIC;
+    SIGNAL s_erresc : STD_LOGIC;
+    SIGNAL s_errcred : STD_LOGIC;
 
-begin
+BEGIN
 
     -- spwstream instance
-    spwstream_inst: spwstream
-        generic map (
-            sysfreq         => sysfreq,
-            txclkfreq       => txclkfreq,
-            rximpl          => rximpl,
-            rxchunk         => rxchunk,
-            tximpl          => tximpl,
-            rxfifosize_bits => rxfifosize_bits,
-            txfifosize_bits => txfifosize_bits )
-        port map (
-            clk         => clk,
-            rxclk       => rxclk,
-            txclk       => txclk,
-            rst         => rst,
-            autostart   => autostart,
-            linkstart   => linkstart,
-            linkdis     => linkdisable,
-            txdivcnt    => txdivcnt,
-            tick_in     => r.tick_in,
-            ctrl_in     => (others => '0'),
-            time_in     => r.time_in,
-            txwrite     => r.txwrite,
-            txflag      => r.txflag,
-            txdata      => r.txdata,
-            txrdy       => s_txrdy,
-            txhalff     => open,
-            tick_out    => s_tickout,
-            ctrl_out    => open,
-            time_out    => s_timeout,
-            rxvalid     => s_rxvalid,
-            rxhalff     => open,
-            rxflag      => s_rxflag,
-            rxdata      => s_rxdata,
-            rxread      => r.rxread,
-            started     => linkstarted,
-            connecting  => linkconnecting,
-            running     => s_running,
-            errdisc     => s_errdisc,
-            errpar      => s_errpar,
-            erresc      => s_erresc,
-            errcred     => s_errcred,
-            spw_di      => spw_di,
-            spw_si      => spw_si,
-            spw_do      => spw_do,
-            spw_so      => spw_so
-            );
+    spwstream_inst : spwstream
+    GENERIC MAP(
+        sysfreq => sysfreq,
+        txclkfreq => txclkfreq,
+        rximpl => rximpl,
+        rxchunk => rxchunk,
+        tximpl => tximpl,
+        rxfifosize_bits => rxfifosize_bits,
+        txfifosize_bits => txfifosize_bits)
+    PORT MAP(
+        clk => clk,
+        rxclk => rxclk,
+        txclk => txclk,
+        rst => rst,
+        autostart => autostart,
+        linkstart => linkstart,
+        linkdis => linkdisable,
+        txdivcnt => txdivcnt,
+        tick_in => r.tick_in,
+        ctrl_in => (OTHERS => '0'),
+        time_in => r.time_in,
+        txwrite => r.txwrite,
+        txflag => r.txflag,
+        txdata => r.txdata,
+        txrdy => s_txrdy,
+        txhalff => OPEN,
+        tick_out => s_tickout,
+        ctrl_out => OPEN,
+        time_out => s_timeout,
+        rxvalid => s_rxvalid,
+        rxhalff => OPEN,
+        rxflag => s_rxflag,
+        rxdata => s_rxdata,
+        rxread => r.rxread,
+        started => linkstarted,
+        connecting => linkconnecting,
+        running => s_running,
+        errdisc => s_errdisc,
+        errpar => s_errpar,
+        erresc => s_erresc,
+        errcred => s_errcred,
+        spw_di => spw_di,
+        spw_si => spw_si,
+        spw_do => spw_do,
+        spw_so => spw_so
+    );
 
     -- Drive status indications.
-    linkrun     <= s_running;
-    linkerror   <= s_errdisc or s_errpar or s_erresc or s_errcred;
-    linkerror_disc  <= s_errdisc;
-    linkerror_par   <= s_errpar;
-    linkerror_esc   <= s_erresc;
-    linkerror_cred  <= s_errcred;
-    gotdata     <= r.gotdata;
-    dataerror   <= r.dataerror;
-    tickerror   <= r.tickerror;
+    linkrun <= s_running;
+    linkerror <= s_errdisc OR s_errpar OR s_erresc OR s_errcred;
+    linkerror_disc <= s_errdisc;
+    linkerror_par <= s_errpar;
+    linkerror_esc <= s_erresc;
+    linkerror_cred <= s_errcred;
+    gotdata <= r.gotdata;
+    dataerror <= r.dataerror;
+    tickerror <= r.tickerror;
 
-    process (r, rst, senddata, sendtick, s_txrdy, s_tickout, s_timeout, s_rxvalid, s_rxflag, s_rxdata, s_running) is
-        variable v: regs_type;
-    begin
-        v           := r;
-
-
-        v.tick_in   := s_tickout;
-        v.time_in   := s_timeout;
+    PROCESS (r, rst, senddata, sendtick, s_txrdy, s_tickout, s_timeout, s_rxvalid, s_rxflag, s_rxdata, s_running) IS
+        VARIABLE v : regs_type;
+    BEGIN
+        v := r;
+        v.tick_in := s_tickout;
+        v.time_in := s_timeout;
         -- Receive and check incoming timecodes.
-        if s_tickout = '1' then
-            if unsigned(s_timeout) + 1 /= unsigned(r.time_in) then
+        IF s_tickout = '1' THEN
+            IF unsigned(s_timeout) + 1 /= unsigned(r.time_in) THEN
                 -- Received time code does not match last transmitted code.
                 v.tickerror := '1';
-				else
-					 v.tickerror := '0';
-            end if;
-        end if;
-
-
+            ELSE
+                v.tickerror := '0';
+            END IF;
+        END IF;
         -- TODO:
         -- Create receive FIFO
         -- Handle EEP
@@ -259,53 +255,41 @@ begin
         --             end if;
         --         end if;
         -- end case;
-
-
-
-
- 
-
         -- -- Turn data receiving on/off at regular intervals
-        v.rx_quietcnt := std_logic_vector(unsigned(r.rx_quietcnt) + 1);
-        if unsigned(r.rx_quietcnt) = 55000 then
-            v.rx_quietcnt := (others => '0');
-        end if;
-        v.rx_enabledata := not r.rx_quietcnt(15);
-
-
-        v.rxread    := r.rx_enabledata;
-        if r.rxread = '1' and s_rxvalid = '1' then
+        v.rx_quietcnt := STD_LOGIC_VECTOR(unsigned(r.rx_quietcnt) + 1);
+        IF unsigned(r.rx_quietcnt) = 55000 THEN
+            v.rx_quietcnt := (OTHERS => '0');
+        END IF;
+        v.rx_enabledata := NOT r.rx_quietcnt(15);
+        v.rxread := r.rx_enabledata;
+        IF r.rxread = '1' AND s_rxvalid = '1' THEN
             -- got next byte
-            v.txwrite   := '1';
-            v.txflag    := s_rxflag;
-            v.txdata    := s_rxdata;
-        else
-            v.txwrite   := '0';    
-        end if;
-
-
+            v.txwrite := '1';
+            v.txflag := s_rxflag;
+            v.txdata := s_rxdata;
+        ELSE
+            v.txwrite := '0';
+        END IF;
         -- -- Blink light when receiving data.
-        v.gotdata   := s_rxvalid and r.rxread;
-
-
+        v.gotdata := s_rxvalid AND r.rxread;
         -- If the link goes away, we should expect inconsistency on the receiving side.
         v.running := s_running;
 
         -- Synchronous reset.
-        if rst = '1' then
+        IF rst = '1' THEN
             v := regs_reset;
-        end if;
+        END IF;
 
         -- Update registers.
         rin <= v;
-    end process;
+    END PROCESS;
 
     -- Update registers.
-    process (clk) is
-    begin
-        if rising_edge(clk) then
+    PROCESS (clk) IS
+    BEGIN
+        IF rising_edge(clk) THEN
             r <= rin;
-        end if;
-    end process;
+        END IF;
+    END PROCESS;
 
-end architecture echotest_recv_arch;
+END ARCHITECTURE echotest_recv_arch;

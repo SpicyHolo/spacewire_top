@@ -20,427 +20,427 @@
 --  after the link goes up.
 --
 
-library ieee;
-use ieee.std_logic_1164.all;
-use ieee.numeric_std.all;
-use work.spwpkg.all;
+LIBRARY ieee;
+USE ieee.std_logic_1164.ALL;
+USE ieee.numeric_std.ALL;
+USE work.spwpkg.ALL;
 
-entity streamtest is
+ENTITY streamtest IS
 
-    generic (
+    GENERIC (
         -- System clock frequency in Hz.
-        sysfreq:    real;
+        sysfreq : real;
 
         -- txclk frequency in Hz (if tximpl = impl_fast).
-        txclkfreq:  real;
+        txclkfreq : real;
 
         -- 2-log of division factor from system clock freq to timecode freq.
-        tickdiv:    integer range 12 to 24 := 20;
+        tickdiv : INTEGER RANGE 12 TO 24 := 20;
 
         -- Receiver front-end implementation.
-        rximpl:     spw_implementation_type := impl_generic;
+        rximpl : spw_implementation_type := impl_generic;
 
         -- Maximum number of bits received per system clock (impl_fast only).
-        rxchunk:    integer range 1 to 4 := 1;
+        rxchunk : INTEGER RANGE 1 TO 4 := 1;
 
         -- Transmitter implementation.
-        tximpl:     spw_implementation_type := impl_generic;
+        tximpl : spw_implementation_type := impl_generic;
 
         -- Size of receive FIFO.
-        rxfifosize_bits: integer range 6 to 14 := 11;
+        rxfifosize_bits : INTEGER RANGE 6 TO 14 := 11;
 
         -- Size of transmit FIFO.
-        txfifosize_bits: integer range 2 to 14 := 11 );
+        txfifosize_bits : INTEGER RANGE 2 TO 14 := 11);
 
-    port (
+    PORT (
         -- System clock.
-        clk:        in  std_logic;
+        clk : IN STD_LOGIC;
 
         -- Receiver sample clock (only for impl_fast).
-        rxclk:      in  std_logic;
+        rxclk : IN STD_LOGIC;
 
         -- Transmit clock (only for impl_fast).
-        txclk:      in  std_logic;
+        txclk : IN STD_LOGIC;
 
         -- Synchronous reset (active-high).
-        rst:        in  std_logic;
+        rst : IN STD_LOGIC;
 
         -- Enables spontaneous link start.
-        linkstart:  in  std_logic;
+        linkstart : IN STD_LOGIC;
 
         -- Enables automatic link start on receipt of a NULL token.
-        autostart:  in  std_logic;
+        autostart : IN STD_LOGIC;
 
         -- Do not start link and/or disconnect current link.
-        linkdisable: in std_logic;
+        linkdisable : IN STD_LOGIC;
 
         -- Enable sending test patterns to spwstream.
-        senddata:   in  std_logic;
+        senddata : IN STD_LOGIC;
 
         -- Enable sending time codes to spwstream.
-        sendtick:   in  std_logic;
+        sendtick : IN STD_LOGIC;
 
         -- Scaling factor minus 1 for TX bitrate.
-        txdivcnt:   in  std_logic_vector(7 downto 0);
+        txdivcnt : IN STD_LOGIC_VECTOR(7 DOWNTO 0);
 
         -- Link in state Started.
-        linkstarted: out std_logic;
+        linkstarted : OUT STD_LOGIC;
 
         -- Link in state Connecting.
-        linkconnecting: out std_logic;
+        linkconnecting : OUT STD_LOGIC;
 
         -- Link in state Run.
-        linkrun:    out std_logic;
+        linkrun : OUT STD_LOGIC;
 
         -- Link error (one cycle pulse, not directly suitable for LED)
-        linkerror:  out std_logic;
+        linkerror : OUT STD_LOGIC;
 
         -- High when taking a byte from the receive FIFO.
-        gotdata:    out std_logic;
+        gotdata : OUT STD_LOGIC;
 
         -- Incorrect or unexpected data received (sticky).
-        dataerror:  out std_logic;
+        dataerror : OUT STD_LOGIC;
 
         -- Incorrect or unexpected time code received (sticky).
-        tickerror:  out std_logic;
+        tickerror : OUT STD_LOGIC;
 
         -- SpaceWire signals.
-        spw_di:     in  std_logic;
-        spw_si:     in  std_logic;
-        spw_do:     out std_logic;
-        spw_so:     out std_logic );
+        spw_di : IN STD_LOGIC;
+        spw_si : IN STD_LOGIC;
+        spw_do : OUT STD_LOGIC;
+        spw_so : OUT STD_LOGIC);
 
-end entity streamtest;
+END ENTITY streamtest;
 
-architecture streamtest_arch of streamtest is
+ARCHITECTURE streamtest_arch OF streamtest IS
 
     -- Update 16-bit maximum length LFSR by 8 steps
-    function lfsr16(x: in std_logic_vector) return std_logic_vector is
-        variable y: std_logic_vector(15 downto 0);
-    begin
+    FUNCTION lfsr16(x : IN STD_LOGIC_VECTOR) RETURN STD_LOGIC_VECTOR IS
+        VARIABLE y : STD_LOGIC_VECTOR(15 DOWNTO 0);
+    BEGIN
         -- poly = x^16 + x^14 + x^13 + x^11 + 1
         -- tap positions = x(0), x(2), x(3), x(5)
-        y(7 downto 0)  := x(15 downto 8);
-        y(15 downto 8) := x(7 downto 0) xor x(9 downto 2) xor x(10 downto 3) xor x(12 downto 5);
-        return y;
-    end function;
+        y(7 DOWNTO 0) := x(15 DOWNTO 8);
+        y(15 DOWNTO 8) := x(7 DOWNTO 0) XOR x(9 DOWNTO 2) XOR x(10 DOWNTO 3) XOR x(12 DOWNTO 5);
+        RETURN y;
+    END FUNCTION;
 
     -- Sending side state.
-    type tx_state_type is ( txst_idle, txst_prepare, txst_data );
+    TYPE tx_state_type IS (txst_idle, txst_prepare, txst_data);
 
     -- Receiving side state.
-    type rx_state_type is ( rxst_idle, rxst_data );
+    TYPE rx_state_type IS (rxst_idle, rxst_data);
 
     -- Registers.
-    type regs_type is record
-        tx_state:       tx_state_type;
-        tx_timecnt:     std_logic_vector((tickdiv-1) downto 0);
-        tx_quietcnt:    std_logic_vector(15 downto 0);
-        tx_pktlen:      std_logic_vector(15 downto 0);
-        tx_lfsr:        std_logic_vector(15 downto 0);
-        tx_enabledata:  std_ulogic;
-        rx_state:       rx_state_type;
-        rx_quietcnt:    std_logic_vector(15 downto 0);
-        rx_enabledata:  std_ulogic;
-        rx_gottick:     std_ulogic;
-        rx_expecttick:  std_ulogic;
-        rx_expectglitch: unsigned(5 downto 0);
-        rx_badpacket:   std_ulogic;
-        rx_pktlen:      std_logic_vector(15 downto 0);
-        rx_prev:        std_logic_vector(15 downto 0);
-        rx_lfsr:        std_logic_vector(15 downto 0);
-        running:        std_ulogic;
-        tick_in:        std_ulogic;
-        time_in:        std_logic_vector(5 downto 0);
-        txwrite:        std_ulogic;
-        txflag:         std_ulogic;
-        txdata:         std_logic_vector(7 downto 0);
-        rxread:         std_ulogic;
-        gotdata:        std_ulogic;
-        dataerror:      std_ulogic;
-        tickerror:      std_ulogic;
-    end record;
+    TYPE regs_type IS RECORD
+        tx_state : tx_state_type;
+        tx_timecnt : STD_LOGIC_VECTOR((tickdiv - 1) DOWNTO 0);
+        tx_quietcnt : STD_LOGIC_VECTOR(15 DOWNTO 0);
+        tx_pktlen : STD_LOGIC_VECTOR(15 DOWNTO 0);
+        tx_lfsr : STD_LOGIC_VECTOR(15 DOWNTO 0);
+        tx_enabledata : STD_ULOGIC;
+        rx_state : rx_state_type;
+        rx_quietcnt : STD_LOGIC_VECTOR(15 DOWNTO 0);
+        rx_enabledata : STD_ULOGIC;
+        rx_gottick : STD_ULOGIC;
+        rx_expecttick : STD_ULOGIC;
+        rx_expectglitch : unsigned(5 DOWNTO 0);
+        rx_badpacket : STD_ULOGIC;
+        rx_pktlen : STD_LOGIC_VECTOR(15 DOWNTO 0);
+        rx_prev : STD_LOGIC_VECTOR(15 DOWNTO 0);
+        rx_lfsr : STD_LOGIC_VECTOR(15 DOWNTO 0);
+        running : STD_ULOGIC;
+        tick_in : STD_ULOGIC;
+        time_in : STD_LOGIC_VECTOR(5 DOWNTO 0);
+        txwrite : STD_ULOGIC;
+        txflag : STD_ULOGIC;
+        txdata : STD_LOGIC_VECTOR(7 DOWNTO 0);
+        rxread : STD_ULOGIC;
+        gotdata : STD_ULOGIC;
+        dataerror : STD_ULOGIC;
+        tickerror : STD_ULOGIC;
+    END RECORD;
 
     -- Reset state.
-    constant regs_reset: regs_type := (
-        tx_state        => txst_idle,
-        tx_timecnt      => (others => '0'),
-        tx_quietcnt     => (others => '0'),
-        tx_pktlen       => (others => '0'),
-        tx_lfsr         => (1 => '1', others => '0'),
-        tx_enabledata   => '0',
-        rx_state        => rxst_idle,
-        rx_quietcnt     => (others => '0'),
-        rx_enabledata   => '0',
-        rx_gottick      => '0',
-        rx_expecttick   => '0',
+    CONSTANT regs_reset : regs_type := (
+        tx_state => txst_idle,
+        tx_timecnt => (OTHERS => '0'),
+        tx_quietcnt => (OTHERS => '0'),
+        tx_pktlen => (OTHERS => '0'),
+        tx_lfsr => (1 => '1', OTHERS => '0'),
+        tx_enabledata => '0',
+        rx_state => rxst_idle,
+        rx_quietcnt => (OTHERS => '0'),
+        rx_enabledata => '0',
+        rx_gottick => '0',
+        rx_expecttick => '0',
         rx_expectglitch => "000001",
-        rx_badpacket    => '0',
-        rx_pktlen       => (others => '0'),
-        rx_prev         => (others => '0'),
-        rx_lfsr         => (others => '0'),
-        running         => '0',
-        tick_in         => '0',
-        time_in         => (others => '0'),
-        txwrite         => '0',
-        txflag          => '0',
-        txdata          => (others => '0'),
-        rxread          => '0',
-        gotdata         => '0',
-        dataerror       => '0',
-        tickerror       => '0' );
+        rx_badpacket => '0',
+        rx_pktlen => (OTHERS => '0'),
+        rx_prev => (OTHERS => '0'),
+        rx_lfsr => (OTHERS => '0'),
+        running => '0',
+        tick_in => '0',
+        time_in => (OTHERS => '0'),
+        txwrite => '0',
+        txflag => '0',
+        txdata => (OTHERS => '0'),
+        rxread => '0',
+        gotdata => '0',
+        dataerror => '0',
+        tickerror => '0');
 
-    signal r:   regs_type := regs_reset;
-    signal rin: regs_type;
+    SIGNAL r : regs_type := regs_reset;
+    SIGNAL rin : regs_type;
 
     -- Interface signals.
-    signal s_txrdy:     std_logic;
-    signal s_tickout:   std_logic;
-    signal s_timeout:   std_logic_vector(5 downto 0);
-    signal s_rxvalid:   std_logic;
-    signal s_rxflag:    std_logic;
-    signal s_rxdata:    std_logic_vector(7 downto 0);
-    signal s_running:   std_logic;
-    signal s_errdisc:   std_logic;
-    signal s_errpar:    std_logic;
-    signal s_erresc:    std_logic;
-    signal s_errcred:   std_logic;
+    SIGNAL s_txrdy : STD_LOGIC;
+    SIGNAL s_tickout : STD_LOGIC;
+    SIGNAL s_timeout : STD_LOGIC_VECTOR(5 DOWNTO 0);
+    SIGNAL s_rxvalid : STD_LOGIC;
+    SIGNAL s_rxflag : STD_LOGIC;
+    SIGNAL s_rxdata : STD_LOGIC_VECTOR(7 DOWNTO 0);
+    SIGNAL s_running : STD_LOGIC;
+    SIGNAL s_errdisc : STD_LOGIC;
+    SIGNAL s_errpar : STD_LOGIC;
+    SIGNAL s_erresc : STD_LOGIC;
+    SIGNAL s_errcred : STD_LOGIC;
 
-begin
+BEGIN
 
     -- spwstream instance
-    spwstream_inst: spwstream
-        generic map (
-            sysfreq         => sysfreq,
-            txclkfreq       => txclkfreq,
-            rximpl          => rximpl,
-            rxchunk         => rxchunk,
-            tximpl          => tximpl,
-            rxfifosize_bits => rxfifosize_bits,
-            txfifosize_bits => txfifosize_bits )
-        port map (
-            clk         => clk,
-            rxclk       => rxclk,
-            txclk       => txclk,
-            rst         => rst,
-            autostart   => autostart,
-            linkstart   => linkstart,
-            linkdis     => linkdisable,
-            txdivcnt    => txdivcnt,
-            tick_in     => r.tick_in,
-            ctrl_in     => (others => '0'),
-            time_in     => r.time_in,
-            txwrite     => r.txwrite,
-            txflag      => r.txflag,
-            txdata      => r.txdata,
-            txrdy       => s_txrdy,
-            txhalff     => open,
-            tick_out    => s_tickout,
-            ctrl_out    => open,
-            time_out    => s_timeout,
-            rxvalid     => s_rxvalid,
-            rxhalff     => open,
-            rxflag      => s_rxflag,
-            rxdata      => s_rxdata,
-            rxread      => r.rxread,
-            started     => linkstarted,
-            connecting  => linkconnecting,
-            running     => s_running,
-            errdisc     => s_errdisc,
-            errpar      => s_errpar,
-            erresc      => s_erresc,
-            errcred     => s_errcred,
-            spw_di      => spw_di,
-            spw_si      => spw_si,
-            spw_do      => spw_do,
-            spw_so      => spw_so );
+    spwstream_inst : spwstream
+    GENERIC MAP(
+        sysfreq => sysfreq,
+        txclkfreq => txclkfreq,
+        rximpl => rximpl,
+        rxchunk => rxchunk,
+        tximpl => tximpl,
+        rxfifosize_bits => rxfifosize_bits,
+        txfifosize_bits => txfifosize_bits)
+    PORT MAP(
+        clk => clk,
+        rxclk => rxclk,
+        txclk => txclk,
+        rst => rst,
+        autostart => autostart,
+        linkstart => linkstart,
+        linkdis => linkdisable,
+        txdivcnt => txdivcnt,
+        tick_in => r.tick_in,
+        ctrl_in => (OTHERS => '0'),
+        time_in => r.time_in,
+        txwrite => r.txwrite,
+        txflag => r.txflag,
+        txdata => r.txdata,
+        txrdy => s_txrdy,
+        txhalff => OPEN,
+        tick_out => s_tickout,
+        ctrl_out => OPEN,
+        time_out => s_timeout,
+        rxvalid => s_rxvalid,
+        rxhalff => OPEN,
+        rxflag => s_rxflag,
+        rxdata => s_rxdata,
+        rxread => r.rxread,
+        started => linkstarted,
+        connecting => linkconnecting,
+        running => s_running,
+        errdisc => s_errdisc,
+        errpar => s_errpar,
+        erresc => s_erresc,
+        errcred => s_errcred,
+        spw_di => spw_di,
+        spw_si => spw_si,
+        spw_do => spw_do,
+        spw_so => spw_so);
 
     -- Drive status indications.
-    linkrun     <= s_running;
-    linkerror   <= s_errdisc or s_errpar or s_erresc or s_errcred;
-    gotdata     <= r.gotdata;
-    dataerror   <= r.dataerror;
-    tickerror   <= r.tickerror;
+    linkrun <= s_running;
+    linkerror <= s_errdisc OR s_errpar OR s_erresc OR s_errcred;
+    gotdata <= r.gotdata;
+    dataerror <= r.dataerror;
+    tickerror <= r.tickerror;
 
-    process (r, rst, senddata, sendtick, s_txrdy, s_tickout, s_timeout, s_rxvalid, s_rxflag, s_rxdata, s_running) is
-        variable v: regs_type;
-    begin
-        v           := r;
+    PROCESS (r, rst, senddata, sendtick, s_txrdy, s_tickout, s_timeout, s_rxvalid, s_rxflag, s_rxdata, s_running) IS
+        VARIABLE v : regs_type;
+    BEGIN
+        v := r;
 
         -- Initiate timecode transmissions.
-        v.tx_timecnt := std_logic_vector(unsigned(r.tx_timecnt) + 1);
-        if unsigned(v.tx_timecnt) = 0 then
-            v.tick_in   := sendtick;
-        else
-            v.tick_in   := '0';
-        end if;
-        if r.tick_in = '1' then
-            v.time_in   := std_logic_vector(unsigned(r.time_in) + 1);
+        v.tx_timecnt := STD_LOGIC_VECTOR(unsigned(r.tx_timecnt) + 1);
+        IF unsigned(v.tx_timecnt) = 0 THEN
+            v.tick_in := sendtick;
+        ELSE
+            v.tick_in := '0';
+        END IF;
+        IF r.tick_in = '1' THEN
+            v.time_in := STD_LOGIC_VECTOR(unsigned(r.time_in) + 1);
             v.rx_expecttick := '1';
-            v.rx_gottick    := '0';
-        end if;
+            v.rx_gottick := '0';
+        END IF;
 
         -- Turn data generator on/off at regular intervals.
-        v.tx_quietcnt := std_logic_vector(unsigned(r.tx_quietcnt) + 1);
-        if unsigned(r.tx_quietcnt) = 61000 then
-            v.tx_quietcnt := (others => '0');
-        end if;
-        v.tx_enabledata := senddata and (not r.tx_quietcnt(15));
+        v.tx_quietcnt := STD_LOGIC_VECTOR(unsigned(r.tx_quietcnt) + 1);
+        IF unsigned(r.tx_quietcnt) = 61000 THEN
+            v.tx_quietcnt := (OTHERS => '0');
+        END IF;
+        v.tx_enabledata := senddata AND (NOT r.tx_quietcnt(15));
 
         -- Generate data packets.
-        case r.tx_state is
-            when txst_idle =>
+        CASE r.tx_state IS
+            WHEN txst_idle =>
                 -- generate packet length
-                v.tx_state  := txst_prepare;
+                v.tx_state := txst_prepare;
                 v.tx_pktlen := r.tx_lfsr;
-                v.txwrite   := '0';
-                v.tx_lfsr   := lfsr16(r.tx_lfsr);
-            when txst_prepare =>
+                v.txwrite := '0';
+                v.tx_lfsr := lfsr16(r.tx_lfsr);
+            WHEN txst_prepare =>
                 -- generate first byte of packet
-                v.tx_state  := txst_data;
-                v.txwrite   := r.tx_enabledata;
-                v.txflag    := '0';
-                v.txdata    := r.tx_lfsr(15 downto 8);
-                v.tx_lfsr   := lfsr16(r.tx_lfsr);
-            when txst_data =>
+                v.tx_state := txst_data;
+                v.txwrite := r.tx_enabledata;
+                v.txflag := '0';
+                v.txdata := r.tx_lfsr(15 DOWNTO 8);
+                v.tx_lfsr := lfsr16(r.tx_lfsr);
+            WHEN txst_data =>
                 -- generate data bytes and EOP
-                v.txwrite   := r.tx_enabledata;
-                if r.txwrite = '1' and s_txrdy = '1' then
+                v.txwrite := r.tx_enabledata;
+                IF r.txwrite = '1' AND s_txrdy = '1' THEN
                     -- just sent one byte
-                    v.tx_pktlen := std_logic_vector(unsigned(r.tx_pktlen) - 1);
-                    if unsigned(r.tx_pktlen) = 0 then
+                    v.tx_pktlen := STD_LOGIC_VECTOR(unsigned(r.tx_pktlen) - 1);
+                    IF unsigned(r.tx_pktlen) = 0 THEN
                         -- done with packet
-                        v.tx_state  := txst_idle;
-                        v.txwrite   := '0';
-                    elsif unsigned(r.tx_pktlen) = 1 then
+                        v.tx_state := txst_idle;
+                        v.txwrite := '0';
+                    ELSIF unsigned(r.tx_pktlen) = 1 THEN
                         -- generate EOP
-                        v.txwrite   := r.tx_enabledata;
-                        v.txflag    := '1';
-                        v.txdata    := (others => '0');
-                        v.tx_lfsr   := lfsr16(r.tx_lfsr);
-                    else
+                        v.txwrite := r.tx_enabledata;
+                        v.txflag := '1';
+                        v.txdata := (OTHERS => '0');
+                        v.tx_lfsr := lfsr16(r.tx_lfsr);
+                    ELSE
                         -- generate next data byte
-                        v.txwrite   := r.tx_enabledata;
-                        v.txflag    := '0';
-                        v.txdata    := r.tx_lfsr(15 downto 8);
-                        v.tx_lfsr   := lfsr16(r.tx_lfsr);
-                    end if;
-                end if;
-        end case;
+                        v.txwrite := r.tx_enabledata;
+                        v.txflag := '0';
+                        v.txdata := r.tx_lfsr(15 DOWNTO 8);
+                        v.tx_lfsr := lfsr16(r.tx_lfsr);
+                    END IF;
+                END IF;
+        END CASE;
 
         -- Blink light when receiving data.
-        v.gotdata   := s_rxvalid and r.rxread;
+        v.gotdata := s_rxvalid AND r.rxread;
 
         -- Detect missing timecodes.
-        if r.tick_in = '1' and r.rx_expecttick = '1' then
+        IF r.tick_in = '1' AND r.rx_expecttick = '1' THEN
             -- This is bad; a new timecode is being generated while
             -- we have not even received the previous one yet.
             v.tickerror := '1';
-        end if;
+        END IF;
 
         -- Receive and check incoming timecodes.
-        if s_tickout = '1' then
-            if unsigned(s_timeout) + 1 /= unsigned(r.time_in) then
+        IF s_tickout = '1' THEN
+            IF unsigned(s_timeout) + 1 /= unsigned(r.time_in) THEN
                 -- Received time code does not match last transmitted code.
                 v.tickerror := '1';
-            end if;
-            if r.rx_gottick = '1' then
+            END IF;
+            IF r.rx_gottick = '1' THEN
                 -- Already received the last transmitted time code.
                 v.tickerror := '1';
-            end if;
+            END IF;
             v.rx_expecttick := '0';
-            v.rx_gottick    := '1';
-        end if;
+            v.rx_gottick := '1';
+        END IF;
 
         -- Turn data receiving on/off at regular intervals
-        v.rx_quietcnt := std_logic_vector(unsigned(r.rx_quietcnt) + 1);
-        if unsigned(r.rx_quietcnt) = 55000 then
-            v.rx_quietcnt := (others => '0');
-        end if;
-        v.rx_enabledata := not r.rx_quietcnt(15);
+        v.rx_quietcnt := STD_LOGIC_VECTOR(unsigned(r.rx_quietcnt) + 1);
+        IF unsigned(r.rx_quietcnt) = 55000 THEN
+            v.rx_quietcnt := (OTHERS => '0');
+        END IF;
+        v.rx_enabledata := NOT r.rx_quietcnt(15);
 
-        case r.rx_state is
-            when rxst_idle =>
+        CASE r.rx_state IS
+            WHEN rxst_idle =>
                 -- get expected packet length
-                v.rx_state  := rxst_data;
+                v.rx_state := rxst_data;
                 v.rx_pktlen := r.rx_lfsr;
-                v.rx_lfsr   := lfsr16(r.rx_lfsr);
-                v.rx_prev   := (others => '0');
-            when rxst_data =>
-                v.rxread    := r.rx_enabledata;
-                if r.rxread = '1' and s_rxvalid = '1' then
+                v.rx_lfsr := lfsr16(r.rx_lfsr);
+                v.rx_prev := (OTHERS => '0');
+            WHEN rxst_data =>
+                v.rxread := r.rx_enabledata;
+                IF r.rxread = '1' AND s_rxvalid = '1' THEN
                     -- got next byte
-                    v.rx_pktlen := std_logic_vector(unsigned(r.rx_pktlen) - 1);
-                    v.rx_prev   := s_rxdata & r.rx_prev(15 downto 8);
-                    if s_rxflag = '1' then
+                    v.rx_pktlen := STD_LOGIC_VECTOR(unsigned(r.rx_pktlen) - 1);
+                    v.rx_prev := s_rxdata & r.rx_prev(15 DOWNTO 8);
+                    IF s_rxflag = '1' THEN
                         -- got EOP or EEP
-                        v.rxread    := '0';
-                        v.rx_state  := rxst_idle;
-                        if s_rxdata = "00000000" then
+                        v.rxread := '0';
+                        v.rx_state := rxst_idle;
+                        IF s_rxdata = "00000000" THEN
                             -- got EOP
-                            if unsigned(r.rx_pktlen) /= 0 then
+                            IF unsigned(r.rx_pktlen) /= 0 THEN
                                 -- unexpected EOP
                                 v.rx_badpacket := '1';
-                            end if;
+                            END IF;
                             -- count errors against expected glitches
-                            if v.rx_badpacket = '1' then
+                            IF v.rx_badpacket = '1' THEN
                                 -- got glitch
-                                if r.rx_expectglitch = 0 then
+                                IF r.rx_expectglitch = 0 THEN
                                     v.dataerror := '1';
-                                else
+                                ELSE
                                     v.rx_expectglitch := r.rx_expectglitch - 1;
-                                end if;
-                            end if;
+                                END IF;
+                            END IF;
                             -- resynchronize LFSR
-                            v.rx_lfsr   := lfsr16(lfsr16(r.rx_prev));
-                        else
+                            v.rx_lfsr := lfsr16(lfsr16(r.rx_prev));
+                        ELSE
                             -- got EEP
                             v.rx_badpacket := '1';
-                        end if;
+                        END IF;
                         v.rx_badpacket := '0';
-                    else
+                    ELSE
                         -- got next byte
-                        v.rx_lfsr   := lfsr16(r.rx_lfsr);
-                        if unsigned(r.rx_pktlen) = 0 then
+                        v.rx_lfsr := lfsr16(r.rx_lfsr);
+                        IF unsigned(r.rx_pktlen) = 0 THEN
                             -- missing EOP
                             v.rx_badpacket := '1';
-                        end if;
-                        if s_rxdata /= r.rx_lfsr(15 downto 8) then
+                        END IF;
+                        IF s_rxdata /= r.rx_lfsr(15 DOWNTO 8) THEN
                             -- bad data
                             v.rx_badpacket := '1';
-                        end if;
-                    end if;
-                end if;
-        end case;
+                        END IF;
+                    END IF;
+                END IF;
+        END CASE;
 
         -- If the link goes away, we should expect inconsistency on the receiving side.
         v.running := s_running;
-        if r.running = '1' and s_running = '0' then
-            if r.rx_expectglitch /= "111111" then
+        IF r.running = '1' AND s_running = '0' THEN
+            IF r.rx_expectglitch /= "111111" THEN
                 v.rx_expectglitch := r.rx_expectglitch + 1;
-            end if;
-        end if;
+            END IF;
+        END IF;
 
         -- If there is no link, we should not expect to receive time codes.
-        if s_running = '0' then
+        IF s_running = '0' THEN
             v.rx_expecttick := '0';
-        end if;
+        END IF;
 
         -- Synchronous reset.
-        if rst = '1' then
+        IF rst = '1' THEN
             v := regs_reset;
-        end if;
+        END IF;
 
         -- Update registers.
         rin <= v;
-    end process;
+    END PROCESS;
 
     -- Update registers.
-    process (clk) is
-    begin
-        if rising_edge(clk) then
+    PROCESS (clk) IS
+    BEGIN
+        IF rising_edge(clk) THEN
             r <= rin;
-        end if;
-    end process;
+        END IF;
+    END PROCESS;
 
-end architecture streamtest_arch;
+END ARCHITECTURE streamtest_arch;

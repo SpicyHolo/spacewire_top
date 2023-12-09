@@ -3,56 +3,55 @@
 --  The synthesizer for Xilinx Spartan-3 will infer Block RAM for this entity.
 --
 
-library ieee;
-use ieee.std_logic_1164.all;
-use ieee.numeric_std.all;
+LIBRARY ieee;
+USE ieee.std_logic_1164.ALL;
+USE ieee.numeric_std.ALL;
 
-entity spwram is
+ENTITY spwram IS
 
-    generic (
-        abits:      integer;
-        dbits:      integer );
+    GENERIC (
+        abits : INTEGER;
+        dbits : INTEGER);
 
-    port (
-        rclk:       in  std_logic;
-        wclk:       in  std_logic;
-        ren:        in  std_logic;
-        raddr:      in  std_logic_vector(abits-1 downto 0);
-        rdata:      out std_logic_vector(dbits-1 downto 0);
-        wen:        in  std_logic;
-        waddr:      in  std_logic_vector(abits-1 downto 0);
-        wdata:      in  std_logic_vector(dbits-1 downto 0) );
+    PORT (
+        rclk : IN STD_LOGIC;
+        wclk : IN STD_LOGIC;
+        ren : IN STD_LOGIC;
+        raddr : IN STD_LOGIC_VECTOR(abits - 1 DOWNTO 0);
+        rdata : OUT STD_LOGIC_VECTOR(dbits - 1 DOWNTO 0);
+        wen : IN STD_LOGIC;
+        waddr : IN STD_LOGIC_VECTOR(abits - 1 DOWNTO 0);
+        wdata : IN STD_LOGIC_VECTOR(dbits - 1 DOWNTO 0));
 
-end entity spwram;
+END ENTITY spwram;
 
-architecture spwram_arch of spwram is
+ARCHITECTURE spwram_arch OF spwram IS
 
-    type mem_type is array(0 to (2**abits - 1)) of
-                     std_logic_vector(dbits-1 downto 0);
+    TYPE mem_type IS ARRAY(0 TO (2 ** abits - 1)) OF
+    STD_LOGIC_VECTOR(dbits - 1 DOWNTO 0);
 
-    signal s_mem:   mem_type;
+    SIGNAL s_mem : mem_type;
 
-begin
+BEGIN
 
     -- read process
-    process (rclk) is
-    begin
-        if rising_edge(rclk) then
-            if ren = '1' then
+    PROCESS (rclk) IS
+    BEGIN
+        IF rising_edge(rclk) THEN
+            IF ren = '1' THEN
                 rdata <= s_mem(to_integer(unsigned(raddr)));
-            end if;
-        end if;
-    end process;
+            END IF;
+        END IF;
+    END PROCESS;
 
     -- write process
-    process (wclk) is
-    begin
-        if rising_edge(wclk) then
-            if wen = '1' then
+    PROCESS (wclk) IS
+    BEGIN
+        IF rising_edge(wclk) THEN
+            IF wen = '1' THEN
                 s_mem(to_integer(unsigned(waddr))) <= wdata;
-            end if;
-        end if;
-    end process;
+            END IF;
+        END IF;
+    END PROCESS;
 
-end architecture;
-
+END ARCHITECTURE;
