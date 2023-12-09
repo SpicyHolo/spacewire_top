@@ -80,7 +80,7 @@ ARCHITECTURE spacewire_top_arch OF spacewire_top IS
     --pure output of 12-bit ADC (0 padding in front?)
     --register map p.23: https://www.analog.com/media/en/technical-documentation/data-sheets/adxl345.pdf
     signal sensor_data : STD_LOGIC_VECTOR(15 downto 0);
-    signal sel_axis : INTEGER range 0 to 2; -- select accelerometer readout axis (1000 sysclk delay?)
+    signal s_sel_axis : INTEGER range 0 to 2; -- select accelerometer readout axis (1000 sysclk delay?)
 
     --LCD signals register control
     signal s_lcd_register_data_in : STD_LOGIC_VECTOR(15 DOWNTO 0);
@@ -121,7 +121,7 @@ BEGIN
     accelerometer_inst : entity work.accelerometer 
     port map (
         clk             => sysclk,
-        sel_axis        => sel_axis,
+        sel_axis        => s_sel_axis,
         rst             => btn_reset,
         G_SENSOR_CS_N   => acc_spi_chip_select,
         G_SENSOR_INT    => acc_interrupt,
@@ -133,16 +133,14 @@ BEGIN
     -- LCD driver instance
     lcd_inst : entity work.spacewire_lcd_driver
     port map (
-        CLOCK_50        => sysclk, -- DE0 CLOCK_50 (50MHz CLK)
+      CLOCK_50        => sysclk, -- DE0 CLOCK_50 (50MHz CLK)
 		KEY             => btn_reset, -- DE0 KEY (button) [reset]
 		LED             => led,
-
 		-- External LCD ports
 		LCD_EN          => LCD_EN,
 		LCD_RS          => LCD_RS,
 		LCD_RW          => LCD_RW,
 		LCD_DATA        => LCD_DATA,
-
 		-- LCD Register control
 		lcd_register_data_in => sensor_data 
     );
@@ -193,9 +191,9 @@ BEGIN
     PROCESS (sysclk) IS
     BEGIN
         IF rising_edge(sysclk) THEN
+            --select axis to send to lcd
+            s_sel_axis <= 1; 
 
-            -- Synchronize buttons
-            s_resetbtn <= NOT btn_reset;
             s_rst <= s_resetbtn;
             s_clearbtn <= NOT btn_clear;
 

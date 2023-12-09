@@ -105,7 +105,7 @@ ARCHITECTURE hardware OF spacewire_lcd_driver IS
 		accel_value_str := stringPadding(integer'image(accel_value), 20);
 
 		-- Return formatted string, with correct decimal point precision
-		RETURN stringPadding(prefix & accel_value_str(1 TO 4) & suffix, 20);
+		RETURN stringPadding(prefix & accel_value_str(1 TO 6) & suffix, 20);
 
 	END FUNCTION;
 
@@ -170,17 +170,33 @@ ARCHITECTURE hardware OF spacewire_lcd_driver IS
 	-- An array of 4 strings of 20 characters.
 	TYPE message4x20_type IS ARRAY (1 TO 4) OF string20_type;
 	CONSTANT empty_message : message4x20_type := (
-		1 => stringPadding("Spacewire", 20),
+		1 => stringPadding("No Data", 20),
 		2 => convertData("0000000000000000", "x: ", "g", 2, 4),
 		3 => convertData("0000000000000000", "    y: ", "g", 2, 4),
 		4 => convertData("0000000000000000", "    z: ", "g", 2, 4)
 	);
+	CONSTANT debug_message : message4x20_type := (
+		1 => stringPadding("Debug", 20),
+		2 => convertData("0111111111111111", "x: ", "g", 2, 4),
+		3 => convertData("0000000000000000", "    y: ", "g", 2, 4),
+		4 => convertData("0111111111111111", "    z: ", "g", 2, 4)
+	);
 	SIGNAL message : message4x20_type := empty_message; 
+
+	function vector_to_string(v : std_logic_vector(15 downto 0)) return string is
+        variable result : string(v'length downto 1);
+    begin
+        for i in v'range loop
+            result(i) := character'val(to_integer(v(i)));
+        end loop;
+        return result;
+    end function;
 
 	-- Counts the characters on a line.
 	SIGNAL character_counter : INTEGER RANGE 1 TO 20;
 	-- Counts the lines.
 	SIGNAL line_counter : INTEGER RANGE 1 TO 4;
+	SIGNAL got_nonzero_data : STD_LOGIC := '0';
 
 BEGIN
 
@@ -203,7 +219,12 @@ BEGIN
 	-- The client side
 	drive : PROCESS (clk, areset) IS
 		VARIABLE aline : string20_type;
+		VARIABLE msg : message4x20_type;
+		VARIABLE bit_string : string(16 downto 1);
+		VARIABLE padded_bit_string : string(20 downto 1);
+		VARIABLE lcd_register_capture : std_logic_vector(15 downto 0);
 	BEGIN
+		msg := message;
 		IF areset = '1' THEN
 			wr <= '0';
 			init <= '0';
@@ -216,7 +237,7 @@ BEGIN
 			character_counter <= 1;
 			state <= reset;
 		ELSIF rising_edge(clk) THEN
-			LED <= (others => '0');
+			-- LED <= (others => '0');
 			wr <= '0';
 			init <= '0';
 			cls <= '0';
@@ -225,13 +246,30 @@ BEGIN
 			goto20 <= '0';
 			goto30 <= '0';
 			data <= "00000000";
+			LED <= lcd_register_data_in(7 DOWNTO 0);
+			--wchodzimy na pewno do ifa, ale nie wyswietlaja sie poprawne wartosci na ekranie, mimo ze na ledach tak
+			IF TO_INTEGER(SIGNED(lcd_register_data_in)) /= 0 THEN
+				lcd_register_capture := lcd_register_data_in;
+				bit_string := vector_to_string(lcd_register_capture);
+				padded_bit_string := "    " & bit_string;
+				message <= (
+					1 => stringPadding("Good Data", 20),
+					2 => stringPadding(integer'image(TO_INTEGER(SIGNED(lcd_register_data_in))), 20),
+					3 => convertData("0111111111111111", "    const", "g", 2, 4),
+					4 => padded_bit_string
+				);
+				--message <= debug_message;
+				got_nonzero_data <= NOT got_nonzero_data;
+				-- LED(7) <= got_nonzero_data;
+			ELSE
+				message <=  empty_message;
+			END IF;
 			CASE state IS
 
 				WHEN reset => -- Initial state
-					LED(0) <= '1';
+					-- LED(0) <= '1';
 					-- Wait for the LCD module ready
 					IF busy = '0' THEN -- TODO check if this will be saved between processes
-						message(2) <= stringPadding(integer'image(TO_INTEGER(SIGNED(lcd_register_data_in))), 20); 
 						--convertData(lcd_register_data_in, "x: ", "g", 2, 4);
 						-- message <= empty_message;
 						-- message <= (
@@ -248,16 +286,16 @@ BEGIN
 					line_counter <= 1;
 
 				WHEN write_char =>
-					LED(1) <= '1';
+					-- LED(1) <= '1';
 					-- Set up WRITE!
 					-- Use the data from the string
-					aline := message(line_counter);
+					aline := msg(line_counter);
 					data <= STD_LOGIC_VECTOR(to_unsigned(CHARACTER'pos(aline(character_counter)), 8));
 					wr <= '1';
 					state <= write_char_wait;
 
 				WHEN write_char_wait =>
-					LED(2) <= '1';
+					-- LED(2) <= '1';
 					-- This state is needed so that the LCD driver
 					-- can process the write command. Note that data
 					-- and wr are registered outputs and get their
@@ -267,7 +305,7 @@ BEGIN
 					state <= update;
 
 				WHEN update =>
-					LED(3) <= '1';
+					-- LED(3) <= '1';
 					-- Wait for the write complete
 					IF busy = '0' THEN
 						-- If end of string, goto hold mode...
@@ -296,7 +334,7 @@ BEGIN
 					END IF;
 
 				WHEN update_linecount =>
-					LED(4) <= '1';
+					-- LED(4) <= '1';
 					-- This state is needed so that the LCD driver
 					-- can process the gotoXX command. Note that the gotoXX
 					-- signals are registered outputs and get their
@@ -306,7 +344,7 @@ BEGIN
 					state <= update_linecount_wait;
 
 				WHEN update_linecount_wait =>
-					LED(5) <= '1';
+					-- LED(5) <= '1';
 					-- Wait for the LCD module ready
 					IF busy = '0' THEN
 						state <= write_char;
@@ -314,7 +352,7 @@ BEGIN
 					-- The "hohouwer" (hangover of santa claus +1) +1
 					
 				WHEN hold =>
-					LED(6) <= '1';
+					-- LED(6) <= '1';
 					home <= '1';
 					state <= update_home;
 
