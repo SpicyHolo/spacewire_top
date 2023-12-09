@@ -373,14 +373,14 @@ BEGIN
 
 				WHEN command_goto20 =>
 					-- Cursor to beginning of line 3rd line...
-					LCD_DB <= "10010000"; --0x80+0x10;
+					LCD_DB <= "10010100"; --0x80+0x14;
 					LCD_RS <= '0';
 					current_state <= pulse_e;
 					return_state <= wait_for_command;
 
 				WHEN command_goto30 =>
 					-- Cursor to beginning of line 4th line...
-					LCD_DB <= "11010000"; --0x80+0x50;
+					LCD_DB <= "11010100"; --0x80+0x54;
 					LCD_RS <= '0';
 					current_state <= pulse_e;
 					return_state <= wait_for_command;
