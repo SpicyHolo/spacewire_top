@@ -183,14 +183,16 @@ ARCHITECTURE hardware OF spacewire_lcd_driver IS
 	);
 	SIGNAL message : message4x20_type := empty_message; 
 
-	function vector_to_string(v : std_logic_vector(15 downto 0)) return string is
-        variable result : string(v'length downto 1);
-    begin
-        for i in v'range loop
-            result(i) := character'val(to_integer(v(i)));
-        end loop;
-        return result;
-    end function;
+	function to_string(a: std_logic_vector) return string is
+		variable b : string(1 to a'length) := (others => NUL);
+		variable stri : integer := 1; 
+		begin
+			for i in a'range loop
+				b(stri) := std_logic'image(a((i)))(2);
+			stri := stri+1;
+			end loop;
+		return b;
+	end function;
 
 	-- Counts the characters on a line.
 	SIGNAL character_counter : INTEGER RANGE 1 TO 20;
@@ -250,7 +252,7 @@ BEGIN
 			--wchodzimy na pewno do ifa, ale nie wyswietlaja sie poprawne wartosci na ekranie, mimo ze na ledach tak
 			IF TO_INTEGER(SIGNED(lcd_register_data_in)) /= 0 THEN
 				lcd_register_capture := lcd_register_data_in;
-				bit_string := vector_to_string(lcd_register_capture);
+				bit_string := to_string(lcd_register_capture);
 				padded_bit_string := "    " & bit_string;
 				message <= (
 					1 => stringPadding("Good Data", 20),
