@@ -1,11 +1,11 @@
 
-State Machine - |streamtest_top|streamtest:streamtest_inst|r.tx_state
+State Machine - |spacewire_top|streamtest:streamtest_inst|r.tx_state
 Name r.tx_state.txst_data r.tx_state.txst_prepare r.tx_state.txst_idle 
 r.tx_state.txst_idle 0 0 0 
 r.tx_state.txst_prepare 0 1 1 
 r.tx_state.txst_data 1 0 1 
 
-State Machine - |streamtest_top|streamtest:streamtest_inst|spwstream:spwstream_inst|spwlink:link_inst|r.state
+State Machine - |spacewire_top|streamtest:streamtest_inst|spwstream:spwstream_inst|spwlink:link_inst|r.state
 Name r.state.S_Run r.state.S_Connecting r.state.S_Started r.state.S_Ready r.state.S_ErrorWait r.state.S_ErrorReset 
 r.state.S_ErrorReset 0 0 0 0 0 0 
 r.state.S_ErrorWait 0 0 0 0 1 1 

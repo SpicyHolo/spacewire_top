@@ -38,7 +38,7 @@
 
 set_global_assignment -name FAMILY "Cyclone IV E"
 set_global_assignment -name DEVICE EP4CE22F17C6
-set_global_assignment -name TOP_LEVEL_ENTITY streamtest_top
+set_global_assignment -name TOP_LEVEL_ENTITY spacewire_top
 set_global_assignment -name ORIGINAL_QUARTUS_VERSION "13.0 SP1"
 set_global_assignment -name PROJECT_CREATION_TIME_DATE "17:13:18  NOVEMBER 04, 2023"
 set_global_assignment -name LAST_QUARTUS_VERSION "13.0 SP1"
@@ -47,9 +47,6 @@ set_global_assignment -name MIN_CORE_JUNCTION_TEMP 0
 set_global_assignment -name MAX_CORE_JUNCTION_TEMP 85
 set_global_assignment -name ERROR_CHECK_FREQUENCY_DIVISOR 1
 set_global_assignment -name NOMINAL_CORE_SUPPLY_VOLTAGE 1.2V
-set_global_assignment -name PARTITION_NETLIST_TYPE SOURCE -section_id Top
-set_global_assignment -name PARTITION_FITTER_PRESERVATION_LEVEL PLACEMENT_AND_ROUTING -section_id Top
-set_global_assignment -name PARTITION_COLOR 16764057 -section_id Top
 
 #============================================================
 # Clock 50MHz
@@ -138,24 +135,41 @@ set_location_assignment PIN_M15 -to switch[3]
 
 set_global_assignment -name POWER_PRESET_COOLING_SOLUTION "23 MM HEAT SINK WITH 200 LFPM AIRFLOW"
 set_global_assignment -name POWER_BOARD_THERMAL_MODEL "NONE (CONSERVATIVE)"
+
+#============================================================
+# Accelerometer
+#============================================================
+set_location_assignment PIN_G5 -to acc_spi_chip_select
+set_location_assignment PIN_M2 -to acc_interrupt
+set_location_assignment PIN_F2 -to acc_spi_clk
+set_location_assignment PIN_F1 -to acc_spi_data
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to acc_spi_data
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to acc_spi_clk
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to acc_spi_chip_select
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to acc_interrupt
+
+
+set_global_assignment -name VHDL_FILE src/accelerometer/spipll.vhd
+set_global_assignment -name VHDL_FILE src/accelerometer/spi_ee_config.vhd
+set_global_assignment -name VHDL_FILE src/accelerometer/spi_controller.vhd
+set_global_assignment -name VHDL_FILE src/accelerometer/reset_delay.vhd
+set_global_assignment -name VHDL_FILE src/accelerometer/accelerometer.vhd
+set_global_assignment -name VHDL_FILE src/lcd/spacewire_lcd_driver.vhd
+set_global_assignment -name VHDL_FILE src/lcd/lcd_driver_hd44780_module.vhd
+set_global_assignment -name VHDL_FILE src/spw/syncdff.vhd
+set_global_assignment -name VHDL_FILE src/spw/streamtest.vhd
+set_global_assignment -name VHDL_FILE src/spw/spwxmit_fast.vhd
+set_global_assignment -name VHDL_FILE src/spw/spwxmit.vhd
+set_global_assignment -name VHDL_FILE src/spw/spwstream.vhd
+set_global_assignment -name VHDL_FILE src/spw/spwrecvfront_generic.vhd
+set_global_assignment -name VHDL_FILE src/spw/spwrecvfront_fast.vhd
+set_global_assignment -name VHDL_FILE src/spw/spwrecv.vhd
+set_global_assignment -name VHDL_FILE src/spw/spwram.vhd
+set_global_assignment -name VHDL_FILE src/spw/spwpkg.vhd
+set_global_assignment -name VHDL_FILE src/spw/spwlink.vhd
 set_global_assignment -name SDC_FILE clock_constraints.sdc
 set_global_assignment -name VHDL_FILE spacewire_top.vhd
-set_global_assignment -name VHDL_FILE vhdl/SpW/syncdff.vhd
-set_global_assignment -name VHDL_FILE vhdl/SpW/streamtest.vhd
-set_global_assignment -name VHDL_FILE vhdl/SpW/spwxmit_fast.vhd
-set_global_assignment -name VHDL_FILE vhdl/SpW/spwxmit.vhd
-set_global_assignment -name VHDL_FILE vhdl/SpW/spwstream.vhd
-set_global_assignment -name VHDL_FILE vhdl/SpW/spwrecvfront_generic.vhd
-set_global_assignment -name VHDL_FILE vhdl/SpW/spwrecvfront_fast.vhd
-set_global_assignment -name VHDL_FILE vhdl/SpW/spwrecv.vhd
-set_global_assignment -name VHDL_FILE vhdl/SpW/spwram.vhd
-set_global_assignment -name VHDL_FILE vhdl/SpW/spwpkg.vhd
-set_global_assignment -name VHDL_FILE vhdl/SpW/spwlink.vhd
-set_global_assignment -name VHDL_FILE vhdl/LCD/spacewire_lcd_driver.vhd
-set_global_assignment -name VHDL_FILE vhdl/LCD/lcd_driver_hd44780_module.vhd
-set_global_assignment -name VHDL_FILE vhdl/Accelerometer/spipll.vhd
-set_global_assignment -name VHDL_FILE vhdl/Accelerometer/spi_ee_config.vhd
-set_global_assignment -name VHDL_FILE vhdl/Accelerometer/spi_controller.vhd
-set_global_assignment -name VHDL_FILE vhdl/Accelerometer/reset_delay.vhd
-set_global_assignment -name VHDL_FILE vhdl/Accelerometer/accelerometer.vhd
+set_global_assignment -name PARTITION_NETLIST_TYPE SOURCE -section_id Top
+set_global_assignment -name PARTITION_FITTER_PRESERVATION_LEVEL PLACEMENT_AND_ROUTING -section_id Top
+set_global_assignment -name PARTITION_COLOR 16764057 -section_id Top
 set_instance_assignment -name PARTITION_HIERARCHY root_partition -to | -section_id Top

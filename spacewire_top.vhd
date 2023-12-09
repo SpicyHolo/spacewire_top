@@ -45,23 +45,38 @@ LIBRARY ieee;
 USE ieee.std_logic_1164.ALL, ieee.numeric_std.ALL;
 USE work.spwpkg.ALL;
 
-ENTITY streamtest_top IS
-
+ENTITY spacewire_top IS
     PORT (
-        clk50 : IN STD_LOGIC;
-        btn_reset : IN STD_LOGIC;
-        btn_clear : IN STD_LOGIC;
-        switch : IN STD_LOGIC_VECTOR(3 DOWNTO 0);
-        led : OUT STD_LOGIC_VECTOR(7 DOWNTO 0);
-        spw_di : IN STD_LOGIC;
-        spw_si : IN STD_LOGIC;
-        spw_do : OUT STD_LOGIC;
-        spw_so : OUT STD_LOGIC);
+        --Acclerometer ports
+        acc_spi_chip_select   : OUT   STD_LOGIC; -- Accelerometer chip select (negated)
+        acc_spi_clk        : OUT   STD_LOGIC;
+        acc_spi_data        : INOUT STD_LOGIC; -- no MOSI/MISO, hardware supports only 3-wire SPI
+        acc_interrupt    : IN    STD_LOGIC;
 
-END ENTITY streamtest_top;
+        --SpW ports
+        clk50:      in  std_logic;
+        btn_reset:  in  std_logic;
+        btn_clear:  in  std_logic; 
+        switch:     in  std_logic_vector(3 downto 0);
+        led:        out std_logic_vector(7 downto 0);
+        spw_di:     in  std_logic;
+        spw_si:     in  std_logic;
+        spw_do:     out std_logic;
+        spw_so:     out std_logic 
+        );
 
-ARCHITECTURE streamtest_top_arch OF streamtest_top IS
+END ENTITY spacewire_top;
 
+ARCHITECTURE spacewire_top_arch OF spacewire_top IS
+
+    --Accelerometer signals
+
+    --pure output of 12-bit ADC (0 padding in front?)
+    --register map p.23: https://www.analog.com/media/en/technical-documentation/data-sheets/adxl345.pdf
+    signal sensor_data : STD_LOGIC_VECTOR(15 downto 0);
+    signal sel_axis : INTEGER range 0 to 2; -- select accelerometer readout axis (1000 sysclk delay?)
+
+    -- SpW signals
     -- Clock generation.
     SIGNAL sysclk : STD_LOGIC;
 
@@ -91,75 +106,58 @@ ARCHITECTURE streamtest_top_arch OF streamtest_top IS
     SIGNAL s_spwsi : STD_LOGIC;
     SIGNAL s_spwdo : STD_LOGIC;
     SIGNAL s_spwso : STD_LOGIC;
-    COMPONENT streamtest IS
-        GENERIC (
-            sysfreq : real;
-            txclkfreq : real;
-            tickdiv : INTEGER RANGE 12 TO 24 := 20;
-            rximpl : spw_implementation_type := impl_generic;
-            rxchunk : INTEGER RANGE 1 TO 4 := 1;
-            tximpl : spw_implementation_type := impl_generic;
-            rxfifosize_bits : INTEGER RANGE 6 TO 14 := 11;
-            txfifosize_bits : INTEGER RANGE 2 TO 14 := 11);
-        PORT (
-            clk : IN STD_LOGIC;
-            rxclk : IN STD_LOGIC;
-            txclk : IN STD_LOGIC;
-            rst : IN STD_LOGIC;
-            linkstart : IN STD_LOGIC;
-            autostart : IN STD_LOGIC;
-            linkdisable : IN STD_LOGIC;
-            senddata : IN STD_LOGIC;
-            sendtick : IN STD_LOGIC;
-            txdivcnt : IN STD_LOGIC_VECTOR(7 DOWNTO 0);
-            linkstarted : OUT STD_LOGIC;
-            linkconnecting : OUT STD_LOGIC;
-            linkrun : OUT STD_LOGIC;
-            linkerror : OUT STD_LOGIC;
-            gotdata : OUT STD_LOGIC;
-            dataerror : OUT STD_LOGIC;
-            tickerror : OUT STD_LOGIC;
-            spw_di : IN STD_LOGIC;
-            spw_si : IN STD_LOGIC;
-            spw_do : OUT STD_LOGIC;
-            spw_so : OUT STD_LOGIC);
-    END COMPONENT;
 
 BEGIN
+    -- Accelerometer instance
+    u_accelerometer : entity work.accelerometer 
+    port map (
+        clk             => sysclk,
+        sel_axis        => sel_axis,
+        rst             => btn_reset,
+        G_SENSOR_CS_N   => acc_spi_chip_select,
+        G_SENSOR_INT    => acc_interrupt,
+        I2C_SCLK        => acc_spi_clk,
+        G_SENSOR_OUT    => sensor_data,
+        I2C_SDAT        => acc_spi_data
+    );
+
     -- Streamtest instance
-    streamtest_inst : streamtest
-    GENERIC MAP(
-        sysfreq => 50.0e6,
-        txclkfreq => 0.0,
-        tickdiv => 20,
-        rximpl => impl_generic,
-        rxchunk => 1,
-        tximpl => impl_generic,
-        rxfifosize_bits => 11,
-        txfifosize_bits => 11)
-    PORT MAP(
-        clk => sysclk,
-        rxclk => '0',
-        txclk => '0',
-        rst => s_rst,
-        linkstart => s_linkstart,
-        autostart => s_autostart,
+	streamtest_inst : entity work.streamtest 
+    generic map (
+         sysfreq     => 50.0e6,
+         txclkfreq   => 0.0,
+         tickdiv     => 20,
+         rximpl      => impl_generic,
+         rxchunk     => 1,
+         tximpl      => impl_generic,
+         rxfifosize_bits => 11,
+         txfifosize_bits => 11
+    )
+    port map (
+        clk         => sysclk,
+        rxclk       => '0',
+        txclk       => '0',
+        rst         => s_rst,
+        linkstart   => s_linkstart,
+        autostart   => s_autostart,
         linkdisable => s_linkdisable,
-        senddata => s_senddata,
-        sendtick => s_sendtick,
-        txdivcnt => s_txdivcnt,
+        senddata    => s_senddata,
+        sendtick    => s_sendtick,
+        txdivcnt    => s_txdivcnt,
         linkstarted => s_linkstarted,
         linkconnecting => s_linkconnecting,
-        linkrun => s_linkrun,
-        linkerror => s_linkerror,
-        gotdata => s_gotdata,
-        dataerror => s_dataerror,
-        tickerror => s_tickerror,
-        spw_di => s_spwdi,
-        spw_si => s_spwsi,
-        spw_do => s_spwdo,
-        spw_so => s_spwso);
-
+        linkrun     => s_linkrun,
+        linkerror   => s_linkerror,
+        gotdata     => s_gotdata,
+        dataerror   => s_dataerror,
+        tickerror   => s_tickerror,
+        spw_di      => s_spwdi,
+        spw_si      => s_spwsi,
+        spw_do      => s_spwdo,
+        spw_so      => s_spwso
+    );
+             
+	-- Connect inputs/outputs to internal signals
     sysclk <= clk50;
     s_spwdi <= spw_di;
     s_spwsi <= spw_si;
@@ -201,4 +199,4 @@ BEGIN
         END IF;
     END PROCESS;
 
-END ARCHITECTURE streamtest_top_arch;
+END ARCHITECTURE spacewire_top_arch;

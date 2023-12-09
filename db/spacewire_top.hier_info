@@ -1,5 +1,9 @@
-|streamtest_top
-clk50 => streamtest:streamtest_inst.clk
+|spacewire_top
+acc_spi_chip_select <= accelerometer:u_accelerometer.G_SENSOR_CS_N
+acc_spi_clk <= accelerometer:u_accelerometer.I2C_SCLK
+acc_spi_data <> accelerometer:u_accelerometer.I2C_SDAT
+acc_interrupt => accelerometer:u_accelerometer.G_SENSOR_INT
+clk50 => accelerometer:u_accelerometer.clk
 clk50 => led[0]~reg0.CLK
 clk50 => led[1]~reg0.CLK
 clk50 => led[2]~reg0.CLK
@@ -25,6 +29,8 @@ clk50 => s_autostart.CLK
 clk50 => s_clearbtn.CLK
 clk50 => s_rst.CLK
 clk50 => s_resetbtn.CLK
+clk50 => streamtest:streamtest_inst.clk
+btn_reset => accelerometer:u_accelerometer.rst
 btn_reset => s_resetbtn.DATAIN
 btn_clear => s_clearbtn.DATAIN
 switch[0] => s_linkstart.DATAIN
@@ -45,7 +51,397 @@ spw_do <= streamtest:streamtest_inst.spw_do
 spw_so <= streamtest:streamtest_inst.spw_so
 
 
-|streamtest_top|streamtest:streamtest_inst
+|spacewire_top|accelerometer:u_accelerometer
+clk => reset_delay:u_reset_delay.iCLK
+clk => spipll:u_spipll.inclk0
+sel_axis[0] => spi_ee_config:u_spi_ee_config.sel_axis[0]
+sel_axis[1] => spi_ee_config:u_spi_ee_config.sel_axis[1]
+rst => reset_delay:u_reset_delay.iRSTN
+G_SENSOR_CS_N <= spi_ee_config:u_spi_ee_config.oSPI_CSN
+G_SENSOR_INT => spi_ee_config:u_spi_ee_config.iG_INT2
+I2C_SCLK <= spi_ee_config:u_spi_ee_config.oSPI_CLK
+G_SENSOR_OUT[0] <= spi_ee_config:u_spi_ee_config.oDATA_L[0]
+G_SENSOR_OUT[1] <= spi_ee_config:u_spi_ee_config.oDATA_L[1]
+G_SENSOR_OUT[2] <= spi_ee_config:u_spi_ee_config.oDATA_L[2]
+G_SENSOR_OUT[3] <= spi_ee_config:u_spi_ee_config.oDATA_L[3]
+G_SENSOR_OUT[4] <= spi_ee_config:u_spi_ee_config.oDATA_L[4]
+G_SENSOR_OUT[5] <= spi_ee_config:u_spi_ee_config.oDATA_L[5]
+G_SENSOR_OUT[6] <= spi_ee_config:u_spi_ee_config.oDATA_L[6]
+G_SENSOR_OUT[7] <= spi_ee_config:u_spi_ee_config.oDATA_L[7]
+G_SENSOR_OUT[8] <= spi_ee_config:u_spi_ee_config.oDATA_H[0]
+G_SENSOR_OUT[9] <= spi_ee_config:u_spi_ee_config.oDATA_H[1]
+G_SENSOR_OUT[10] <= spi_ee_config:u_spi_ee_config.oDATA_H[2]
+G_SENSOR_OUT[11] <= spi_ee_config:u_spi_ee_config.oDATA_H[3]
+G_SENSOR_OUT[12] <= spi_ee_config:u_spi_ee_config.oDATA_H[4]
+G_SENSOR_OUT[13] <= spi_ee_config:u_spi_ee_config.oDATA_H[5]
+G_SENSOR_OUT[14] <= spi_ee_config:u_spi_ee_config.oDATA_H[6]
+G_SENSOR_OUT[15] <= spi_ee_config:u_spi_ee_config.oDATA_H[7]
+I2C_SDAT <> spi_ee_config:u_spi_ee_config.SPI_SDIO
+
+
+|spacewire_top|accelerometer:u_accelerometer|reset_delay:u_reset_delay
+iRSTN => oRST_T.PRESET
+iRSTN => cont[0].ACLR
+iRSTN => cont[1].ACLR
+iRSTN => cont[2].ACLR
+iRSTN => cont[3].ACLR
+iRSTN => cont[4].ACLR
+iRSTN => cont[5].ACLR
+iRSTN => cont[6].ACLR
+iRSTN => cont[7].ACLR
+iRSTN => cont[8].ACLR
+iRSTN => cont[9].ACLR
+iRSTN => cont[10].ACLR
+iRSTN => cont[11].ACLR
+iRSTN => cont[12].ACLR
+iRSTN => cont[13].ACLR
+iRSTN => cont[14].ACLR
+iRSTN => cont[15].ACLR
+iRSTN => cont[16].ACLR
+iRSTN => cont[17].ACLR
+iRSTN => cont[18].ACLR
+iRSTN => cont[19].ACLR
+iRSTN => cont[20].ACLR
+iCLK => oRST_T.CLK
+iCLK => cont[0].CLK
+iCLK => cont[1].CLK
+iCLK => cont[2].CLK
+iCLK => cont[3].CLK
+iCLK => cont[4].CLK
+iCLK => cont[5].CLK
+iCLK => cont[6].CLK
+iCLK => cont[7].CLK
+iCLK => cont[8].CLK
+iCLK => cont[9].CLK
+iCLK => cont[10].CLK
+iCLK => cont[11].CLK
+iCLK => cont[12].CLK
+iCLK => cont[13].CLK
+iCLK => cont[14].CLK
+iCLK => cont[15].CLK
+iCLK => cont[16].CLK
+iCLK => cont[17].CLK
+iCLK => cont[18].CLK
+iCLK => cont[19].CLK
+iCLK => cont[20].CLK
+oRST <= oRST_T.DB_MAX_OUTPUT_PORT_TYPE
+
+
+|spacewire_top|accelerometer:u_accelerometer|spipll:u_spipll
+areset => altpll:altpll_component.areset
+inclk0 => altpll:altpll_component.inclk[0]
+c0 <= altpll:altpll_component.clk[0]
+c1 <= altpll:altpll_component.clk[1]
+
+
+|spacewire_top|accelerometer:u_accelerometer|spipll:u_spipll|altpll:altpll_component
+inclk[0] => spipll_altpll:auto_generated.inclk[0]
+inclk[1] => spipll_altpll:auto_generated.inclk[1]
+fbin => ~NO_FANOUT~
+pllena => ~NO_FANOUT~
+clkswitch => ~NO_FANOUT~
+areset => spipll_altpll:auto_generated.areset
+pfdena => ~NO_FANOUT~
+clkena[0] => ~NO_FANOUT~
+clkena[1] => ~NO_FANOUT~
+clkena[2] => ~NO_FANOUT~
+clkena[3] => ~NO_FANOUT~
+clkena[4] => ~NO_FANOUT~
+clkena[5] => ~NO_FANOUT~
+extclkena[0] => ~NO_FANOUT~
+extclkena[1] => ~NO_FANOUT~
+extclkena[2] => ~NO_FANOUT~
+extclkena[3] => ~NO_FANOUT~
+scanclk => ~NO_FANOUT~
+scanclkena => ~NO_FANOUT~
+scanaclr => ~NO_FANOUT~
+scanread => ~NO_FANOUT~
+scanwrite => ~NO_FANOUT~
+scandata => ~NO_FANOUT~
+phasecounterselect[0] => ~NO_FANOUT~
+phasecounterselect[1] => ~NO_FANOUT~
+phasecounterselect[2] => ~NO_FANOUT~
+phasecounterselect[3] => ~NO_FANOUT~
+phaseupdown => ~NO_FANOUT~
+phasestep => ~NO_FANOUT~
+configupdate => ~NO_FANOUT~
+fbmimicbidir <> <GND>
+clk[0] <= clk[0].DB_MAX_OUTPUT_PORT_TYPE
+clk[1] <= clk[1].DB_MAX_OUTPUT_PORT_TYPE
+clk[2] <= clk[2].DB_MAX_OUTPUT_PORT_TYPE
+clk[3] <= clk[3].DB_MAX_OUTPUT_PORT_TYPE
+clk[4] <= clk[4].DB_MAX_OUTPUT_PORT_TYPE
+extclk[0] <= <GND>
+extclk[1] <= <GND>
+extclk[2] <= <GND>
+extclk[3] <= <GND>
+clkbad[0] <= <GND>
+clkbad[1] <= <GND>
+enable1 <= <GND>
+enable0 <= <GND>
+activeclock <= <GND>
+clkloss <= <GND>
+locked <= <GND>
+scandataout <= <GND>
+scandone <= <GND>
+sclkout0 <= <GND>
+sclkout1 <= <GND>
+phasedone <= <GND>
+vcooverrange <= <GND>
+vcounderrange <= <GND>
+fbout <= <GND>
+fref <= <GND>
+icdrclk <= <GND>
+
+
+|spacewire_top|accelerometer:u_accelerometer|spipll:u_spipll|altpll:altpll_component|spipll_altpll:auto_generated
+areset => pll1.ARESET
+clk[0] <= pll1.CLK
+clk[1] <= pll1.CLK1
+clk[2] <= pll1.CLK2
+clk[3] <= pll1.CLK3
+clk[4] <= pll1.CLK4
+inclk[0] => pll1.CLK
+inclk[1] => pll1.CLK1
+
+
+|spacewire_top|accelerometer:u_accelerometer|spi_ee_config:u_spi_ee_config
+sel_axis[0] => Equal0.IN1
+sel_axis[0] => Equal1.IN0
+sel_axis[0] => Equal2.IN1
+sel_axis[1] => Equal0.IN0
+sel_axis[1] => Equal1.IN1
+sel_axis[1] => Equal2.IN0
+iRSTN => spi_controller:u_spi_controller.iRSTN
+iRSTN => clear_status.ACLR
+iRSTN => read_back.ACLR
+iRSTN => high_byte.ACLR
+iRSTN => read_idle_count[0].ACLR
+iRSTN => read_idle_count[1].ACLR
+iRSTN => read_idle_count[2].ACLR
+iRSTN => read_idle_count[3].ACLR
+iRSTN => read_idle_count[4].ACLR
+iRSTN => read_idle_count[5].ACLR
+iRSTN => read_idle_count[6].ACLR
+iRSTN => read_idle_count[7].ACLR
+iRSTN => read_idle_count[8].ACLR
+iRSTN => read_idle_count[9].ACLR
+iRSTN => read_idle_count[10].ACLR
+iRSTN => read_idle_count[11].ACLR
+iRSTN => read_idle_count[12].ACLR
+iRSTN => read_idle_count[13].ACLR
+iRSTN => read_idle_count[14].ACLR
+iRSTN => spi_state.ACLR
+iRSTN => spi_go.ACLR
+iRSTN => ini_index[0].ACLR
+iRSTN => ini_index[1].ACLR
+iRSTN => ini_index[2].ACLR
+iRSTN => ini_index[3].ACLR
+iRSTN => clear_status_d[0].ACLR
+iRSTN => clear_status_d[1].ACLR
+iRSTN => clear_status_d[2].ACLR
+iRSTN => clear_status_d[3].ACLR
+iRSTN => read_back_d.ACLR
+iRSTN => high_byte_d.ACLR
+iRSTN => p2s_data[15].ENA
+iRSTN => p2s_data[14].ENA
+iRSTN => p2s_data[13].ENA
+iRSTN => p2s_data[12].ENA
+iRSTN => p2s_data[11].ENA
+iRSTN => p2s_data[10].ENA
+iRSTN => p2s_data[9].ENA
+iRSTN => p2s_data[8].ENA
+iRSTN => p2s_data[7].ENA
+iRSTN => p2s_data[6].ENA
+iRSTN => p2s_data[5].ENA
+iRSTN => p2s_data[4].ENA
+iRSTN => p2s_data[3].ENA
+iRSTN => p2s_data[2].ENA
+iRSTN => p2s_data[1].ENA
+iRSTN => p2s_data[0].ENA
+iRSTN => oDATA_H_xhdl2[7].ENA
+iRSTN => oDATA_H_xhdl2[6].ENA
+iRSTN => oDATA_H_xhdl2[5].ENA
+iRSTN => oDATA_H_xhdl2[4].ENA
+iRSTN => oDATA_H_xhdl2[3].ENA
+iRSTN => oDATA_H_xhdl2[2].ENA
+iRSTN => oDATA_H_xhdl2[1].ENA
+iRSTN => oDATA_H_xhdl2[0].ENA
+iRSTN => oDATA_L_xhdl1[7].ENA
+iRSTN => oDATA_L_xhdl1[6].ENA
+iRSTN => oDATA_L_xhdl1[5].ENA
+iRSTN => oDATA_L_xhdl1[4].ENA
+iRSTN => oDATA_L_xhdl1[3].ENA
+iRSTN => oDATA_L_xhdl1[2].ENA
+iRSTN => oDATA_L_xhdl1[1].ENA
+iRSTN => oDATA_L_xhdl1[0].ENA
+iRSTN => low_byte_data[7].ENA
+iRSTN => low_byte_data[6].ENA
+iRSTN => low_byte_data[5].ENA
+iRSTN => low_byte_data[4].ENA
+iRSTN => low_byte_data[3].ENA
+iRSTN => low_byte_data[2].ENA
+iRSTN => low_byte_data[1].ENA
+iRSTN => low_byte_data[0].ENA
+iRSTN => read_ready.ENA
+iSPI_CLK => spi_controller:u_spi_controller.iSPI_CLK
+iSPI_CLK => clear_status_d[0].CLK
+iSPI_CLK => clear_status_d[1].CLK
+iSPI_CLK => clear_status_d[2].CLK
+iSPI_CLK => clear_status_d[3].CLK
+iSPI_CLK => read_back_d.CLK
+iSPI_CLK => high_byte_d.CLK
+iSPI_CLK => read_ready.CLK
+iSPI_CLK => low_byte_data[0].CLK
+iSPI_CLK => low_byte_data[1].CLK
+iSPI_CLK => low_byte_data[2].CLK
+iSPI_CLK => low_byte_data[3].CLK
+iSPI_CLK => low_byte_data[4].CLK
+iSPI_CLK => low_byte_data[5].CLK
+iSPI_CLK => low_byte_data[6].CLK
+iSPI_CLK => low_byte_data[7].CLK
+iSPI_CLK => oDATA_L_xhdl1[0].CLK
+iSPI_CLK => oDATA_L_xhdl1[1].CLK
+iSPI_CLK => oDATA_L_xhdl1[2].CLK
+iSPI_CLK => oDATA_L_xhdl1[3].CLK
+iSPI_CLK => oDATA_L_xhdl1[4].CLK
+iSPI_CLK => oDATA_L_xhdl1[5].CLK
+iSPI_CLK => oDATA_L_xhdl1[6].CLK
+iSPI_CLK => oDATA_L_xhdl1[7].CLK
+iSPI_CLK => oDATA_H_xhdl2[0].CLK
+iSPI_CLK => oDATA_H_xhdl2[1].CLK
+iSPI_CLK => oDATA_H_xhdl2[2].CLK
+iSPI_CLK => oDATA_H_xhdl2[3].CLK
+iSPI_CLK => oDATA_H_xhdl2[4].CLK
+iSPI_CLK => oDATA_H_xhdl2[5].CLK
+iSPI_CLK => oDATA_H_xhdl2[6].CLK
+iSPI_CLK => oDATA_H_xhdl2[7].CLK
+iSPI_CLK => p2s_data[0].CLK
+iSPI_CLK => p2s_data[1].CLK
+iSPI_CLK => p2s_data[2].CLK
+iSPI_CLK => p2s_data[3].CLK
+iSPI_CLK => p2s_data[4].CLK
+iSPI_CLK => p2s_data[5].CLK
+iSPI_CLK => p2s_data[6].CLK
+iSPI_CLK => p2s_data[7].CLK
+iSPI_CLK => p2s_data[8].CLK
+iSPI_CLK => p2s_data[9].CLK
+iSPI_CLK => p2s_data[10].CLK
+iSPI_CLK => p2s_data[11].CLK
+iSPI_CLK => p2s_data[12].CLK
+iSPI_CLK => p2s_data[13].CLK
+iSPI_CLK => p2s_data[14].CLK
+iSPI_CLK => p2s_data[15].CLK
+iSPI_CLK => clear_status.CLK
+iSPI_CLK => read_back.CLK
+iSPI_CLK => high_byte.CLK
+iSPI_CLK => read_idle_count[0].CLK
+iSPI_CLK => read_idle_count[1].CLK
+iSPI_CLK => read_idle_count[2].CLK
+iSPI_CLK => read_idle_count[3].CLK
+iSPI_CLK => read_idle_count[4].CLK
+iSPI_CLK => read_idle_count[5].CLK
+iSPI_CLK => read_idle_count[6].CLK
+iSPI_CLK => read_idle_count[7].CLK
+iSPI_CLK => read_idle_count[8].CLK
+iSPI_CLK => read_idle_count[9].CLK
+iSPI_CLK => read_idle_count[10].CLK
+iSPI_CLK => read_idle_count[11].CLK
+iSPI_CLK => read_idle_count[12].CLK
+iSPI_CLK => read_idle_count[13].CLK
+iSPI_CLK => read_idle_count[14].CLK
+iSPI_CLK => spi_state.CLK
+iSPI_CLK => spi_go.CLK
+iSPI_CLK => ini_index[0].CLK
+iSPI_CLK => ini_index[1].CLK
+iSPI_CLK => ini_index[2].CLK
+iSPI_CLK => ini_index[3].CLK
+iSPI_CLK_OUT => spi_controller:u_spi_controller.iSPI_CLK_OUT
+iG_INT2 => process_1.IN1
+oDATA_L[0] <= oDATA_L_xhdl1[0].DB_MAX_OUTPUT_PORT_TYPE
+oDATA_L[1] <= oDATA_L_xhdl1[1].DB_MAX_OUTPUT_PORT_TYPE
+oDATA_L[2] <= oDATA_L_xhdl1[2].DB_MAX_OUTPUT_PORT_TYPE
+oDATA_L[3] <= oDATA_L_xhdl1[3].DB_MAX_OUTPUT_PORT_TYPE
+oDATA_L[4] <= oDATA_L_xhdl1[4].DB_MAX_OUTPUT_PORT_TYPE
+oDATA_L[5] <= oDATA_L_xhdl1[5].DB_MAX_OUTPUT_PORT_TYPE
+oDATA_L[6] <= oDATA_L_xhdl1[6].DB_MAX_OUTPUT_PORT_TYPE
+oDATA_L[7] <= oDATA_L_xhdl1[7].DB_MAX_OUTPUT_PORT_TYPE
+oDATA_H[0] <= oDATA_H_xhdl2[0].DB_MAX_OUTPUT_PORT_TYPE
+oDATA_H[1] <= oDATA_H_xhdl2[1].DB_MAX_OUTPUT_PORT_TYPE
+oDATA_H[2] <= oDATA_H_xhdl2[2].DB_MAX_OUTPUT_PORT_TYPE
+oDATA_H[3] <= oDATA_H_xhdl2[3].DB_MAX_OUTPUT_PORT_TYPE
+oDATA_H[4] <= oDATA_H_xhdl2[4].DB_MAX_OUTPUT_PORT_TYPE
+oDATA_H[5] <= oDATA_H_xhdl2[5].DB_MAX_OUTPUT_PORT_TYPE
+oDATA_H[6] <= oDATA_H_xhdl2[6].DB_MAX_OUTPUT_PORT_TYPE
+oDATA_H[7] <= oDATA_H_xhdl2[7].DB_MAX_OUTPUT_PORT_TYPE
+SPI_SDIO <> spi_controller:u_spi_controller.SPI_SDIO
+oSPI_CSN <= spi_controller:u_spi_controller.oSPI_CSN
+oSPI_CLK <= spi_controller:u_spi_controller.oSPI_CLK
+
+
+|spacewire_top|accelerometer:u_accelerometer|spi_ee_config:u_spi_ee_config|spi_controller:u_spi_controller
+iRSTN => spi_count[0].PRESET
+iRSTN => spi_count[1].PRESET
+iRSTN => spi_count[2].PRESET
+iRSTN => spi_count[3].PRESET
+iRSTN => spi_count_en.ACLR
+iRSTN => oS2P_DATA_xhdl2[0].ENA
+iRSTN => oS2P_DATA_xhdl2[7].ENA
+iRSTN => oS2P_DATA_xhdl2[6].ENA
+iRSTN => oS2P_DATA_xhdl2[5].ENA
+iRSTN => oS2P_DATA_xhdl2[4].ENA
+iRSTN => oS2P_DATA_xhdl2[3].ENA
+iRSTN => oS2P_DATA_xhdl2[2].ENA
+iRSTN => oS2P_DATA_xhdl2[1].ENA
+iSPI_CLK => oS2P_DATA_xhdl2[0].CLK
+iSPI_CLK => oS2P_DATA_xhdl2[1].CLK
+iSPI_CLK => oS2P_DATA_xhdl2[2].CLK
+iSPI_CLK => oS2P_DATA_xhdl2[3].CLK
+iSPI_CLK => oS2P_DATA_xhdl2[4].CLK
+iSPI_CLK => oS2P_DATA_xhdl2[5].CLK
+iSPI_CLK => oS2P_DATA_xhdl2[6].CLK
+iSPI_CLK => oS2P_DATA_xhdl2[7].CLK
+iSPI_CLK => spi_count[0].CLK
+iSPI_CLK => spi_count[1].CLK
+iSPI_CLK => spi_count[2].CLK
+iSPI_CLK => spi_count[3].CLK
+iSPI_CLK => spi_count_en.CLK
+iSPI_CLK_OUT => temp_xhdl6.DATAB
+iP2S_DATA[0] => Mux0.IN14
+iP2S_DATA[1] => Mux0.IN13
+iP2S_DATA[2] => Mux0.IN12
+iP2S_DATA[3] => Mux0.IN11
+iP2S_DATA[4] => Mux0.IN10
+iP2S_DATA[5] => Mux0.IN9
+iP2S_DATA[6] => Mux0.IN8
+iP2S_DATA[7] => Mux0.IN7
+iP2S_DATA[8] => Mux0.IN6
+iP2S_DATA[9] => Mux0.IN5
+iP2S_DATA[10] => Mux0.IN4
+iP2S_DATA[11] => Mux0.IN3
+iP2S_DATA[12] => Mux0.IN2
+iP2S_DATA[13] => Mux0.IN1
+iP2S_DATA[14] => Mux0.IN0
+iP2S_DATA[15] => process_0.IN1
+iP2S_DATA[15] => Mux0.IN15
+iP2S_DATA[15] => temp_xhdl7.IN1
+iSPI_GO => spi_count_en.OUTPUTSELECT
+iSPI_GO => oSPI_CSN.DATAIN
+oSPI_END <= WideOr0.DB_MAX_OUTPUT_PORT_TYPE
+oS2P_DATA[0] <= oS2P_DATA_xhdl2[0].DB_MAX_OUTPUT_PORT_TYPE
+oS2P_DATA[1] <= oS2P_DATA_xhdl2[1].DB_MAX_OUTPUT_PORT_TYPE
+oS2P_DATA[2] <= oS2P_DATA_xhdl2[2].DB_MAX_OUTPUT_PORT_TYPE
+oS2P_DATA[3] <= oS2P_DATA_xhdl2[3].DB_MAX_OUTPUT_PORT_TYPE
+oS2P_DATA[4] <= oS2P_DATA_xhdl2[4].DB_MAX_OUTPUT_PORT_TYPE
+oS2P_DATA[5] <= oS2P_DATA_xhdl2[5].DB_MAX_OUTPUT_PORT_TYPE
+oS2P_DATA[6] <= oS2P_DATA_xhdl2[6].DB_MAX_OUTPUT_PORT_TYPE
+oS2P_DATA[7] <= oS2P_DATA_xhdl2[7].DB_MAX_OUTPUT_PORT_TYPE
+SPI_SDIO <> SPI_SDIO
+oSPI_CSN <= iSPI_GO.DB_MAX_OUTPUT_PORT_TYPE
+oSPI_CLK <= temp_xhdl6.DB_MAX_OUTPUT_PORT_TYPE
+
+
+|spacewire_top|streamtest:streamtest_inst
 clk => spwstream:spwstream_inst.clk
 clk => r.tickerror.CLK
 clk => r.dataerror.CLK
@@ -412,7 +808,7 @@ spw_do <= spwstream:spwstream_inst.spw_do
 spw_so <= spwstream:spwstream_inst.spw_so
 
 
-|streamtest_top|streamtest:streamtest_inst|spwstream:spwstream_inst
+|spacewire_top|streamtest:streamtest_inst|spwstream:spwstream_inst
 clk => spwlink:link_inst.clk
 clk => r.rxroom[0].CLK
 clk => r.rxroom[1].CLK
@@ -603,7 +999,7 @@ spw_do <= spwxmit:xmit_sel0:xmit_inst.spw_do
 spw_so <= spwxmit:xmit_sel0:xmit_inst.spw_so
 
 
-|streamtest_top|streamtest:streamtest_inst|spwstream:spwstream_inst|spwlink:link_inst
+|spacewire_top|streamtest:streamtest_inst|spwstream:spwstream_inst|spwlink:link_inst
 clk => r.xmit_fct_in.CLK
 clk => r.timerdone.CLK
 clk => r.timercnt[0].CLK
@@ -811,7 +1207,7 @@ xmito.fctack => v.OUTPUTSELECT
 xmito.fctack => v.OUTPUTSELECT
 
 
-|streamtest_top|streamtest:streamtest_inst|spwstream:spwstream_inst|spwrecv:recv_inst
+|spacewire_top|streamtest:streamtest_inst|spwstream:spwstream_inst|spwrecv:recv_inst
 clk => r.erresc.CLK
 clk => r.errpar.CLK
 clk => r.disccnt[0].CLK
@@ -1005,7 +1401,7 @@ inbits[0] => v.DATAB
 inbits[0] => v.DATAB
 
 
-|streamtest_top|streamtest:streamtest_inst|spwstream:spwstream_inst|spwxmit:\xmit_sel0:xmit_inst
+|spacewire_top|streamtest:streamtest_inst|spwstream:spwstream_inst|spwxmit:\xmit_sel0:xmit_inst
 clk => spw_so~reg0.CLK
 clk => spw_do~reg0.CLK
 clk => r.sent_fct.CLK
@@ -1184,7 +1580,7 @@ spw_do <= spw_do~reg0.DB_MAX_OUTPUT_PORT_TYPE
 spw_so <= spw_so~reg0.DB_MAX_OUTPUT_PORT_TYPE
 
 
-|streamtest_top|streamtest:streamtest_inst|spwstream:spwstream_inst|spwrecvfront_generic:\recvfront_sel0:recvfront_generic_inst
+|spacewire_top|streamtest:streamtest_inst|spwstream:spwstream_inst|spwrecvfront_generic:\recvfront_sel0:recvfront_generic_inst
 clk => s_inbvalid.CLK
 clk => s_inbit.CLK
 clk => s_spwsi3.CLK
@@ -1200,7 +1596,7 @@ spw_di => s_spwdi1.DATAIN
 spw_si => s_spwsi1.DATAIN
 
 
-|streamtest_top|streamtest:streamtest_inst|spwstream:spwstream_inst|spwram:rxmem
+|spacewire_top|streamtest:streamtest_inst|spwstream:spwstream_inst|spwram:rxmem
 rclk => rdata[0]~reg0.CLK
 rclk => rdata[1]~reg0.CLK
 rclk => rdata[2]~reg0.CLK
@@ -1305,7 +1701,7 @@ wdata[8] => s_mem~11.DATAIN
 wdata[8] => s_mem.DATAIN8
 
 
-|streamtest_top|streamtest:streamtest_inst|spwstream:spwstream_inst|spwram:txmem
+|spacewire_top|streamtest:streamtest_inst|spwstream:spwstream_inst|spwram:txmem
 rclk => rdata[0]~reg0.CLK
 rclk => rdata[1]~reg0.CLK
 rclk => rdata[2]~reg0.CLK

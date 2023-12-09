@@ -65,6 +65,27 @@ ARCHITECTURE hardware OF spacewire_lcd_driver IS
 	-- Make sure your string won't exceed 20 characters (16 due to bug with LCD display)
 
 	-- "selected range" is the value range chosen on the accelerometer, default is +/- 2g, for correct interpretation of data
+
+	-- TODO
+	-- In any measurement range, the 10-bit resolution can be selected. The 10-bit acceleration value can be adjusted left or right. 
+	-- If the value is right-adjusted, the 10-bit acceleration values can be obtained by masking the second byte 
+	-- (which is read from 0x33 for the x-axis, 0x35 for the y-axis, and 0x37 for the z-axis) — with 0x03, 
+	-- right-shifting it eight times. Then, the two bytes are combined (0x32 and 0x33; 0x34 and 0x35; 0x36 and 0x37) 
+	-- to a 16-bit integer. 
+
+	-- If the value is adjusted left, the 10-bit acceleration values can be obtained by right-shifting the first byte 
+	-- (which is read from 0x32 for the x-axis, 0x34 for the y-axis, and 0x36 for the z-axis) six times, masking the second byte 
+	-- (which is read from 0x33 for the x-axis, 0x35 for the y-axis, and 0x37 for the z-axis) with 0x3F to a temporary byte. 
+	-- Its temporary byte is left-shifted two times, adding the temporary byte to the first byte. 
+	-- Then, left-shift the first byte six times and combine the two bytes (0x32 and 0x33; 0x34 and 0x35; 0x36; and 0x37) for a 16-bit integer.
+	
+	-- This 10-bit value will range from 0 to 1024. The acceleration is measured in both directions along the axis. 
+	-- So, if the value is greater than 511, subtract 1024 from it to get a negative value which indicates the other direction of the axis. 
+	
+	-- For a 10-bit resolution, the value of the acceleration in a gravity unit can be derived by multiplying this value with 4 mg (0.004) for +/- 2g range, 7.8 mg (0.0078) 
+	-- for +/- 4g range, 15.6 mg (0.0156) for +/- 8g, or 31.25 mg (0.03125) for +/- 16g range. 
+
+	-- TODO Not sure of the conversion, check where is padding, and if the scale is correct
 	FUNCTION convertData(accel_data : STD_LOGIC_VECTOR(15 DOWNTO 0);
 		prefix : STRING;
 		suffix : STRING;
@@ -75,7 +96,7 @@ ARCHITECTURE hardware OF spacewire_lcd_driver IS
 		VARIABLE temp_string : STRING(1 TO 20); -- Adjust the length based on your needs
 	BEGIN
 		-- Convert to REAL, scaled for correct interpretation (check accelerometer datasheet)
-		accel_value := REAL(TO_INTEGER(SIGNED(accel_data))) * (REAL(selected_range) / 2.0 ** 12.0);
+		accel_value := REAL(TO_INTEGER(SIGNED(accel_data))) * (REAL(selected_range) / (2.0 ** 12.0)); -- TODO fix this xD
 
 		-- Convert REAL to string, add padding to 20 to avoid length errors
 		accel_value_str := stringPadding(real'image(accel_value), 20);
@@ -275,7 +296,6 @@ BEGIN
 					IF busy = '0' THEN
 						state <= write_char;
 					END IF;
-
 					-- The "hohouwer"
 				WHEN hold =>
 					state <= hold;
