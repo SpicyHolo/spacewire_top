@@ -22,7 +22,7 @@ ENTITY syncdff IS
         do : OUT STD_LOGIC -- output data
     );
 
-    -- Turn off register replication in XST.
+    -- Turn off regaister replication in XST.
     --attribute REGISTER_DUPLICATION: string;
     --attribute REGISTER_DUPLICATION of syncdff: entity is "NO";
 
