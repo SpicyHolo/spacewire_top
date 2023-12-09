@@ -1,8 +1,0 @@
-<?xml version="1.0" ?>
-<LOG_ROOT>
-	<PROJECT NAME="spacewire_top">
-		<CBX_INST_ENTRY INSTANCE_NAME="|spacewire_top|accelerometer:u_accelerometer|spipll:u_spipll|altpll:altpll_component" CBX_FILE_NAME="spipll_altpll.v"/>
-		<CBX_INST_ENTRY INSTANCE_NAME="|spacewire_top|streamtest:streamtest_inst|spwstream:spwstream_inst|spwram:rxmem|altsyncram:s_mem_rtl_0" CBX_FILE_NAME="altsyncram_23h1.tdf"/>
-		<CBX_INST_ENTRY INSTANCE_NAME="|spacewire_top|streamtest:streamtest_inst|spwstream:spwstream_inst|spwram:txmem|altsyncram:s_mem_rtl_0" CBX_FILE_NAME="altsyncram_23h1.tdf"/>
-	</PROJECT>
-</LOG_ROOT>
