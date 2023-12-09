@@ -182,16 +182,17 @@ ARCHITECTURE hardware OF spacewire_lcd_driver IS
 		3 => convertData("0000000000000000", "    y: ", "g", 2, 4),
 		4 => convertData("0111111111111111", "    z: ", "g", 2, 4)
 	);
+
 	SIGNAL message : message4x20_type := empty_message; 
+	SIGNAL message_in : message4x20_type;
 
 	-- Counts the characters on a line.
 	SIGNAL character_counter : INTEGER RANGE 1 TO 20;
+
 	-- Counts the lines.
 	SIGNAL line_counter : INTEGER RANGE 1 TO 4;
-	SIGNAL got_nonzero_data : STD_LOGIC := '0';
-	-- Delay
-	SIGNAL hold_delay : STD_LOGIC_VECTOR(25 DOWNTO 0);
 
+	SIGNAL test: STD_LOGIC := '0';
 BEGIN
 
 	-- Push buttons are active low.
@@ -210,25 +211,23 @@ BEGIN
 		home => home, goto10 => goto10, goto20 => goto20, goto30 => goto30, busy => busy,
 		LCD_E => LCD_EN, LCD_RS => LCD_RS, LCD_RW => LCD_RW, LCD_DB => LCD_DATA);
 
-	-- The client side
-
-	-- Testing changing message on Key, for debugging
-	-- key_process: PROCESS(KEY2) is
-	-- BEGIN
-	-- 	IF KEY2 = '0' THEN
-	-- 		LED(0) <= '0';
-	-- 		message(2) <= "    Active          ";
-	-- 	ELSE
-	-- 		LED(0) <= '1';
-	-- 		message(2) <= "    Not active      ";
-	-- 	END IF;
-	-- END PROCESS;
-
 	drive : PROCESS (clk, areset, message) IS
 		VARIABLE aline : string20_type;
-		VARIABLE msg : message4x20_type;
+		VARIABLE temp_message : message4x20_type;
 	BEGIN
-		msg := message;
+		temp_message := message;
+
+		IF test = '1' THEN
+			LED(0) <= '1';
+			test <= '0';
+			temp_message(2) := "    ACTIVE          ";
+			
+		ELSE
+			LED(0) <= '0';
+			test <= '1';
+			temp_message(2) := "    NOT ACTIVE      "; 
+		END IF;
+
 		IF areset = '1' THEN
 			wr <= '0';
 			init <= '0';
@@ -241,7 +240,9 @@ BEGIN
 			character_counter <= 1;
 			state <= reset;
 		ELSIF rising_edge(clk) THEN
-			LED(7 DOWNTO 0) <= (others => '0');
+			message <= empty_message;
+
+			LED(7 DOWNTO 1) <= (others => '0');
 			wr <= '0';
 			init <= '0';
 			cls <= '0';
@@ -251,21 +252,15 @@ BEGIN
 			goto30 <= '0';
 			data <= "00000000";
 			--wchodzimy na pewno do ifa, ale nie wyswietlaja sie poprawne wartosci na ekranie, mimo ze na ledach tak
-
+			
 			CASE state IS
 
 				WHEN reset => -- Initial state
 					-- Wait for the LCD module ready
 					IF busy = '0' THEN
-						IF TO_INTEGER(SIGNED(lcd_register_data_in)) /= 0 THEN
-							message <= debug_message;
-							got_nonzero_data <= NOT got_nonzero_data;
-						ELSE
-							message <=  empty_message;
-						END IF;
-						
 						state <= write_char;
 					END IF;
+					
 					-- Setup message counter, start at 1.
 					character_counter <= 1;
 					line_counter <= 1;
@@ -273,7 +268,7 @@ BEGIN
 				WHEN write_char =>
 					-- Set up WRITE!
 					-- Use the data from the string
-					aline := msg(line_counter);
+					aline := temp_message(line_counter);
 					data <= STD_LOGIC_VECTOR(to_unsigned(CHARACTER'pos(aline(character_counter)), 8));
 					wr <= '1';
 					state <= write_char_wait;
@@ -314,7 +309,7 @@ BEGIN
 							state <= write_char;
 						END IF;
 					END IF;
-
+				message <= message_in;
 				WHEN update_linecount =>
 					-- This state is needed so that the LCD driver
 					-- can process the gotoXX command. Note that the gotoXX
@@ -332,14 +327,8 @@ BEGIN
 					-- The "hohouwer" (hangover of santa claus +1) +1
 					
 				WHEN hold =>
-				    -- Hold for half a second.
-					hold_delay <= STD_LOGIC_VECTOR(unsigned(hold_delay) + 1);
-					IF unsigned(hold_delay) = 25000000  THEN
-						state <= update_home;
-						home <= '1';
-						hold_delay <= (OTHERS => '0');
-					END IF;
-					state <= hold;
+				home <= '1';
+					state <= update_home;
 
 				WHEN update_home =>
 					state <= update_home_wait;
@@ -350,5 +339,7 @@ BEGIN
 					END IF;
 			END CASE;
 		END IF;
+		-- Update registers.
+		message_in <= temp_message;
 	END PROCESS;
 END ARCHITECTURE hardware;
