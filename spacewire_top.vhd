@@ -135,6 +135,7 @@ BEGIN
     port map (
       CLOCK_50        => sysclk, -- DE0 CLOCK_50 (50MHz CLK)
 		KEY             => btn_reset, -- DE0 KEY (button) [reset]
+        KEY2            => btn_clear,
 		LED             => led,
 		-- External LCD ports
 		LCD_EN          => LCD_EN,
