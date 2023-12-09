@@ -34,13 +34,16 @@ USE ieee.math_real.ALL;
 ENTITY spacewire_lcd_driver IS
 	PORT (
 		CLOCK_50 : IN STD_LOGIC; -- DE0 CLOCK_50 (50MHz CLK)
-		KEY : IN STD_LOGIC_VECTOR(1 DOWNTO 0); -- DE0 KEY (button) [reset]
+		KEY : IN STD_LOGIC; -- DE0 KEY (button) [reset]
 		LED : OUT STD_LOGIC_VECTOR(7 DOWNTO 0) := (OTHERS => '0'); -- DE0 LEDs [LED0 is 1 when writing a char]
 		-- External LCD ports
 		LCD_EN : OUT STD_LOGIC;
 		LCD_RS : OUT STD_LOGIC;
 		LCD_RW : OUT STD_LOGIC;
-		LCD_DATA : INOUT STD_LOGIC_VECTOR(7 DOWNTO 0)
+		LCD_DATA : INOUT STD_LOGIC_VECTOR(7 DOWNTO 0);
+
+		-- LCD Register control
+		lcd_register_data_in: IN STD_LOGIC_VECTOR(15 DOWNTO 0)
 	);
 
 END ENTITY spacewire_lcd_driver;
@@ -167,13 +170,13 @@ ARCHITECTURE hardware OF spacewire_lcd_driver IS
 	SUBTYPE string20_type IS STRING(1 TO 20);
 	-- An array of 4 strings of 20 characters.
 	TYPE message4x20_type IS ARRAY (1 TO 4) OF string20_type;
-
-	-- The four-line message
-	CONSTANT message : message4x20_type :=
-	(1 => stringPadding("Spacewire", 20),
-	2 => convertData("1101101111011011", "x: ", "g", 2, 4),
-	3 => convertData("0011100100101010", "    y: ", "g", 2, 4),
-	4 => convertData("1111110000101110", "    z: ", "g", 2, 4));
+	CONSTANT empty_message : message4x20_type := (
+		1 => stringPadding("Spacewire", 20),
+		2 => convertData("0000000000000000", "x: ", "g", 2, 4),
+		3 => convertData("0000000000000000", "    y: ", "g", 2, 4),
+		4 => convertData("0000000000000000", "    z: ", "g", 2, 4)
+	);
+	SIGNAL message : message4x20_type := empty_message; 
 
 	-- Counts the characters on a line.
 	SIGNAL character_counter : INTEGER RANGE 1 TO 20;
@@ -183,7 +186,7 @@ ARCHITECTURE hardware OF spacewire_lcd_driver IS
 BEGIN
 
 	-- Push buttons are active low.
-	areset <= NOT KEY(0);
+	areset <= NOT KEY;
 
 	-- The clock
 	clk <= CLOCK_50;
@@ -226,9 +229,16 @@ BEGIN
 			data <= "00000000";
 			CASE state IS
 
-				WHEN reset =>
+				WHEN reset => -- Initial state
 					-- Wait for the LCD module ready
-					IF busy = '0' THEN
+					IF busy = '0' THEN -- TODO check if this will be saved between processes
+						message <= empty_message;
+						-- (
+						-- 	1 => stringPadding("Spacewire", 20),
+						-- 	2 => convertData(lcd_register_data_in, "x: ", "g", 2, 4),
+						-- 	3 => convertData("0000000000000000", "    y: ", "g", 2, 4),
+						-- 	4 => convertData("0000000000000000", "    z: ", "g", 2, 4)
+						-- );
 						state <= write_char;
 					END IF;
 					-- Setup message counter, start at 1.

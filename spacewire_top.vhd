@@ -48,10 +48,16 @@ USE work.spwpkg.ALL;
 ENTITY spacewire_top IS
     PORT (
         --Acclerometer ports
-        acc_spi_chip_select   : OUT   STD_LOGIC; -- Accelerometer chip select (negated)
-        acc_spi_clk        : OUT   STD_LOGIC;
-        acc_spi_data        : INOUT STD_LOGIC; -- no MOSI/MISO, hardware supports only 3-wire SPI
-        acc_interrupt    : IN    STD_LOGIC;
+        acc_spi_chip_select     : OUT   STD_LOGIC; -- Accelerometer chip select (negated)
+        acc_spi_clk             : OUT   STD_LOGIC;
+        acc_spi_data            : INOUT STD_LOGIC; -- no MOSI/MISO, hardware supports only 3-wire SPI
+        acc_interrupt           : IN    STD_LOGIC;
+
+		-- External LCD ports
+		LCD_EN                  : OUT STD_LOGIC;
+		LCD_RS                  : OUT STD_LOGIC;
+		LCD_RW                  : OUT STD_LOGIC;
+		LCD_DATA                : INOUT STD_LOGIC_VECTOR(7 DOWNTO 0);
 
         --SpW ports
         clk50:      in  std_logic;
@@ -75,6 +81,9 @@ ARCHITECTURE spacewire_top_arch OF spacewire_top IS
     --register map p.23: https://www.analog.com/media/en/technical-documentation/data-sheets/adxl345.pdf
     signal sensor_data : STD_LOGIC_VECTOR(15 downto 0);
     signal sel_axis : INTEGER range 0 to 2; -- select accelerometer readout axis (1000 sysclk delay?)
+
+    --LCD signals register control
+    signal s_lcd_register_data_in : STD_LOGIC_VECTOR(15 DOWNTO 0);
 
     -- SpW signals
     -- Clock generation.
@@ -109,7 +118,7 @@ ARCHITECTURE spacewire_top_arch OF spacewire_top IS
 
 BEGIN
     -- Accelerometer instance
-    u_accelerometer : entity work.accelerometer 
+    accelerometer_inst : entity work.accelerometer 
     port map (
         clk             => sysclk,
         sel_axis        => sel_axis,
@@ -119,6 +128,22 @@ BEGIN
         I2C_SCLK        => acc_spi_clk,
         G_SENSOR_OUT    => sensor_data,
         I2C_SDAT        => acc_spi_data
+    );
+
+    -- LCD driver instance
+    lcd_inst : entity work.spacewire_lcd_driver
+    port map (
+        CLOCK_50        => sysclk, -- DE0 CLOCK_50 (50MHz CLK)
+		KEY             => btn_reset, -- DE0 KEY (button) [reset]
+		
+		-- External LCD ports
+		LCD_EN          => LCD_EN,
+		LCD_RS          => LCD_RS,
+		LCD_RW          => LCD_RW,
+		LCD_DATA        => LCD_DATA,
+
+		-- LCD Register control
+		lcd_register_data_in => sensor_data --ja nie ogarniam tych we/wy, to jest dobrze? +1 +1
     );
 
     -- Streamtest instance

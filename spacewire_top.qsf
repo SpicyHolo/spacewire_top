@@ -148,7 +148,49 @@ set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to acc_spi_clk
 set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to acc_spi_chip_select
 set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to acc_interrupt
 
+#============================================================
+# LCD Display
+#============================================================
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to LCD_DATA[7]
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to LCD_DATA[6]
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to LCD_DATA[5]
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to LCD_DATA[4]
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to LCD_DATA[3]
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to LCD_DATA[2]
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to LCD_DATA[1]
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to LCD_DATA[0]
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to LCD_EN
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to LCD_RS
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to LCD_RW
 
+set_location_assignment PIN_D5 -to LCD_DATA[7]
+set_location_assignment PIN_A6 -to LCD_DATA[6]
+set_location_assignment PIN_D6 -to LCD_DATA[5]
+set_location_assignment PIN_C6 -to LCD_DATA[4]
+set_location_assignment PIN_E6 -to LCD_DATA[3]
+set_location_assignment PIN_D8 -to LCD_DATA[2]
+set_location_assignment PIN_F8 -to LCD_DATA[1]
+set_location_assignment PIN_E9 -to LCD_DATA[0]
+
+set_location_assignment PIN_A5 -to LCD_EN
+set_location_assignment PIN_B6 -to LCD_RS
+set_location_assignment PIN_B7 -to LCD_RW
+
+set_instance_assignment -name CURRENT_STRENGTH_NEW 8MA -to LCD_RW
+set_instance_assignment -name CURRENT_STRENGTH_NEW 8MA -to LCD_RS
+set_instance_assignment -name CURRENT_STRENGTH_NEW 8MA -to LCD_EN
+set_instance_assignment -name CURRENT_STRENGTH_NEW 8MA -to LCD_DATA[0]
+set_instance_assignment -name CURRENT_STRENGTH_NEW 8MA -to LCD_DATA[1]
+set_instance_assignment -name CURRENT_STRENGTH_NEW 8MA -to LCD_DATA[2]
+set_instance_assignment -name CURRENT_STRENGTH_NEW 8MA -to LCD_DATA[3]
+set_instance_assignment -name CURRENT_STRENGTH_NEW 8MA -to LCD_DATA[4]
+set_instance_assignment -name CURRENT_STRENGTH_NEW 8MA -to LCD_DATA[5]
+set_instance_assignment -name CURRENT_STRENGTH_NEW 8MA -to LCD_DATA[6]
+set_instance_assignment -name CURRENT_STRENGTH_NEW 8MA -to LCD_DATA[7]
+
+#============================================================
+# Src imports
+#============================================================
 set_global_assignment -name VHDL_FILE src/accelerometer/spipll.vhd
 set_global_assignment -name VHDL_FILE src/accelerometer/spi_ee_config.vhd
 set_global_assignment -name VHDL_FILE src/accelerometer/spi_controller.vhd
