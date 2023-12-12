@@ -101,16 +101,11 @@ ARCHITECTURE spacewire_top_arch OF spacewire_top IS
     SIGNAL s_linkstart : STD_LOGIC := '0';
     SIGNAL s_autostart : STD_LOGIC := '0';
     SIGNAL s_linkdisable : STD_LOGIC := '0';
-    SIGNAL s_senddata : STD_LOGIC := '0';
-    SIGNAL s_sendtick : STD_LOGIC := '0';
     SIGNAL s_txdivcnt : STD_LOGIC_VECTOR(7 DOWNTO 0) := "00000000";
     SIGNAL s_linkstarted : STD_LOGIC;
     SIGNAL s_linkconnecting : STD_LOGIC;
     SIGNAL s_linkrun : STD_LOGIC;
     SIGNAL s_linkerror : STD_LOGIC;
-    SIGNAL s_gotdata : STD_LOGIC;
-    SIGNAL s_dataerror : STD_LOGIC;
-    SIGNAL s_tickerror : STD_LOGIC;
     SIGNAL s_spwdi : STD_LOGIC;
     SIGNAL s_spwsi : STD_LOGIC;
     SIGNAL s_spwdo : STD_LOGIC;
@@ -136,7 +131,7 @@ BEGIN
       CLOCK_50        => sysclk, -- DE0 CLOCK_50 (50MHz CLK)
 		KEY             => btn_reset, -- DE0 KEY (button) [reset]
         KEY2            => btn_clear,
-		LED             => led,
+		--LED             => led,
 		-- External LCD ports
 		LCD_EN          => LCD_EN,
 		LCD_RS          => LCD_RS,
@@ -166,16 +161,11 @@ BEGIN
         linkstart   => s_linkstart,
         autostart   => s_autostart,
         linkdisable => s_linkdisable,
-        senddata    => s_senddata,
-        sendtick    => s_sendtick,
         txdivcnt    => s_txdivcnt,
         linkstarted => s_linkstarted,
         linkconnecting => s_linkconnecting,
         linkrun     => s_linkrun,
         linkerror   => s_linkerror,
-        gotdata     => s_gotdata,
-        dataerror   => s_dataerror,
-        tickerror   => s_tickerror,
         spw_di      => s_spwdi,
         spw_si      => s_spwsi,
         spw_do      => s_spwdo,
@@ -202,8 +192,6 @@ BEGIN
             s_autostart <= '0';
             s_linkstart <= switch(0);
             s_linkdisable <= switch(1);
-            s_senddata <= switch(2);
-            s_sendtick <= switch(3);
             s_txdivcnt(7 DOWNTO 0) <= "00000000";
 
             -- Sticky link error LED
@@ -213,14 +201,9 @@ BEGIN
 
             -- Drive LEDs (inverted logic)
             -- led <= sensor_data(7 DOWNTO 0);
-            -- led(0) <= s_linkstarted;
-            -- led(1) <= s_linkconnecting;
-            -- led(2) <= s_linkrun;
-            -- led(3) <= s_linkerrorled;
-            -- led(4) <= s_gotdata;
-            -- led(5) <= '0';
-            -- led(6) <= s_dataerror;
-            -- led(7) <= s_tickerror;
+            led(0) <= s_linkrun;
+            led(1) <= s_linkerrorled;
+            led(7 DOWNTO 2) <= (others => '0');
 
         END IF;
     END PROCESS;
