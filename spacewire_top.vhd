@@ -46,6 +46,10 @@ USE ieee.std_logic_1164.ALL, ieee.numeric_std.ALL;
 USE work.spwpkg.ALL;
 
 ENTITY spacewire_top IS
+    generic (   countVal1  				 :  INTEGER := 16666666;
+                countVal2  				 :  INTEGER := 33333332;
+                countVal3  				 :  INTEGER := 50000000
+    );
     PORT (
 			--Acclerometer ports
 			acc_spi_chip_select     : OUT   STD_LOGIC; -- Accelerometer chip select (negated)
