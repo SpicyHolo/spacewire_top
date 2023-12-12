@@ -191,10 +191,10 @@ BEGIN
             s_clearbtn <= NOT btn_clear;
 
             -- Synchronize switch settings
-            s_autostart <= '0';
-            s_linkstart <= switch(0);
-            s_linkdisable <= switch(1);
-            s_txdivcnt(7 DOWNTO 0) <= "00000000";
+            s_autostart <= switch(0);
+            s_linkstart <= switch(1);
+            s_linkdisable <= switch(2);
+            s_txdivcnt(7 DOWNTO 0) <= "00000100"; -- Set transmition rate to 10 MBit/s
 
             -- Sticky link error LED
             s_linkerrorled <= (s_linkerrorled OR s_linkerror) AND

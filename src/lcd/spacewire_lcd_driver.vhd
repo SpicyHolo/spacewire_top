@@ -211,7 +211,7 @@ BEGIN
 		home => home, goto10 => goto10, goto20 => goto20, goto30 => goto30, busy => busy,
 		LCD_E => LCD_EN, LCD_RS => LCD_RS, LCD_RW => LCD_RW, LCD_DB => LCD_DATA);
 
-	drive : PROCESS (clk, areset, message) IS
+	drive : PROCESS (clk, areset) IS
 		VARIABLE aline : string20_type;
 		VARIABLE temp_message : message4x20_type;
 	BEGIN
