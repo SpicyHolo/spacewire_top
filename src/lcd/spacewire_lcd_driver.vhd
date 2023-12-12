@@ -158,35 +158,26 @@ BEGIN
 		VARIABLE temp : string20_type;
 
 	BEGIN
-		IF areset = '1' THEN
-			LED <= (OTHERS => '0');
-			-- Initialise LCD lines
-			message(1) <= "Initial             ";
-			message(2) <= "                    ";
-			message(3) <= "                    ";
-			message(4) <= "                    ";
 
-			wr <= '0';
-			init <= '0';
-			cls <= '0';
-			home <= '0';
-			goto10 <= '0';
-			goto20 <= '0';
-			goto30 <= '0';
-			data <= "00000000";
-			character_counter <= 1;
-			state <= reset;
-		ELSIF rising_edge(clk) THEN
 
+		IF rising_edge(clk) THEN
+			IF areset = '1' THEN
+				LED <= (OTHERS => '0');
+				-- Initialise LCD lines
+				message(1) <= "RESET               ";
+				message(2) <= "                    ";
+				message(3) <= "                    ";
+				message(4) <= "                    ";
+				state <= reset;
 			-- Convert input data, set the second LCD message to its value (on button press)
 			-- If not, go back to Initial text
-			IF set = '1' THEN
+			ELSIF set = '1' THEN
 				temp := convertData(data_in);
 				LED(3 DOWNTO 0) <= data_in; -- Debug LEDs
 				message(1) <= temp;
 			ELSE
 				LED(3 DOWNTO 0) <= (OTHERS => '0'); -- Debug LEDs
-				message(1) <= "Initial             "; -- Set LCD 1st line to INITIAL
+				message(1) <= "Empty               ";
 			END IF;
 			wr <= '0';
 			init <= '0';
@@ -202,11 +193,10 @@ BEGIN
 					-- Wait for the LCD module ready
 					IF busy = '0' THEN
 						state <= write_char;
+						-- Setup message counter, start at 1.
+						character_counter <= 1;
+						line_counter <= 1;
 					END IF;
-
-					-- Setup message counter, start at 1.
-					character_counter <= 1;
-					line_counter <= 1;
 
 				WHEN write_char =>
 					-- Set up WRITE!
@@ -237,7 +227,7 @@ BEGIN
 								WHEN 1 => goto10 <= '1';
 								WHEN 2 => goto20 <= '1';
 								WHEN 3 => goto30 <= '1';
-									-- Never reached, but nice anyway...
+									-- Never reached, but nice anyway... (-1, not nice)
 								WHEN 4 => home <= '1';
 								WHEN OTHERS => NULL;
 							END CASE;
