@@ -195,9 +195,6 @@ BEGIN
 				state <= reset;
 			-- Convert input data, set the second LCD message to its value (on button press)
 			-- If not, go back to Initial text
-			ELSIF set = '1' THEN
-				temp := convertData(data_in);
-				message(1) <= temp;
 			ELSE
 				LED(3 DOWNTO 0) <= (OTHERS => '0'); -- Debug LEDs
 				message(1) <= "Empty               ";
@@ -222,7 +219,7 @@ BEGIN
 
 				WHEN write_char =>
 					CASE line_counter IS
-						WHEN 1 => char <= title_row(character_counter);
+						WHEN 1 => char := title_row(character_counter);
 						WHEN OTHERS => 
 							IF character_counter < 16 THEN
 								CASE data_in(15 - character_counter) IS
