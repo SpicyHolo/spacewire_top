@@ -64,7 +64,7 @@ ENTITY spacewire_top IS
         btn_reset:  in  std_logic;
         btn_clear:  in  std_logic; 
         switch:     in  std_logic_vector(3 downto 0);
-        led:        out std_logic_vector(7 downto 0);
+        led:        out std_logic_vector(7 downto 0) := (others => '0');
         spw_di:     in  std_logic;
         spw_si:     in  std_logic;
         spw_do:     out std_logic;
@@ -74,16 +74,12 @@ ENTITY spacewire_top IS
 END ENTITY spacewire_top;
 
 ARCHITECTURE spacewire_top_arch OF spacewire_top IS
-
     --Accelerometer signals
 
     --pure output of 12-bit ADC (0 padding in front?)
     --register map p.23: https://www.analog.com/media/en/technical-documentation/data-sheets/adxl345.pdf
     signal sensor_data : STD_LOGIC_VECTOR(15 downto 0);
     signal s_sel_axis : INTEGER range 0 to 2; -- select accelerometer readout axis (1000 sysclk delay?)
-
-    --LCD signals register control
-    signal s_lcd_register_data_in : STD_LOGIC_VECTOR(15 DOWNTO 0);
 
     -- SpW signals
     -- Clock generation.
@@ -114,8 +110,8 @@ ARCHITECTURE spacewire_top_arch OF spacewire_top IS
     SIGNAL s_spwdi : STD_LOGIC;
     SIGNAL s_spwsi : STD_LOGIC;
     SIGNAL s_spwdo : STD_LOGIC;
-    SIGNAL s_spwso : STD_LOGIC;
-
+    SIGNAL s_spwso : STD_LOGIC;    
+	 
 BEGIN
     -- Accelerometer instance
     accelerometer_inst : entity work.accelerometer 
@@ -143,7 +139,7 @@ BEGIN
 		LCD_RW          => LCD_RW,
 		LCD_DATA        => LCD_DATA,
 		-- LCD Register control
-		lcd_register_data_in => sensor_data 
+		data_in => switch
     );
 
     -- Streamtest instance
@@ -195,6 +191,7 @@ BEGIN
             --select axis to send to lcd
             s_sel_axis <= 1; 
 
+
             s_rst <= s_resetbtn;
             s_clearbtn <= NOT btn_clear;
 
@@ -211,8 +208,8 @@ BEGIN
                 (NOT s_clearbtn) AND
                 (NOT s_resetbtn);
 
-            -- Drive LEDs (inverted logic)
-            -- led <= sensor_data(7 DOWNTO 0);
+            -- Drive LEDs
+            --led <= sensor_data(7 DOWNTO 0);
             -- led(0) <= s_linkstarted;
             -- led(1) <= s_linkconnecting;
             -- led(2) <= s_linkrun;
