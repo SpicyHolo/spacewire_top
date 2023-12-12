@@ -222,7 +222,7 @@ BEGIN
 						WHEN 1 => char := title_row(character_counter);
 						WHEN OTHERS => 
 							IF character_counter < 16 THEN
-								CASE data_in(15 - character_counter) IS
+								CASE data_in(character_counter - 1) IS
 									WHEN '0' =>
 										char := X"30";
 									WHEN '1' =>
