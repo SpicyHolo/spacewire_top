@@ -156,7 +156,7 @@ BEGIN
 	drive : PROCESS (clk, areset, data_in) IS
 		VARIABLE aline : string20_type;
 		VARIABLE temp : string20_type;
-
+		VARIABLE char : STD_LOGIC_VECTOR(7 downto 0);
 	BEGIN
 
 
@@ -202,7 +202,17 @@ BEGIN
 					-- Set up WRITE!
 					-- Use the data from the string
 					aline := message(line_counter);
-					data <= STD_LOGIC_VECTOR(to_unsigned(CHARACTER'pos(aline(character_counter)), 8));
+					IF character_counter < 5 THEN
+						CASE data_in(character_counter - 1) IS
+							WHEN '0' =>
+								char := X"30";
+							WHEN '1' =>
+								char := X"31";
+						END CASE;
+					ELSE
+						char := X"20";
+					END IF;
+					data <= char;
 					wr <= '1';
 					state <= write_char_wait;
 
