@@ -185,6 +185,8 @@ BEGIN
             --select axis to send to lcd
             s_sel_axis <= 1; 
 
+            -- Synchronise buttons
+            s_resetbtn <= NOT btn_reset;
             s_rst <= s_resetbtn;
             s_clearbtn <= NOT btn_clear;
 
@@ -199,8 +201,7 @@ BEGIN
                 (NOT s_clearbtn) AND
                 (NOT s_resetbtn);
 
-            -- Drive LEDs (inverted logic)
-            -- led <= sensor_data(7 DOWNTO 0);
+            -- Drive LEDs
             led(0) <= s_linkrun;
             led(1) <= s_linkerrorled;
             led(7 DOWNTO 2) <= (others => '0');
