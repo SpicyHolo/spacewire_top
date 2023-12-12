@@ -34,7 +34,7 @@ ENTITY spacewire_lcd_driver IS
 		LCD_DATA : INOUT STD_LOGIC_VECTOR(7 DOWNTO 0);
 
 		-- Data in
-		data_in : IN STD_LOGIC_VECTOR(3 DOWNTO 0)
+		data_in : IN STD_LOGIC_VECTOR(15 DOWNTO 0)
 	);
 
 END ENTITY spacewire_lcd_driver;
@@ -102,6 +102,30 @@ ARCHITECTURE hardware OF spacewire_lcd_driver IS
 
 	-- The system's frequency
 	CONSTANT sys_freq : INTEGER := 50000000;
+
+	TYPE ROW_DATA IS ARRAY(1 to 20) OF STD_LOGIC_VECTOR(7 downto 0);
+	CONSTANT title_row : ROW_DATA := (
+		1 => X"44",
+		2 => X"61",
+		3 => X"74",
+		4 => X"61",
+		5 => X"3a",
+		6 => X"20",
+		7 => X"20",
+		8 => X"20",
+		9 => X"20",
+		10 => X"20",
+		11 => X"20",
+		12 => X"20",
+		13 => X"20",
+		14 => X"20",
+		15 => X"20",
+		16 => X"20",
+		17 => X"20",
+		18 => X"20",
+		19 => X"20",
+		20 => X"20"
+	);
 
 	SIGNAL areset : STD_LOGIC;
 	SIGNAL set : STD_LOGIC;
@@ -173,7 +197,6 @@ BEGIN
 			-- If not, go back to Initial text
 			ELSIF set = '1' THEN
 				temp := convertData(data_in);
-				LED(3 DOWNTO 0) <= data_in; -- Debug LEDs
 				message(1) <= temp;
 			ELSE
 				LED(3 DOWNTO 0) <= (OTHERS => '0'); -- Debug LEDs
@@ -188,7 +211,6 @@ BEGIN
 			goto30 <= '0';
 			data <= "00000000";
 			CASE state IS
-
 				WHEN reset => -- Initial state
 					-- Wait for the LCD module ready
 					IF busy = '0' THEN
@@ -199,19 +221,20 @@ BEGIN
 					END IF;
 
 				WHEN write_char =>
-					-- Set up WRITE!
-					-- Use the data from the string
-					aline := message(line_counter);
-					IF character_counter < 5 THEN
-						CASE data_in(character_counter - 1) IS
-							WHEN '0' =>
-								char := X"30";
-							WHEN '1' =>
-								char := X"31";
-						END CASE;
-					ELSE
-						char := X"20";
-					END IF;
+					CASE line_counter IS
+						WHEN 1 => char <= title_row(character_counter);
+						WHEN OTHERS => 
+							IF character_counter < 16 THEN
+								CASE data_in(15 - character_counter) IS
+									WHEN '0' =>
+										char := X"30";
+									WHEN '1' =>
+										char := X"31";
+								END CASE;
+							ELSE
+								char := X"20";
+							END IF;
+					END CASE;
 					data <= char;
 					wr <= '1';
 					state <= write_char_wait;

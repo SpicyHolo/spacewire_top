@@ -139,7 +139,7 @@ BEGIN
 		LCD_RW          => LCD_RW,
 		LCD_DATA        => LCD_DATA,
 		-- LCD Register control
-		data_in => switch
+		data_in => sensor_data
     );
 
     -- Streamtest instance
