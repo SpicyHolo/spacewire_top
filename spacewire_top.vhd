@@ -46,34 +46,35 @@ USE ieee.std_logic_1164.ALL, ieee.numeric_std.ALL;
 USE work.spwpkg.ALL;
 
 ENTITY spacewire_top IS
-    generic (   countVal1  				 :  INTEGER := 16666666;
-                countVal2  				 :  INTEGER := 33333332;
-                countVal3  				 :  INTEGER := 50000000
+    GENERIC (
+        countVal1 : INTEGER := 16666666;
+        countVal2 : INTEGER := 33333332;
+        countVal3 : INTEGER := 50000000
     );
     PORT (
-			--Acclerometer ports
-			acc_spi_chip_select     : OUT   STD_LOGIC; -- Accelerometer chip select (negated)
-			acc_spi_clk             : OUT   STD_LOGIC;
-			acc_spi_data            : INOUT STD_LOGIC; -- no MOSI/MISO, hardware supports only 3-wire SPI
-			acc_interrupt           : IN    STD_LOGIC;
+        --Acclerometer ports
+        acc_spi_chip_select : OUT STD_LOGIC; -- Accelerometer chip select (negated)
+        acc_spi_clk : OUT STD_LOGIC;
+        acc_spi_data : INOUT STD_LOGIC; -- no MOSI/MISO, hardware supports only 3-wire SPI
+        acc_interrupt : IN STD_LOGIC;
 
-			-- External LCD ports
-			LCD_EN                  : OUT STD_LOGIC;
-			LCD_RS                  : OUT STD_LOGIC;
-			LCD_RW                  : OUT STD_LOGIC;
-			LCD_DATA                : INOUT STD_LOGIC_VECTOR(7 DOWNTO 0);
+        -- External LCD ports
+        LCD_EN : OUT STD_LOGIC;
+        LCD_RS : OUT STD_LOGIC;
+        LCD_RW : OUT STD_LOGIC;
+        LCD_DATA : INOUT STD_LOGIC_VECTOR(7 DOWNTO 0);
 
         --SpW ports
-        clk50:      in  std_logic;
-        btn_reset:  in  std_logic;
-        btn_clear:  in  std_logic; 
-        switch:     in  std_logic_vector(3 downto 0);
-        led:        out std_logic_vector(7 downto 0);
-        spw_di:     in  std_logic;
-        spw_si:     in  std_logic;
-        spw_do:     out std_logic;
-        spw_so:     out std_logic 
-			);
+        clk50 : IN STD_LOGIC;
+        btn_reset : IN STD_LOGIC;
+        btn_clear : IN STD_LOGIC;
+        switch : IN STD_LOGIC_VECTOR(3 DOWNTO 0);
+        led : OUT STD_LOGIC_VECTOR(7 DOWNTO 0);
+        spw_di : IN STD_LOGIC;
+        spw_si : IN STD_LOGIC;
+        spw_do : OUT STD_LOGIC;
+        spw_so : OUT STD_LOGIC
+    );
 
 END ENTITY spacewire_top;
 
@@ -83,13 +84,13 @@ ARCHITECTURE spacewire_top_arch OF spacewire_top IS
 
     --pure output of 12-bit ADC (0 padding in front?)
     --register map p.23: https://www.analog.com/media/en/technical-documentation/data-sheets/adxl345.pdf
-    signal sensor_data : STD_LOGIC_VECTOR(15 downto 0);
-	 -- select accelerometer readout axis (1000 sysclk delay?)
-    signal s_sel_axis : INTEGER range 0 to 2; 
-	 signal s_count 			: STD_LOGIC_VECTOR(26 downto 0);
+    SIGNAL sensor_data : STD_LOGIC_VECTOR(15 DOWNTO 0);
+    -- select accelerometer readout axis (1000 sysclk delay?)
+    SIGNAL s_sel_axis : INTEGER RANGE 0 TO 2;
+    SIGNAL s_count : STD_LOGIC_VECTOR(26 DOWNTO 0);
 
     --LCD signals register control
-    signal s_lcd_register_data_in : STD_LOGIC_VECTOR(15 DOWNTO 0);
+    SIGNAL s_lcd_register_data_in : STD_LOGIC_VECTOR(15 DOWNTO 0);
 
     -- SpW signals
     -- Clock generation.
@@ -124,71 +125,71 @@ ARCHITECTURE spacewire_top_arch OF spacewire_top IS
 
 BEGIN
     -- Accelerometer instance
-    accelerometer_inst : entity work.accelerometer 
-    port map (
-        clk             => sysclk,
-        sel_axis        => s_sel_axis,
-        rst             => btn_reset,
-        G_SENSOR_CS_N   => acc_spi_chip_select,
-        G_SENSOR_INT    => acc_interrupt,
-        I2C_SCLK        => acc_spi_clk,
-        G_SENSOR_OUT    => sensor_data,
-        I2C_SDAT        => acc_spi_data
-    );
+    accelerometer_inst : ENTITY work.accelerometer
+        PORT MAP(
+            clk => sysclk,
+            sel_axis => s_sel_axis,
+            rst => btn_reset,
+            G_SENSOR_CS_N => acc_spi_chip_select,
+            G_SENSOR_INT => acc_interrupt,
+            I2C_SCLK => acc_spi_clk,
+            G_SENSOR_OUT => sensor_data,
+            I2C_SDAT => acc_spi_data
+        );
 
     -- LCD driver instance
-    lcd_inst : entity work.spacewire_lcd_driver
-    port map (
-      CLOCK_50        => sysclk, -- DE0 CLOCK_50 (50MHz CLK)
-		KEY             => btn_reset, -- DE0 KEY (button) [reset]
-        KEY2            => btn_clear,
-		LED             => led,
-		-- External LCD ports
-		LCD_EN          => LCD_EN,
-		LCD_RS          => LCD_RS,
-		LCD_RW          => LCD_RW,
-		LCD_DATA        => LCD_DATA,
-		-- LCD Register control
-		lcd_register_data_in => sensor_data 
-    );
+    lcd_inst : ENTITY work.spacewire_lcd_driver
+        PORT MAP(
+            CLOCK_50 => sysclk, -- DE0 CLOCK_50 (50MHz CLK)
+            KEY => btn_reset, -- DE0 KEY (button) [reset]
+            KEY2 => btn_clear,
+            LED => led,
+            -- External LCD ports
+            LCD_EN => LCD_EN,
+            LCD_RS => LCD_RS,
+            LCD_RW => LCD_RW,
+            LCD_DATA => LCD_DATA,
+            -- LCD Register control
+            lcd_register_data_in => sensor_data
+        );
 
     -- Streamtest instance
-	streamtest_inst : entity work.streamtest 
-    generic map (
-         sysfreq     => 50.0e6,
-         txclkfreq   => 0.0,
-         tickdiv     => 20,
-         rximpl      => impl_generic,
-         rxchunk     => 1,
-         tximpl      => impl_generic,
-         rxfifosize_bits => 11,
-         txfifosize_bits => 11
-    )
-    port map (
-        clk         => sysclk,
-        rxclk       => '0',
-        txclk       => '0',
-        rst         => s_rst,
-        linkstart   => s_linkstart,
-        autostart   => s_autostart,
-        linkdisable => s_linkdisable,
-        senddata    => s_senddata,
-        sendtick    => s_sendtick,
-        txdivcnt    => s_txdivcnt,
-        linkstarted => s_linkstarted,
-        linkconnecting => s_linkconnecting,
-        linkrun     => s_linkrun,
-        linkerror   => s_linkerror,
-        gotdata     => s_gotdata,
-        dataerror   => s_dataerror,
-        tickerror   => s_tickerror,
-        spw_di      => s_spwdi,
-        spw_si      => s_spwsi,
-        spw_do      => s_spwdo,
-        spw_so      => s_spwso
-    );
-             
-	-- Connect inputs/outputs to internal signals
+    streamtest_inst : ENTITY work.streamtest
+        GENERIC MAP(
+            sysfreq => 50.0e6,
+            txclkfreq => 0.0,
+            tickdiv => 20,
+            rximpl => impl_generic,
+            rxchunk => 1,
+            tximpl => impl_generic,
+            rxfifosize_bits => 11,
+            txfifosize_bits => 11
+        )
+        PORT MAP(
+            clk => sysclk,
+            rxclk => '0',
+            txclk => '0',
+            rst => s_rst,
+            linkstart => s_linkstart,
+            autostart => s_autostart,
+            linkdisable => s_linkdisable,
+            senddata => s_senddata,
+            sendtick => s_sendtick,
+            txdivcnt => s_txdivcnt,
+            linkstarted => s_linkstarted,
+            linkconnecting => s_linkconnecting,
+            linkrun => s_linkrun,
+            linkerror => s_linkerror,
+            gotdata => s_gotdata,
+            dataerror => s_dataerror,
+            tickerror => s_tickerror,
+            spw_di => s_spwdi,
+            spw_si => s_spwsi,
+            spw_do => s_spwdo,
+            spw_so => s_spwso
+        );
+
+    -- Connect inputs/outputs to internal signals
     sysclk <= clk50;
     s_spwdi <= spw_di;
     s_spwsi <= spw_si;
@@ -198,19 +199,15 @@ BEGIN
     PROCESS (sysclk) IS
     BEGIN
         IF rising_edge(sysclk) THEN
-		  
-            -- Select axis to send accelerometer data forward
-				if(rising_edge(Clk)) then 
-					s_count <= STD_LOGIC_VECTOR(unsigned(s_count) + 1); 
-					if(unsigned(s_count) = CountVal1) then 
-						s_sel_axis <= 0;
-					elsif (unsigned(s_count) = CountVal2) then 
-						s_sel_axis <= 1;
-					elsif (unsigned(s_count) = CountVal3) then 
-						s_sel_axis <= 2;
-						s_count <= (others => '0');
-					end if;
-				end if; 
+            s_count <= STD_LOGIC_VECTOR(unsigned(s_count) + 1);
+            IF (unsigned(s_count) = CountVal1) THEN
+                s_sel_axis <= 0;
+            ELSIF (unsigned(s_count) = CountVal2) THEN
+                s_sel_axis <= 1;
+            ELSIF (unsigned(s_count) = CountVal3) THEN
+                s_sel_axis <= 2;
+                s_count <= (OTHERS => '0');
+            END IF;
 
             s_rst <= s_resetbtn;
             s_clearbtn <= NOT btn_clear;
