@@ -218,11 +218,11 @@ BEGIN
 		temp_message := message;
 
 		IF test = '1' THEN
-			LED(0) <= '1';
+			--LED(0) <= '1';
 			temp_message(2) := "    ACTIVE          ";
 			
 		ELSE
-			LED(0) <= '0';
+			--LED(0) <= '0';
 			temp_message(2) := "    NOT ACTIVE      "; 
 		END IF;
 
@@ -239,7 +239,7 @@ BEGIN
 			state <= reset;
 		ELSIF rising_edge(clk) THEN
 
-			LED(7 DOWNTO 1) <= (others => '0');
+			--LED(7 DOWNTO 1) <= (others => '0');
 			wr <= '0';
 			init <= '0';
 			cls <= '0';

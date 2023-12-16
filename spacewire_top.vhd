@@ -123,6 +123,8 @@ ARCHITECTURE spacewire_top_arch OF spacewire_top IS
     SIGNAL s_spwdo : STD_LOGIC;
     SIGNAL s_spwso : STD_LOGIC;
 
+    SIGNAL s_spwout : STD_LOGIC_VECTOR(7 DOWNTO 0);
+
 BEGIN
     -- Accelerometer instance
     accelerometer_inst : ENTITY work.accelerometer
@@ -143,12 +145,12 @@ BEGIN
             CLOCK_50 => sysclk, -- DE0 CLOCK_50 (50MHz CLK)
             KEY => btn_reset, -- DE0 KEY (button) [reset]
             KEY2 => btn_clear,
-            LED => led,
+            --LED => led,
             -- External LCD ports
             LCD_EN => LCD_EN,
             LCD_RS => LCD_RS,
             LCD_RW => LCD_RW,
-            LCD_DATA => LCD_DATA,
+            LCD_DATA => LCD_DATA, 
             -- LCD Register control
             lcd_register_data_in => sensor_data
         );
@@ -186,7 +188,8 @@ BEGIN
             spw_di => s_spwdi,
             spw_si => s_spwsi,
             spw_do => s_spwdo,
-            spw_so => s_spwso
+            spw_so => s_spwso,
+            data_out => s_spwout
         );
 
     -- Connect inputs/outputs to internal signals
@@ -199,7 +202,7 @@ BEGIN
     PROCESS (sysclk) IS
     BEGIN
         IF rising_edge(sysclk) THEN
-            sel_axis <= 0;
+            s_sel_axis <= 0;
             -- s_count <= STD_LOGIC_VECTOR(unsigned(s_count) + 1);
             -- IF (unsigned(s_count) = CountVal1) THEN
             --     s_sel_axis <= 0;
@@ -218,7 +221,6 @@ BEGIN
             s_linkstart <= switch(0);
             s_linkdisable <= switch(1);
             s_senddata <= switch(2);
-            s_sendtick <= switch(3);
             s_txdivcnt(7 DOWNTO 0) <= "00000000";
 
             -- Sticky link error LED
@@ -226,16 +228,22 @@ BEGIN
                 (NOT s_clearbtn) AND
                 (NOT s_resetbtn);
             
-            -- Drive LEDs (inverted logic)
-            led <= sensor_data(7 DOWNTO 0);
-            -- led(0) <= s_linkstarted;
-            -- led(1) <= s_linkconnecting;
-            -- led(2) <= s_linkrun;
-            -- led(3) <= s_linkerrorled;
-            -- led(4) <= s_gotdata;
-            -- led(5) <= '0';
-            -- led(6) <= s_dataerror;
-            -- led(7) <= s_tickerror;
+            
+            -- Changing information to display on LEDs
+            IF switch(3) = '1' THEN
+                led <= s_spwout;
+            ELSE 
+               -- Drive LEDs (inverted logic)
+                led(0) <= s_linkstarted;
+                led(1) <= s_linkconnecting;
+                led(2) <= s_linkrun;
+                led(3) <= s_linkerrorled;
+                led(4) <= s_gotdata;
+                led(5) <= '0';
+                led(6) <= s_dataerror;
+                led(7) <= s_tickerror;
+            END IF;
+
 
         END IF;
     END PROCESS;
