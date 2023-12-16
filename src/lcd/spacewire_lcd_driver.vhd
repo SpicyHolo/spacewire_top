@@ -180,13 +180,12 @@ BEGIN
 	drive : PROCESS (clk, areset, data_in) IS
 		VARIABLE aline : string20_type;
 		VARIABLE temp : string20_type;
-		VARIABLE char : STD_LOGIC_VECTOR(7 downto 0);
+		VARIABLE char : STD_LOGIC_VECTOR(7 DOWNTO 0);
 	BEGIN
 
 
 		IF rising_edge(clk) THEN
 			IF areset = '1' THEN
-				LED <= (OTHERS => '0');
 				-- Initialise LCD lines
 				message(1) <= "RESET               ";
 				message(2) <= "                    ";
@@ -196,7 +195,6 @@ BEGIN
 			-- Convert input data, set the second LCD message to its value (on button press)
 			-- If not, go back to Initial text
 			ELSE
-				LED(3 DOWNTO 0) <= (OTHERS => '0'); -- Debug LEDs
 				message(1) <= "Empty               ";
 			END IF;
 			wr <= '0';
@@ -221,8 +219,8 @@ BEGIN
 					CASE line_counter IS
 						WHEN 1 => char := title_row(character_counter);
 						WHEN OTHERS => 
-							IF character_counter < 16 THEN
-								CASE data_in(character_counter - 1) IS
+							IF character_counter <= 16 THEN
+								CASE data_in(16 - character_counter) IS
 									WHEN '0' =>
 										char := X"30";
 									WHEN '1' =>

@@ -109,7 +109,8 @@ ENTITY streamtest IS
         spw_do : OUT STD_LOGIC;
         spw_so : OUT STD_LOGIC;
         
-        -- Data ouput signal.
+        -- Interface to other blocks (data from accel, out to LCD)
+        data_in : IN STD_LOGIC_VECTOR(7 DOWNTO 0);
         data_out : OUT STD_LOGIC_VECTOR(7 DOWNTO 0));
 
 
@@ -282,7 +283,7 @@ BEGIN
                 v.tx_state := txst_data;
                 v.txwrite := r.tx_enabledata;
                 v.txflag := '0';
-                v.txdata := "10101010";
+                v.txdata := data_in;
             WHEN txst_data =>
                 -- generate data bytes and EOP
                 v.txwrite := r.tx_enabledata;
@@ -302,7 +303,7 @@ BEGIN
                         -- generate next data byte
                         v.txwrite := r.tx_enabledata;
                         v.txflag := '0';
-                        v.txdata := "10101010";
+                        v.txdata := data_in;
                     END IF;
                 END IF;
         END CASE;

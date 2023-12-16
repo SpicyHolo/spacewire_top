@@ -144,14 +144,15 @@ BEGIN
       CLOCK_50        => sysclk, -- DE0 CLOCK_50 (50MHz CLK)
 		KEY             => btn_reset, -- DE0 KEY (button) [reset]
         KEY2            => btn_clear,
-		LED             => led,
+		--LED             => led,
 		-- External LCD ports
 		LCD_EN          => LCD_EN,
 		LCD_RS          => LCD_RS,
 		LCD_RW          => LCD_RW,
 		LCD_DATA        => LCD_DATA,
 		-- LCD Register control
-		data_in => sensor_data
+        data_in(15 DOWNTO 8) => (others => '0'),
+		data_in(7 DOWNTO 0) => s_spwout
     );
 
     -- Streamtest instance
@@ -188,6 +189,8 @@ BEGIN
             spw_si => s_spwsi,
             spw_do => s_spwdo,
             spw_so => s_spwso,
+
+            data_in => sensor_data(7 DOWNTO 0),
             data_out => s_spwout
         );
 
@@ -202,15 +205,15 @@ BEGIN
     BEGIN
         IF rising_edge(sysclk) THEN
             s_sel_axis <= 0;
-            -- s_count <= STD_LOGIC_VECTOR(unsigned(s_count) + 1);
-            -- IF (unsigned(s_count) = CountVal1) THEN
-            --     s_sel_axis <= 0;
-            -- ELSIF (unsigned(s_count) = CountVal2) THEN
-            --     s_sel_axis <= 1;
-            -- ELSIF (unsigned(s_count) = CountVal3) THEN
-            --     s_sel_axis <= 2;
-            --     s_count <= (OTHERS => '0');
-            -- END IF;
+            s_count <= STD_LOGIC_VECTOR(unsigned(s_count) + 1);
+            IF (unsigned(s_count) = CountVal1) THEN
+                 s_sel_axis <= 0;
+            ELSIF (unsigned(s_count) = CountVal2) THEN
+                 s_sel_axis <= 1;
+            ELSIF (unsigned(s_count) = CountVal3) THEN
+                 s_sel_axis <= 2;
+                 s_count <= (OTHERS => '0');
+            END IF;
 
 
             s_rst <= s_resetbtn;
