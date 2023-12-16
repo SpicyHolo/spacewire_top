@@ -199,15 +199,16 @@ BEGIN
     PROCESS (sysclk) IS
     BEGIN
         IF rising_edge(sysclk) THEN
-            s_count <= STD_LOGIC_VECTOR(unsigned(s_count) + 1);
-            IF (unsigned(s_count) = CountVal1) THEN
-                s_sel_axis <= 0;
-            ELSIF (unsigned(s_count) = CountVal2) THEN
-                s_sel_axis <= 1;
-            ELSIF (unsigned(s_count) = CountVal3) THEN
-                s_sel_axis <= 2;
-                s_count <= (OTHERS => '0');
-            END IF;
+            sel_axis <= 0;
+            -- s_count <= STD_LOGIC_VECTOR(unsigned(s_count) + 1);
+            -- IF (unsigned(s_count) = CountVal1) THEN
+            --     s_sel_axis <= 0;
+            -- ELSIF (unsigned(s_count) = CountVal2) THEN
+            --     s_sel_axis <= 1;
+            -- ELSIF (unsigned(s_count) = CountVal3) THEN
+            --     s_sel_axis <= 2;
+            --     s_count <= (OTHERS => '0');
+            -- END IF;
 
             s_rst <= s_resetbtn;
             s_clearbtn <= NOT btn_clear;
@@ -224,9 +225,9 @@ BEGIN
             s_linkerrorled <= (s_linkerrorled OR s_linkerror) AND
                 (NOT s_clearbtn) AND
                 (NOT s_resetbtn);
-
+            
             -- Drive LEDs (inverted logic)
-            -- led <= sensor_data(7 DOWNTO 0);
+            led <= sensor_data(7 DOWNTO 0);
             -- led(0) <= s_linkstarted;
             -- led(1) <= s_linkconnecting;
             -- led(2) <= s_linkrun;
