@@ -79,7 +79,6 @@ ENTITY spacewire_top IS
 END ENTITY spacewire_top;
 
 ARCHITECTURE spacewire_top_arch OF spacewire_top IS
-
     --Accelerometer signals
 
     --pure output of 12-bit ADC (0 padding in front?)
@@ -140,20 +139,20 @@ BEGIN
         );
 
     -- LCD driver instance
-    lcd_inst : ENTITY work.spacewire_lcd_driver
-        PORT MAP(
-            CLOCK_50 => sysclk, -- DE0 CLOCK_50 (50MHz CLK)
-            KEY => btn_reset, -- DE0 KEY (button) [reset]
-            KEY2 => btn_clear,
-            --LED => led,
-            -- External LCD ports
-            LCD_EN => LCD_EN,
-            LCD_RS => LCD_RS,
-            LCD_RW => LCD_RW,
-            LCD_DATA => LCD_DATA, 
-            -- LCD Register control
-            lcd_register_data_in => sensor_data
-        );
+    lcd_inst : entity work.spacewire_lcd_driver
+    port map (
+      CLOCK_50        => sysclk, -- DE0 CLOCK_50 (50MHz CLK)
+		KEY             => btn_reset, -- DE0 KEY (button) [reset]
+        KEY2            => btn_clear,
+		LED             => led,
+		-- External LCD ports
+		LCD_EN          => LCD_EN,
+		LCD_RS          => LCD_RS,
+		LCD_RW          => LCD_RW,
+		LCD_DATA        => LCD_DATA,
+		-- LCD Register control
+		data_in => sensor_data
+    );
 
     -- Streamtest instance
     streamtest_inst : ENTITY work.streamtest
@@ -213,6 +212,7 @@ BEGIN
             --     s_count <= (OTHERS => '0');
             -- END IF;
 
+
             s_rst <= s_resetbtn;
             s_clearbtn <= NOT btn_clear;
 
@@ -243,8 +243,6 @@ BEGIN
                 led(6) <= s_dataerror;
                 led(7) <= s_tickerror;
             END IF;
-
-
         END IF;
     END PROCESS;
 

@@ -307,7 +307,7 @@ BEGIN
                 END IF;
         END CASE;
 
-        -- Blink light when receiving data.
+        -- Blink light when receivg data.
         v.gotdata := s_rxvalid AND r.rxread;
 
         CASE r.rx_state IS
