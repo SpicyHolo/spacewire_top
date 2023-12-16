@@ -47,9 +47,9 @@ USE work.spwpkg.ALL;
 
 ENTITY spacewire_top IS
     GENERIC (
-        countVal1 : INTEGER := 16666666;
-        countVal2 : INTEGER := 33333332;
-        countVal3 : INTEGER := 50000000
+        countVal1 : INTEGER := 16666;
+        countVal2 : INTEGER := 33333;
+        countVal3 : INTEGER := 50000
     );
     PORT (
         --Acclerometer ports
@@ -125,7 +125,12 @@ ARCHITECTURE spacewire_top_arch OF spacewire_top IS
     SIGNAL s_spwdo : STD_LOGIC;
     SIGNAL s_spwso : STD_LOGIC;
 
-    SIGNAL s_spwout : STD_LOGIC_VECTOR(7 DOWNTO 0);
+    --SIGNAL s_spwout : STD_LOGIC_VECTOR(7 DOWNTO 0);
+    SIGNAL s_spwout_x : STD_LOGIC_VECTOR(15 DOWNTO 0);
+    SIGNAL s_spwout_y : STD_LOGIC_VECTOR(15 DOWNTO 0);
+    SIGNAL s_spwout_z : STD_LOGIC_VECTOR(15 DOWNTO 0);
+    --Konrad made 47 downto 0
+	 SIGNAL s_data_to_spw_send : STD_LOGIC_VECTOR(7 DOWNTO 0);
 
 BEGIN
     -- Accelerometer instance
@@ -154,9 +159,11 @@ BEGIN
             LCD_RW => LCD_RW,
             LCD_DATA => LCD_DATA,
             -- LCD Register control
-            data_x => sensor_data_x,
-            data_y => sensor_data_y,
-            data_z => sensor_data_z
+            data_x => sensor_data_x,--s_spwout_x, --Konrad's s_spwout(15 downto 0)
+            data_y => sensor_data_y,--s_spwout_y, --accordingly
+            data_z => sensor_data_z--s_spwout_z
+            --tutaj dac s_spwout i bedzie sygnal przepuszczony przez SpW
+            -- dac sensor_data_z i sygnal bezposrednio z accel do lcd
         );
 
     -- Streamtest instance
@@ -194,8 +201,14 @@ BEGIN
             spw_do => s_spwdo,
             spw_so => s_spwso,
 
-            data_in => sensor_data(7 DOWNTO 0),
-            data_out => s_spwout
+            --data_in => "01010101",--sensor_data(7 DOWNTO 0),
+            data_in => s_data_to_spw_send,
+
+            data_out_x => s_spwout_x,
+            data_out_y => s_spwout_y,
+            data_out_z => s_spwout_z
+
+            --data_out => s_spwout
         );
 
     -- Connect inputs/outputs to internal signals
@@ -204,6 +217,8 @@ BEGIN
     s_spwsi <= spw_si;
     spw_do <= s_spwdo;
     spw_so <= s_spwso;
+    s_clearbtn <= NOT btn_clear;
+    s_resetbtn <= NOT btn_reset;
 
     PROCESS (sysclk) IS
     BEGIN
@@ -212,24 +227,45 @@ BEGIN
             s_count <= STD_LOGIC_VECTOR(unsigned(s_count) + 1);
             IF (unsigned(s_count) = CountVal1) THEN
                 s_sel_axis <= 0;
-                sensor_data_x <= sensor_data;
-            ELSIF (unsigned(s_count) = CountVal2) THEN
+                sensor_data_x <= sensor_data; --do not delete, there is an ease way to switch between lcd through spw or direct from accel
+					 s_data_to_spw_send <= sensor_data(15 downto 8);
+				-- ELSIF (unsigned(s_count) = (CountVal1 + 1)) THEN
+                -- s_sel_axis <= 0;
+                -- sensor_data_x <= sensor_data;
+				-- 	 s_data_to_spw_send <= sensor_data(7 downto 0);
+					 
+					 
+				ELSIF (unsigned(s_count) = CountVal2) THEN
                 s_sel_axis <= 1;
-                sensor_data_y <= sensor_data;
+                sensor_data_y <= sensor_data; --do not delete, there is an ease way to switch between lcd through spw or direct from accel
+					 s_data_to_spw_send <= sensor_data(15 downto 8);
+				-- ELSIF (unsigned(s_count) = (CountVal2 + 1)) THEN
+                -- s_sel_axis <= 1;
+                -- sensor_data_y <= sensor_data;
+				-- 	 s_data_to_spw_send <= sensor_data(7 downto 0);
+					 
+					 
             ELSIF (unsigned(s_count) = CountVal3) THEN
                 s_sel_axis <= 2;
                 sensor_data_z <= sensor_data;
-                s_count <= (OTHERS => '0');
+					 s_data_to_spw_send <= sensor_data(15 downto 8);
+            -- ELSIF (unsigned(s_count) = CountVal3 + 1) THEN
+            --     s_sel_axis <= 2;
+            --     sensor_data_z <= sensor_data;
+			-- 		 s_data_to_spw_send <= sensor_data(7 downto 0);
+            --     s_count <= (OTHERS => '0');
+					 
+					 
             END IF;
             s_rst <= s_resetbtn;
-            s_clearbtn <= NOT btn_clear;
+            
 
             -- Synchronize switch settings
             s_autostart <= '0';
             s_linkstart <= switch(0);
             s_linkdisable <= switch(1);
             s_senddata <= switch(2);
-            s_txdivcnt(7 DOWNTO 0) <= "00000000";
+            s_txdivcnt(7 DOWNTO 0) <= "00000100";
 
             -- Sticky link error LED
             s_linkerrorled <= (s_linkerrorled OR s_linkerror) AND
@@ -237,7 +273,7 @@ BEGIN
                 (NOT s_resetbtn);
             -- Changing information to display on LEDs
             IF switch(3) = '1' THEN
-                led <= s_spwout;
+                --led <= s_spwout;
             ELSE
                 -- Drive LEDs (inverted logic)
                 led(0) <= s_linkstarted;
