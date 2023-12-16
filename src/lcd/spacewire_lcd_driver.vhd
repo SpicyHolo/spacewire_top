@@ -140,6 +140,12 @@ ARCHITECTURE hardware OF spacewire_lcd_driver IS
 
 	SIGNAL message : message4x20_type;
 
+	SIGNAL data_x_abs: STD_LOGIC_VECTOR(15 downto 0);
+	SIGNAL data_y_abs: STD_LOGIC_VECTOR(15 downto 0);
+	SIGNAL data_z_abs: STD_LOGIC_VECTOR(15 downto 0);
+	SIGNAL data_x_sign: STD_LOGIC;
+	SIGNAL data_y_sign: STD_LOGIC;
+	SIGNAL data_z_sign: STD_LOGIC;
 	-- Counts the characters on a line.
 	SIGNAL character_counter : INTEGER RANGE 1 TO 20;
 
@@ -167,6 +173,8 @@ BEGIN
 	drive : PROCESS (clk, areset) IS
 		VARIABLE aline : string20_type;
 		VARIABLE temp : string20_type;
+		VARIABLE temp_data_vec : STD_LOGIC_VECTOR(15 downto 0);
+		VARIABLE temp_bcd_vec : STD_LOGIC_VECTOR(19 downto 0);
 		VARIABLE char : STD_LOGIC_VECTOR(7 DOWNTO 0);
 	BEGIN
 
@@ -179,10 +187,6 @@ BEGIN
 				message(3) <= "                    ";
 				message(4) <= "                    ";
 				state <= reset;
-			-- Convert input data, set the second LCD message to its value (on button press)
-			-- If not, go back to Initial text
-			ELSE
-				message(1) <= "Empty               ";
 			END IF;
 			wr <= '0';
 			init <= '0';
@@ -196,6 +200,16 @@ BEGIN
 				WHEN reset => -- Initial state
 					-- Wait for the LCD module ready
 					IF busy = '0' THEN
+						
+						IF data_x(9) = '0' THEN
+							data_x_sign <= '0';
+							data_x_abs <= data_x;
+						ELSE
+							data_x_sign <= '1';
+							temp_data_vec := NOT data_x;
+							data_x_abs <= STD_LOGIC_VECTOR(unsigned(temp_data_vec) + 1);
+						END IF;
+
 						state <= write_char;
 						-- Setup message counter, start at 1.
 						character_counter <= 1;
@@ -206,8 +220,15 @@ BEGIN
 					CASE line_counter IS
 						WHEN 1 => char := title_row(character_counter);
 						WHEN 2 => 
-							IF character_counter <= 16 THEN
-								CASE data_x(16 - character_counter) IS
+							IF character_counter = 1 THEN
+								CASE data_x_sign IS
+									WHEN '0' =>
+										char := X"2b";
+									WHEN '1' =>
+										char := X"2d";
+								END CASE;
+							ELSIF character_counter > 1 AND character_counter <= 17 THEN
+								CASE data_x_abs(17 - character_counter) IS
 									WHEN '0' =>
 										char := X"30";
 									WHEN '1' =>
