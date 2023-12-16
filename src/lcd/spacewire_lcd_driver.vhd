@@ -147,7 +147,9 @@ ARCHITECTURE hardware OF spacewire_lcd_driver IS
 	SIGNAL data_y_sign: STD_LOGIC;
 	SIGNAL data_z_sign: STD_LOGIC;
 
-	SIGNAL bcd_display_data : STD_LOGIC_VECTOR(19 downto 0);
+	SIGNAL bcd_display_x : STD_LOGIC_VECTOR(19 downto 0);
+	SIGNAL bcd_display_y : STD_LOGIC_VECTOR(19 downto 0);
+	SIGNAL bcd_display_z : STD_LOGIC_VECTOR(19 downto 0);
 	-- Counts the characters on a line.
 	SIGNAL character_counter : INTEGER RANGE 1 TO 20;
 
@@ -203,7 +205,9 @@ BEGIN
 				WHEN reset => -- Initial state
 					-- Wait for the LCD module ready
 					IF busy = '0' THEN
-						
+					--
+					--	X axis  -  I should be better than this
+					--
 						IF data_x(9) = '0' THEN
 							data_x_sign <= '0';
 							temp_data_vec := data_x;
@@ -214,7 +218,6 @@ BEGIN
 							temp_data_vec := STD_LOGIC_VECTOR(unsigned(temp_data_vec) + 1);
 							data_x_abs <= temp_data_vec;
 						END IF;
-
 						bcd := (others => '0');		 	
 						for i in 0 to 15 loop					--Iterate once for each bit in input number
 							if unsigned(bcd(3 downto 0)) >= 5 then
@@ -232,85 +235,194 @@ BEGIN
 							if unsigned(bcd(19 downto 16)) >= 5 then
 								bcd(19 downto 16) := STD_LOGIC_VECTOR(unsigned(bcd(19 downto 16)) + 3);	
 							end if;
-
 							bcd := bcd(18 downto 0) & temp_data_vec(15-i);				--Shift one bit, and shift in proper bit from input 
 						end loop;
-						bcd_display_data <= bcd;
-						state <= write_char;
-						-- Setup message counter, start at 1.
-						character_counter <= 1;
-						line_counter <= 1;
+						bcd_display_x <= bcd;
+						-- -- -- --
+						IF data_y(9) = '0' THEN
+							data_y_sign <= '0';
+							temp_data_vec := data_y;
+							data_y_abs <= temp_data_vec;
+						ELSE
+							data_y_sign <= '1';
+							temp_data_vec := NOT data_y;
+							temp_data_vec := STD_LOGIC_VECTOR(unsigned(temp_data_vec) + 1);
+							data_y_abs <= temp_data_vec;
+						END IF;
+						bcd := (others => '0');		 	
+						for i in 0 to 15 loop					--Iterate once for each bit in input number
+							if unsigned(bcd(3 downto 0)) >= 5 then
+								bcd(3 downto 0) := STD_LOGIC_VECTOR(unsigned(bcd(3 downto 0)) + 3);	
+							end if;	--If any BCD digit is >= 5, add three
+							if unsigned(bcd(7 downto 4)) >= 5 then
+								bcd(7 downto 4) := STD_LOGIC_VECTOR(unsigned(bcd(7 downto 4)) + 3);	
+							end if;
+							if unsigned(bcd(11 downto 8)) >= 5 then
+								bcd(11 downto 8) := STD_LOGIC_VECTOR(unsigned(bcd(11 downto 8)) + 3);	
+							end if;
+							if unsigned(bcd(15 downto 12)) >= 5 then
+								bcd(15 downto 12) := STD_LOGIC_VECTOR(unsigned(bcd(15 downto 12)) + 3);	
+							end if;
+							if unsigned(bcd(19 downto 16)) >= 5 then
+								bcd(19 downto 16) := STD_LOGIC_VECTOR(unsigned(bcd(19 downto 16)) + 3);	
+							end if;
+							bcd := bcd(18 downto 0) & temp_data_vec(15-i);				--Shift one bit, and shift in proper bit from input 
+						end loop;
+						bcd_display_y <= bcd;
+						-- -- -- --
+						IF data_z(9) = '0' THEN
+						data_z_sign <= '0';
+						temp_data_vec := data_z;
+						data_z_abs <= temp_data_vec;
+					ELSE
+						data_z_sign <= '1';
+						temp_data_vec := NOT data_z;
+						temp_data_vec := STD_LOGIC_VECTOR(unsigned(temp_data_vec) + 1);
+						data_z_abs <= temp_data_vec;
 					END IF;
+					bcd := (others => '0');		 	
+					for i in 0 to 15 loop					--Iterate once for each bit in input number
+						if unsigned(bcd(3 downto 0)) >= 5 then
+							bcd(3 downto 0) := STD_LOGIC_VECTOR(unsigned(bcd(3 downto 0)) + 3);	
+						end if;	--If any BCD digit is >= 5, add three
+						if unsigned(bcd(7 downto 4)) >= 5 then
+							bcd(7 downto 4) := STD_LOGIC_VECTOR(unsigned(bcd(7 downto 4)) + 3);	
+						end if;
+						if unsigned(bcd(11 downto 8)) >= 5 then
+							bcd(11 downto 8) := STD_LOGIC_VECTOR(unsigned(bcd(11 downto 8)) + 3);	
+						end if;
+						if unsigned(bcd(15 downto 12)) >= 5 then
+							bcd(15 downto 12) := STD_LOGIC_VECTOR(unsigned(bcd(15 downto 12)) + 3);	
+						end if;
+						if unsigned(bcd(19 downto 16)) >= 5 then
+							bcd(19 downto 16) := STD_LOGIC_VECTOR(unsigned(bcd(19 downto 16)) + 3);	
+						end if;
+						bcd := bcd(18 downto 0) & temp_data_vec(15-i);				--Shift one bit, and shift in proper bit from input 
+					end loop;
+					bcd_display_z <= bcd;
+					--
+					-- Ended BCD
+					--
+					state <= write_char;
+					-- Setup message counter, start at 1.
+					character_counter <= 1;
+					line_counter <= 1;
+				END IF;
 
-				WHEN write_char =>
-					CASE line_counter IS
-						WHEN 1 => char := title_row(character_counter);
-						WHEN 2 => 
-							IF character_counter = 1 THEN
-								CASE data_x_sign IS
-									WHEN '0' =>
-										char := X"2b";
-									WHEN '1' =>
-										char := X"2d";
-								END CASE;
-							ELSIF character_counter > 1 AND character_counter <= 17 THEN
-								CASE data_x_abs(17 - character_counter) IS
-									WHEN '0' =>
-										char := X"30";
-									WHEN '1' =>
-										char := X"31";
-								END CASE;
-							ELSE
-								char := X"20";
-							END IF;
-						WHEN 3 => 
-							IF character_counter = 1 THEN
-								CASE data_x_sign IS
-									WHEN '0' =>
-										char := X"2b";
-									WHEN '1' =>
-										char := X"2d";
-								END CASE;
-							ELSIF character_counter > 1 AND character_counter <= 6 THEN
-								bcd_block := (6 - character_counter) * 4;
-								CASE bcd_display_data((bcd_block + 3) downto bcd_block) IS
-									WHEN "0000" =>
-										char := X"30";
-									WHEN "0001" =>
-										char := X"31";
-									WHEN "0010" =>
-										char := X"32";
-									WHEN "0011" =>
-										char := X"33";
-									WHEN "0100" =>
-										char := X"34";
-									WHEN "0101" =>
-										char := X"35";
-									WHEN "0110" =>
-										char := X"36";
-									WHEN "0111" =>
-										char := X"37";
-									WHEN "1000" =>
-										char := X"38";
-									WHEN "1001" =>
-										char := X"39";
-									WHEN OTHERS =>
-										char := X"20";
-								END CASE;
-							ELSE
-								char := X"20";
-							END IF;
-						WHEN 4 => 
-							IF character_counter <= 16 THEN
-								CASE data_z(16 - character_counter) IS
-									WHEN '0' =>
-										char := X"30";
-									WHEN '1' =>
-										char := X"31";
-								END CASE;
-							ELSE
-								char := X"20";
-							END IF;							
+			WHEN write_char =>
+				CASE line_counter IS
+					WHEN 1 => char := title_row(character_counter);
+					WHEN 2 => 
+						IF character_counter = 1 THEN
+							CASE data_x_sign IS
+								WHEN '0' =>
+									char := X"2b";
+								WHEN '1' =>
+									char := X"2d";
+							END CASE;
+						ELSIF character_counter > 1 AND character_counter <= 6 THEN
+							bcd_block := (6 - character_counter) * 4;
+							CASE bcd_display_x((bcd_block + 3) downto bcd_block) IS
+								WHEN "0000" =>
+									char := X"30";
+								WHEN "0001" =>
+									char := X"31";
+								WHEN "0010" =>
+									char := X"32";
+								WHEN "0011" =>
+									char := X"33";
+								WHEN "0100" =>
+									char := X"34";
+								WHEN "0101" =>
+									char := X"35";
+								WHEN "0110" =>
+									char := X"36";
+								WHEN "0111" =>
+									char := X"37";
+								WHEN "1000" =>
+									char := X"38";
+								WHEN "1001" =>
+									char := X"39";
+								WHEN OTHERS =>
+									char := X"20";
+							END CASE;
+						ELSE
+							char := X"20";
+						END IF;
+					WHEN 3 => 
+						IF character_counter = 1 THEN
+							CASE data_y_sign IS
+								WHEN '0' =>
+									char := X"2b";
+								WHEN '1' =>
+									char := X"2d";
+							END CASE;
+						ELSIF character_counter > 1 AND character_counter <= 6 THEN
+							bcd_block := (6 - character_counter) * 4;
+							CASE bcd_display_y((bcd_block + 3) downto bcd_block) IS
+								WHEN "0000" =>
+									char := X"30";
+								WHEN "0001" =>
+									char := X"31";
+								WHEN "0010" =>
+									char := X"32";
+								WHEN "0011" =>
+									char := X"33";
+								WHEN "0100" =>
+									char := X"34";
+								WHEN "0101" =>
+									char := X"35";
+								WHEN "0110" =>
+									char := X"36";
+								WHEN "0111" =>
+									char := X"37";
+								WHEN "1000" =>
+									char := X"38";
+								WHEN "1001" =>
+									char := X"39";
+								WHEN OTHERS =>
+									char := X"20";
+							END CASE;
+						ELSE
+							char := X"20";
+						END IF;
+					WHEN 4 => 
+						IF character_counter = 1 THEN
+							CASE data_z_sign IS
+								WHEN '0' =>
+									char := X"2b";
+								WHEN '1' =>
+									char := X"2d";
+							END CASE;
+						ELSIF character_counter > 1 AND character_counter <= 6 THEN
+							bcd_block := (6 - character_counter) * 4;
+							CASE bcd_display_z((bcd_block + 3) downto bcd_block) IS
+								WHEN "0000" =>
+									char := X"30";
+								WHEN "0001" =>
+									char := X"31";
+								WHEN "0010" =>
+									char := X"32";
+								WHEN "0011" =>
+									char := X"33";
+								WHEN "0100" =>
+									char := X"34";
+								WHEN "0101" =>
+									char := X"35";
+								WHEN "0110" =>
+									char := X"36";
+								WHEN "0111" =>
+									char := X"37";
+								WHEN "1000" =>
+									char := X"38";
+								WHEN "1001" =>
+									char := X"39";
+								WHEN OTHERS =>
+									char := X"20";
+							END CASE;
+						ELSE
+							char := X"20";
+						END IF;						
 					END CASE;
 					data <= char;
 					wr <= '1';
