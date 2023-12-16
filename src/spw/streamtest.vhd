@@ -111,11 +111,7 @@ ENTITY streamtest IS
         
         -- Interface to other blocks (data from accel, out to LCD)
         data_in : IN STD_LOGIC_VECTOR(7 DOWNTO 0);
-        data_out : OUT STD_LOGIC_VECTOR(7 DOWNTO 0));
-
-
-        
-        
+        data_out : OUT STD_LOGIC_VECTOR(47 DOWNTO 0));
 END ENTITY streamtest;
 
 ARCHITECTURE streamtest_arch OF streamtest IS
@@ -137,7 +133,26 @@ ARCHITECTURE streamtest_arch OF streamtest IS
     -- Receiving side state.
     TYPE rx_state_type IS (rxst_idle, rxst_data);
 
-    -- Registers.
+    -- Data latch
+    TYPE accel_data_type IS RECORD
+        x_upper: STD_LOGIC_VECTOR(7 DOWNTO 0);
+        x_lower: STD_LOGIC_VECTOR(7 DOWNTO 0);
+        y_upper: STD_LOGIC_VECTOR(7 DOWNTO 0);
+        y_lower: STD_LOGIC_VECTOR(7 DOWNTO 0);
+        z_upper: STD_LOGIC_VECTOR(7 DOWNTO 0);
+        z_lower: STD_LOGIC_VECTOR(7 DOWNTO 0);
+    END RECORD;
+
+    -- Reset state
+    CONSTANT accel_data_reset : accel_data_type := (
+        x_upper => (OTHERS => '0'),
+        x_lower => (OTHERS => '0'),
+        y_upper => (OTHERS => '0'),
+        y_lower => (OTHERS => '0'),
+        z_upper => (OTHERS => '0'),
+        z_lower => (OTHERS => '0'));
+
+    -- SpW registers
     TYPE regs_type IS RECORD
         tx_state : tx_state_type;
         tx_clk1hz : STD_LOGIC_VECTOR(32 DOWNTO 0);
@@ -196,8 +211,7 @@ ARCHITECTURE streamtest_arch OF streamtest IS
     SIGNAL s_erresc : STD_LOGIC;
     SIGNAL s_errcred : STD_LOGIC;
     
-    SIGNAL s_output_reg : STD_LOGIC_VECTOR(7 DOWNTO 0);
-
+    SIGNAL s_dout : accel_data_type := accel_data_reset;
 BEGIN
 
     -- spwstream instance
@@ -254,7 +268,7 @@ BEGIN
     dataerror <= r.dataerror;
     tickerror <= r.tickerror;
 
-    data_out <= s_output_reg; -- Output from spwout latch
+     -- Output from spwout latch
 
     PROCESS (r, rst, senddata, sendtick, s_txrdy, s_tickout, s_timeout, s_rxvalid, s_rxflag, s_rxdata, s_running) IS
         VARIABLE v : regs_type;
@@ -276,7 +290,7 @@ BEGIN
             WHEN txst_idle =>
                 -- generate packet length
                 v.tx_state := txst_prepare;
-                v.tx_pktlen := std_logic_vector(to_unsigned(2, 16));
+                v.tx_pktlen := std_logic_vector(to_unsigned(6, 16));
                 v.txwrite := '0';
             WHEN txst_prepare =>
                 -- generate first byte of packet
@@ -315,7 +329,7 @@ BEGIN
             WHEN rxst_idle =>
                 -- get expected packet length
                 v.rx_state := rxst_data;
-                v.rx_pktlen := std_logic_vector(to_unsigned(2, 16));
+                v.rx_pktlen := std_logic_vector(to_unsigned(6, 16));
             WHEN rxst_data =>
                 v.rxread := r.rx_enabledata;
                 IF r.rxread = '1' AND s_rxvalid = '1' THEN
@@ -330,6 +344,8 @@ BEGIN
                             IF unsigned(r.rx_pktlen) /= 0 THEN
                                 -- unexpected EOP
                                 v.rx_badpacket := '1';
+                            ELSE
+                                data_out <= s_dout.x_upper & s_dout.x_lower & s_dout.y_upper & s_dout.y_lower & s_dout.z_upper & s_dout.z_lower; -- Latch output from SpW only after gettin EOP
                             END IF;
                         ELSE
                             -- got EEP
@@ -341,8 +357,23 @@ BEGIN
                         IF unsigned(r.rx_pktlen) = 0 THEN
                             -- missing EOP
                             v.rx_badpacket := '1';
-                        ELSE -- got corfrect byte
-                            s_output_reg <= s_rxdata; -- set output latch
+                        ELSE -- got correct byte
+                            CASE (r.rx_pktlen) IS -- TODO check
+                                WHEN "0000000000000110" => --1
+                                    s_dout.x_upper <= s_rxdata;
+                                WHEN "0000000000000101" => --2
+                                    s_dout.x_lower <= s_rxdata;            
+                                WHEN "0000000000000100" => --3
+                                    s_dout.y_upper <= s_rxdata;
+                                WHEN "0000000000000011" => --4
+                                    s_dout.y_lower <= s_rxdata;          
+                                WHEN "0000000000000010" => --5
+                                    s_dout.z_upper <= s_rxdata;
+                                WHEN "0000000000000001" => --6
+                                    s_dout.z_lower <= s_rxdata;    
+                                WHEN OTHERS =>
+                                    NULL;              
+                            END CASE;  
                         END IF;
                     END IF;
                 END IF;
@@ -351,7 +382,7 @@ BEGIN
         -- Synchronous reset.
         IF rst = '1' THEN
             v := regs_reset;
-            s_output_reg <= (others => '0'); -- reset output latch
+            s_dout <= accel_data_reset; -- reset output latch
         END IF;
 
         -- Update registers.
