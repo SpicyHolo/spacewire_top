@@ -151,9 +151,9 @@ BEGIN
             LCD_RW => LCD_RW,
             LCD_DATA => LCD_DATA,
             -- LCD Register control
-            data_x => "00000000" & s_spwout,
-            data_y => "0101010101010101",
-            data_z => "1010101010101010"
+            data_x => sensor_data,
+            data_y => sensor_data,
+            data_z => sensor_data
         );
 
     -- Streamtest instance
