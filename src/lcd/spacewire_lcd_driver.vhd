@@ -178,7 +178,7 @@ BEGIN
 		VARIABLE temp_data_vec : STD_LOGIC_VECTOR(15 downto 0);
 		VARIABLE bcd : STD_LOGIC_VECTOR(19 downto 0);
 		VARIABLE char : STD_LOGIC_VECTOR(7 DOWNTO 0);
-		VARIABLE bcd_block : UNSIGNED;
+		VARIABLE bcd_block : INTEGER := 0;
 	BEGIN
 
 
@@ -211,7 +211,7 @@ BEGIN
 						ELSE
 							data_x_sign <= '1';
 							temp_data_vec := NOT data_x;
-							temp_data_vec <= STD_LOGIC_VECTOR(unsigned(temp_data_vec) + 1);
+							temp_data_vec := STD_LOGIC_VECTOR(unsigned(temp_data_vec) + 1);
 							data_x_abs <= temp_data_vec;
 						END IF;
 
