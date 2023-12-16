@@ -34,7 +34,9 @@ ENTITY spacewire_lcd_driver IS
 		LCD_DATA : INOUT STD_LOGIC_VECTOR(7 DOWNTO 0);
 
 		-- Data in
-		data_in : IN STD_LOGIC_VECTOR(15 DOWNTO 0)
+		data_x : IN STD_LOGIC_VECTOR(15 DOWNTO 0);
+		data_y : IN STD_LOGIC_VECTOR(15 DOWNTO 0);
+		data_z : IN STD_LOGIC_VECTOR(15 DOWNTO 0)
 	);
 
 END ENTITY spacewire_lcd_driver;
@@ -99,32 +101,17 @@ ARCHITECTURE hardware OF spacewire_lcd_driver IS
 			LCD_DB : INOUT STD_LOGIC_VECTOR(7 DOWNTO 0)
 		);
 	END COMPONENT lcd_driver_hd44780_module;
-
+	
 	-- The system's frequency
 	CONSTANT sys_freq : INTEGER := 50000000;
-
+ 
 	TYPE ROW_DATA IS ARRAY(1 to 20) OF STD_LOGIC_VECTOR(7 downto 0);
 	CONSTANT title_row : ROW_DATA := (
-		1 => X"44",
-		2 => X"61",
-		3 => X"74",
-		4 => X"61",
-		5 => X"3a",
-		6 => X"20",
-		7 => X"20",
-		8 => X"20",
-		9 => X"20",
-		10 => X"20",
-		11 => X"20",
-		12 => X"20",
-		13 => X"20",
-		14 => X"20",
-		15 => X"20",
-		16 => X"20",
-		17 => X"20",
-		18 => X"20",
-		19 => X"20",
-		20 => X"20"
+        1 => X"53", 2 => X"70", 3 => X"61", 4 => X"63",
+        5 => X"65", 6 => X"57", 7 => X"69", 8 => X"72",
+        9 => X"65", 10 => X"20", 11 => X"41", 12 => X"63",
+        13 => X"63", 14 => X"65", 15 => X"6C", 16 => X"20",
+        17 => X"20", 18 => X"20", 19 => X"20", 20 => X"20"
 	);
 
 	SIGNAL areset : STD_LOGIC;
@@ -177,7 +164,7 @@ BEGIN
 		home => home, goto10 => goto10, goto20 => goto20, goto30 => goto30, busy => busy,
 		LCD_E => LCD_EN, LCD_RS => LCD_RS, LCD_RW => LCD_RW, LCD_DB => LCD_DATA);
 
-	drive : PROCESS (clk, areset, data_in) IS
+	drive : PROCESS (clk, areset) IS
 		VARIABLE aline : string20_type;
 		VARIABLE temp : string20_type;
 		VARIABLE char : STD_LOGIC_VECTOR(7 DOWNTO 0);
@@ -218,9 +205,9 @@ BEGIN
 				WHEN write_char =>
 					CASE line_counter IS
 						WHEN 1 => char := title_row(character_counter);
-						WHEN OTHERS => 
+						WHEN 2 => 
 							IF character_counter <= 16 THEN
-								CASE data_in(16 - character_counter) IS
+								CASE data_x(16 - character_counter) IS
 									WHEN '0' =>
 										char := X"30";
 									WHEN '1' =>
@@ -229,6 +216,28 @@ BEGIN
 							ELSE
 								char := X"20";
 							END IF;
+						WHEN 3 => 
+							IF character_counter <= 16 THEN
+								CASE data_y(16 - character_counter) IS
+									WHEN '0' =>
+										char := X"30";
+									WHEN '1' =>
+										char := X"31";
+								END CASE;
+							ELSE
+								char := X"20";
+							END IF;
+						WHEN 4 => 
+							IF character_counter <= 16 THEN
+								CASE data_z(16 - character_counter) IS
+									WHEN '0' =>
+										char := X"30";
+									WHEN '1' =>
+										char := X"31";
+								END CASE;
+							ELSE
+								char := X"20";
+							END IF;							
 					END CASE;
 					data <= char;
 					wr <= '1';

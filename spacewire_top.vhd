@@ -139,21 +139,22 @@ BEGIN
         );
 
     -- LCD driver instance
-    lcd_inst : entity work.spacewire_lcd_driver
-    port map (
-      CLOCK_50        => sysclk, -- DE0 CLOCK_50 (50MHz CLK)
-		KEY             => btn_reset, -- DE0 KEY (button) [reset]
-        KEY2            => btn_clear,
-		--LED             => led,
-		-- External LCD ports
-		LCD_EN          => LCD_EN,
-		LCD_RS          => LCD_RS,
-		LCD_RW          => LCD_RW,
-		LCD_DATA        => LCD_DATA,
-		-- LCD Register control
-        data_in(15 DOWNTO 8) => (others => '0'),
-		data_in(7 DOWNTO 0) => s_spwout
-    );
+    lcd_inst : ENTITY work.spacewire_lcd_driver
+        PORT MAP(
+            CLOCK_50 => sysclk, -- DE0 CLOCK_50 (50MHz CLK)
+            KEY => btn_reset, -- DE0 KEY (button) [reset]
+            KEY2 => btn_clear,
+            --LED             => led,
+            -- External LCD ports
+            LCD_EN => LCD_EN,
+            LCD_RS => LCD_RS,
+            LCD_RW => LCD_RW,
+            LCD_DATA => LCD_DATA,
+            -- LCD Register control
+            data_x => "00000000" & s_spwout,
+            data_y => "0101010101010101",
+            data_z => "1010101010101010"
+        );
 
     -- Streamtest instance
     streamtest_inst : ENTITY work.streamtest
@@ -207,15 +208,13 @@ BEGIN
             s_sel_axis <= 0;
             s_count <= STD_LOGIC_VECTOR(unsigned(s_count) + 1);
             IF (unsigned(s_count) = CountVal1) THEN
-                 s_sel_axis <= 0;
+                s_sel_axis <= 0;
             ELSIF (unsigned(s_count) = CountVal2) THEN
-                 s_sel_axis <= 1;
+                s_sel_axis <= 1;
             ELSIF (unsigned(s_count) = CountVal3) THEN
-                 s_sel_axis <= 2;
-                 s_count <= (OTHERS => '0');
+                s_sel_axis <= 2;
+                s_count <= (OTHERS => '0');
             END IF;
-
-
             s_rst <= s_resetbtn;
             s_clearbtn <= NOT btn_clear;
 
@@ -230,13 +229,11 @@ BEGIN
             s_linkerrorled <= (s_linkerrorled OR s_linkerror) AND
                 (NOT s_clearbtn) AND
                 (NOT s_resetbtn);
-            
-            
             -- Changing information to display on LEDs
             IF switch(3) = '1' THEN
                 led <= s_spwout;
-            ELSE 
-               -- Drive LEDs (inverted logic)
+            ELSE
+                -- Drive LEDs (inverted logic)
                 led(0) <= s_linkstarted;
                 led(1) <= s_linkconnecting;
                 led(2) <= s_linkrun;
