@@ -83,7 +83,10 @@ ARCHITECTURE spacewire_top_arch OF spacewire_top IS
 
     --pure output of 12-bit ADC (0 padding in front?)
     --register map p.23: https://www.analog.com/media/en/technical-documentation/data-sheets/adxl345.pdf
-    SIGNAL sensor_data : STD_LOGIC_VECTOR(15 DOWNTO 0);
+    SIGNAL sensor_data   : STD_LOGIC_VECTOR(15 DOWNTO 0);
+    SIGNAL sensor_data_x : STD_LOGIC_VECTOR(15 DOWNTO 0);
+    SIGNAL sensor_data_y : STD_LOGIC_VECTOR(15 DOWNTO 0);
+    SIGNAL sensor_data_z : STD_LOGIC_VECTOR(15 DOWNTO 0);
     -- select accelerometer readout axis (1000 sysclk delay?)
     SIGNAL s_sel_axis : INTEGER RANGE 0 TO 2;
     SIGNAL s_count : STD_LOGIC_VECTOR(26 DOWNTO 0);
@@ -151,9 +154,9 @@ BEGIN
             LCD_RW => LCD_RW,
             LCD_DATA => LCD_DATA,
             -- LCD Register control
-            data_x => sensor_data,
-            data_y => sensor_data,
-            data_z => sensor_data
+            data_x => sensor_data_x,
+            data_y => sensor_data_y,
+            data_z => sensor_data_z
         );
 
     -- Streamtest instance
@@ -205,14 +208,17 @@ BEGIN
     PROCESS (sysclk) IS
     BEGIN
         IF rising_edge(sysclk) THEN
-            s_sel_axis <= 0;
+            
             s_count <= STD_LOGIC_VECTOR(unsigned(s_count) + 1);
             IF (unsigned(s_count) = CountVal1) THEN
                 s_sel_axis <= 0;
+                sensor_data_x <= sensor_data;
             ELSIF (unsigned(s_count) = CountVal2) THEN
                 s_sel_axis <= 1;
+                sensor_data_y <= sensor_data;
             ELSIF (unsigned(s_count) = CountVal3) THEN
                 s_sel_axis <= 2;
+                sensor_data_z <= sensor_data;
                 s_count <= (OTHERS => '0');
             END IF;
             s_rst <= s_resetbtn;
