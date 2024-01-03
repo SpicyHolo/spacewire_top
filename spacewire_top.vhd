@@ -47,9 +47,10 @@ USE work.spwpkg.ALL;
 
 ENTITY spacewire_top IS
     GENERIC (
-        countVal1 : INTEGER := 16666666;
-        countVal2 : INTEGER := 33333332;
-        countVal3 : INTEGER := 50000000
+        countVal1 : INTEGER := 50e6/4;
+        countVal2 : INTEGER := 50e6*2/4;
+        countVal3 : INTEGER := 50e6*3/4;
+        countVal4 : INTEGER := 50e6
     );
     PORT (
         --Acclerometer ports
@@ -84,9 +85,9 @@ ARCHITECTURE spacewire_top_arch OF spacewire_top IS
     --pure output of 12-bit ADC (0 padding in front?)
     --register map p.23: https://www.analog.com/media/en/technical-documentation/data-sheets/adxl345.pdf
     SIGNAL sensor_data   : STD_LOGIC_VECTOR(15 DOWNTO 0);
-    SIGNAL sensor_data_x : STD_LOGIC_VECTOR(15 DOWNTO 0);
-    SIGNAL sensor_data_y : STD_LOGIC_VECTOR(15 DOWNTO 0);
-    SIGNAL sensor_data_z : STD_LOGIC_VECTOR(15 DOWNTO 0);
+    SIGNAL LCD_x : STD_LOGIC_VECTOR(15 DOWNTO 0);
+    SIGNAL LCD_y : STD_LOGIC_VECTOR(15 DOWNTO 0);
+    SIGNAL LCD_z : STD_LOGIC_VECTOR(15 DOWNTO 0);
     -- select accelerometer readout axis (1000 sysclk delay?)
     SIGNAL s_sel_axis : INTEGER RANGE 0 TO 2;
     SIGNAL s_count : STD_LOGIC_VECTOR(26 DOWNTO 0);
@@ -129,6 +130,19 @@ ARCHITECTURE spacewire_top_arch OF spacewire_top IS
     SIGNAL s_spwout_y : STD_LOGIC_VECTOR(15 DOWNTO 0);
     SIGNAL s_spwout_z : STD_LOGIC_VECTOR(15 DOWNTO 0);
 
+    SIGNAL s_x : STD_LOGIC_VECTOR(15 DOWNTO 0);
+    SIGNAL s_y : STD_LOGIC_VECTOR(15 DOWNTO 0);
+    SIGNAL s_z : STD_LOGIC_VECTOR(15 DOWNTO 0);
+
+    SIGNAL s_to_send_x : STD_LOGIC_VECTOR(15 DOWNTO 0);
+    SIGNAL s_to_send_y : STD_LOGIC_VECTOR(15 DOWNTO 0);
+    SIGNAL s_to_send_z : STD_LOGIC_VECTOR(15 DOWNTO 0);
+
+    -- Accelerometer state machine
+    TYPE accel_state_type IS (accel_prepare, accel_read_x, accel_read_y, accel_read_z, accel_latch);
+
+    SIGNAL accel_state : accel_state_type := accel_prepare;
+
 BEGIN
     -- Accelerometer instance
     accelerometer_inst : ENTITY work.accelerometer
@@ -156,9 +170,9 @@ BEGIN
             LCD_RW => LCD_RW,
             LCD_DATA => LCD_DATA,
             -- LCD Register control
-            data_x => sensor_data_x,
-            data_y => sensor_data_y,
-            data_z => sensor_data_z
+            data_x => LCD_x,
+            data_y => LCD_y,
+            data_z => LCD_z
         );
 
     -- Streamtest instance
@@ -196,9 +210,10 @@ BEGIN
             spw_do => s_spwdo,
             spw_so => s_spwso,
 
-            data_in_x => "0000000000000000", --sensor_data(7 DOWNTO 0),
-            data_in_y => "0000000000000000",
-            data_in_z => "0000000000000000",
+            data_in_x => s_to_send_x,
+            data_in_y => s_to_send_y,
+            data_in_z => s_to_send_z,
+
             data_out_x => s_spwout_x,
             data_out_y => s_spwout_y,
             data_out_z => s_spwout_z
@@ -215,23 +230,49 @@ BEGIN
     BEGIN
         IF rising_edge(sysclk) THEN
         
-            s_sel_axis <= 0;
-            sensor_data_x <= s_spwout_x;
-            sensor_data_y <= s_spwout_y;
-            sensor_data_z <= s_spwout_z;
+            -- Writing data received from SpW to output to LCD display
+            -- To chyba mozna wywalic i bezposrednio polaczyc sygnal s_spwout do LCD
+            LCD_x <= s_spwout_x;
+            LCD_y <= s_spwout_y;
+            LCD_z <= s_spwout_z;
 
-            -- s_count <= STD_LOGIC_VECTOR(unsigned(s_count) + 1);
-            -- IF (unsigned(s_count) = CountVal1) THEN
-            --     s_sel_axis <= 0;
-            --     data_in_x <= sensor_data;
-            -- ELSIF (unsigned(s_count) = CountVal2) THEN
-            --     s_sel_axis <= 1;
-            --     data_in_y <= sensor_data;
-            -- ELSIF (unsigned(s_count) = CountVal3) THEN
-            --     s_sel_axis <= 2;
-            --     data_in_z <= sensor_data;
-            --     s_count <= (OTHERS => '0');
-            -- END IF;
+            -- Choosing periodically axis of accelerometer
+
+            CASE accel_state IS
+                WHEN accel_prepare =>
+                    s_sel_axis <= 0;
+                    accel_state <= accel_read_x;
+                WHEN accel_read_x =>
+                    s_count <= STD_LOGIC_VECTOR(unsigned(s_count) + 1);
+                    IF (unsigned(s_count) >= CountVal1) THEN
+                        s_count <= (OTHERS => '0');
+                        s_x <= sensor_data;
+                        s_sel_axis <= 1;
+                        accel_state <= accel_read_y;
+                    END IF;
+                WHEN accel_read_y =>
+                    s_count <= STD_LOGIC_VECTOR(unsigned(s_count) + 1);
+                    IF (unsigned(s_count) >= CountVal1) THEN
+                        s_count <= (OTHERS => '0');
+                        s_y <= sensor_data;
+                        s_sel_axis <= 2;
+                        accel_state <= accel_read_z;
+                    END IF;
+                WHEN accel_read_z =>
+                    s_count <= STD_LOGIC_VECTOR(unsigned(s_count) + 1);
+                    IF (unsigned(s_count) >= CountVal1) THEN
+                        s_count <= (OTHERS => '0');
+                        s_z <= sensor_data;
+                        s_sel_axis <= 0;
+                        accel_state <= accel_latch;
+                    END IF;
+                WHEN accel_latch =>
+                    -- Latching signals for sending via SpaceWire
+                    s_to_send_x <= s_x;
+                    s_to_send_y <= s_y;
+                    s_to_send_z <= s_z;
+                    accel_state <= accel_prepare;
+            END CASE;
 
             s_rst <= s_resetbtn;
             s_clearbtn <= NOT btn_clear;

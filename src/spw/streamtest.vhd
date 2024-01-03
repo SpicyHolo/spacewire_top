@@ -136,6 +136,19 @@ ARCHITECTURE streamtest_arch OF streamtest IS
     --     RETURN y;
     -- END FUNCTION;
 
+    -- Accelerometer data register.
+    TYPE accel_data IS RECORD
+        x : STD_LOGIC_VECTOR(15 DOWNTO 0);
+        y : STD_LOGIC_VECTOR(15 DOWNTO 0);
+        z : STD_LOGIC_VECTOR(15 DOWNTO 0);
+    END RECORD;
+
+    -- Reset state.
+    CONSTANT accel_data_rst : accel_data := (
+        x => (OTHERS => '0'),
+        y => (OTHERS => '0'),
+        z => (OTHERS => '0'));
+
     -- Sending side state.
     TYPE tx_state_type IS (txst_idle, txst_prepare, txst_data);
 
@@ -201,6 +214,7 @@ ARCHITECTURE streamtest_arch OF streamtest IS
     SIGNAL s_erresc : STD_LOGIC;
     SIGNAL s_errcred : STD_LOGIC;
     
+    SIGNAL s_data_in : accel_data := accel_data_rst;
     SIGNAL s_output_x_reg_lo : STD_LOGIC_VECTOR(7 DOWNTO 0);
     SIGNAL s_output_x_reg_hi : STD_LOGIC_VECTOR(7 DOWNTO 0);
     SIGNAL s_output_y_reg_lo : STD_LOGIC_VECTOR(7 DOWNTO 0);
@@ -264,8 +278,6 @@ BEGIN
     dataerror <= r.dataerror;
     tickerror <= r.tickerror;
 
-    
-
     PROCESS (r, rst, senddata, sendtick, s_txrdy, s_tickout, s_timeout, s_rxvalid, s_rxflag, s_rxdata, s_running) IS
         VARIABLE v : regs_type;
     BEGIN
@@ -292,12 +304,18 @@ BEGIN
                 v.tx_state := txst_prepare;
                 v.tx_pktlen := std_logic_vector(to_unsigned(6, 16));
                 v.txwrite := '0';
+
+                -- Latch data to send
+                s_data_in.x <= data_in_x;
+                s_data_in.y <= data_in_y;
+                s_data_in.z <= data_in_z;
+
             WHEN txst_prepare =>
                 -- generate first byte of packet
                 v.tx_state := txst_data;
                 v.txwrite := r.tx_enabledata;
                 v.txflag := '0';
-                v.txdata := data_in_x(15 DOWNTO 8);
+                v.txdata := s_data_in.x(15 DOWNTO 8);
             WHEN txst_data =>
                 -- generate data bytes and EOP
                 v.txwrite := r.tx_enabledata;
@@ -318,15 +336,15 @@ BEGIN
                         v.txwrite := r.tx_enabledata;
                         v.txflag := '0';
                         IF unsigned(r.tx_pktlen) = 6 THEN
-                            v.txdata := data_in_x(7 DOWNTO 0);
+                            v.txdata := s_data_in.x(7 DOWNTO 0);
                         ELSIF unsigned(r.tx_pktlen) = 5 THEN
-                            v.txdata := data_in_y(15 DOWNTO 8);
+                            v.txdata := s_data_in.y(15 DOWNTO 8);
                         ELSIF unsigned(r.tx_pktlen) = 4 THEN
-                            v.txdata := data_in_y(7 DOWNTO 0);
+                            v.txdata := s_data_in.y(7 DOWNTO 0);
                         ELSIF unsigned(r.tx_pktlen) = 3 THEN
-                            v.txdata := data_in_z(15 DOWNTO 8);
+                            v.txdata := s_data_in.z(15 DOWNTO 8);
                         ELSIF unsigned(r.tx_pktlen) = 2 THEN
-                            v.txdata := data_in_z(7 DOWNTO 0);
+                            v.txdata := s_data_in.z(7 DOWNTO 0);
                         END IF;
                     END IF;
                 END IF;
