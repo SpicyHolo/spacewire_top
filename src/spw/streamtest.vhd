@@ -110,8 +110,13 @@ ENTITY streamtest IS
         spw_so : OUT STD_LOGIC;
         
         -- Interface to other blocks (data from accel, out to LCD)
-        data_in : IN STD_LOGIC_VECTOR(7 DOWNTO 0);
-        data_out : OUT STD_LOGIC_VECTOR(7 DOWNTO 0));
+        data_in_x : IN STD_LOGIC_VECTOR(15 DOWNTO 0);
+        data_in_y : IN STD_LOGIC_VECTOR(15 DOWNTO 0);
+        data_in_z : IN STD_LOGIC_VECTOR(15 DOWNTO 0);
+
+        data_out_x : OUT STD_LOGIC_VECTOR(15 DOWNTO 0);
+        data_out_y : OUT STD_LOGIC_VECTOR(15 DOWNTO 0);
+        data_out_z : OUT STD_LOGIC_VECTOR(15 DOWNTO 0));
 
 
         
@@ -196,7 +201,12 @@ ARCHITECTURE streamtest_arch OF streamtest IS
     SIGNAL s_erresc : STD_LOGIC;
     SIGNAL s_errcred : STD_LOGIC;
     
-    SIGNAL s_output_reg : STD_LOGIC_VECTOR(7 DOWNTO 0);
+    SIGNAL s_output_x_reg_lo : STD_LOGIC_VECTOR(7 DOWNTO 0);
+    SIGNAL s_output_x_reg_hi : STD_LOGIC_VECTOR(7 DOWNTO 0);
+    SIGNAL s_output_y_reg_lo : STD_LOGIC_VECTOR(7 DOWNTO 0);
+    SIGNAL s_output_y_reg_hi : STD_LOGIC_VECTOR(7 DOWNTO 0);
+    SIGNAL s_output_z_reg_lo : STD_LOGIC_VECTOR(7 DOWNTO 0);
+    SIGNAL s_output_z_reg_hi : STD_LOGIC_VECTOR(7 DOWNTO 0);
 
 BEGIN
 
@@ -254,7 +264,7 @@ BEGIN
     dataerror <= r.dataerror;
     tickerror <= r.tickerror;
 
-    data_out <= s_output_reg; -- Output from spwout latch
+    
 
     PROCESS (r, rst, senddata, sendtick, s_txrdy, s_tickout, s_timeout, s_rxvalid, s_rxflag, s_rxdata, s_running) IS
         VARIABLE v : regs_type;
@@ -280,14 +290,14 @@ BEGIN
             WHEN txst_idle =>
                 -- generate packet length
                 v.tx_state := txst_prepare;
-                v.tx_pktlen := std_logic_vector(to_unsigned(1, 16));
+                v.tx_pktlen := std_logic_vector(to_unsigned(6, 16));
                 v.txwrite := '0';
             WHEN txst_prepare =>
                 -- generate first byte of packet
                 v.tx_state := txst_data;
                 v.txwrite := r.tx_enabledata;
                 v.txflag := '0';
-                v.txdata := data_in;
+                v.txdata := data_in_x(15 DOWNTO 8);
             WHEN txst_data =>
                 -- generate data bytes and EOP
                 v.txwrite := r.tx_enabledata;
@@ -307,7 +317,17 @@ BEGIN
                         -- generate next data byte
                         v.txwrite := r.tx_enabledata;
                         v.txflag := '0';
-                        v.txdata := data_in;
+                        IF unsigned(r.tx_pktlen) = 6 THEN
+                            v.txdata := data_in_x(7 DOWNTO 0);
+                        ELSIF unsigned(r.tx_pktlen) = 5 THEN
+                            v.txdata := data_in_y(15 DOWNTO 8);
+                        ELSIF unsigned(r.tx_pktlen) = 4 THEN
+                            v.txdata := data_in_y(7 DOWNTO 0);
+                        ELSIF unsigned(r.tx_pktlen) = 3 THEN
+                            v.txdata := data_in_z(15 DOWNTO 8);
+                        ELSIF unsigned(r.tx_pktlen) = 2 THEN
+                            v.txdata := data_in_z(7 DOWNTO 0);
+                        END IF;
                     END IF;
                 END IF;
         END CASE;
@@ -319,7 +339,7 @@ BEGIN
             WHEN rxst_idle =>
                 -- get expected packet length
                 v.rx_state := rxst_data;
-                v.rx_pktlen := std_logic_vector(to_unsigned(1, 16));
+                v.rx_pktlen := std_logic_vector(to_unsigned(6, 16));
             WHEN rxst_data =>
                 v.rxread := r.rx_enabledata;
                 IF r.rxread = '1' AND s_rxvalid = '1' THEN
@@ -334,6 +354,10 @@ BEGIN
                             IF unsigned(r.rx_pktlen) /= 0 THEN
                                 -- unexpected EOP
                                 v.rx_badpacket := '1';
+                            ELSE
+                                data_out_x <= s_output_x_reg_hi & s_output_x_reg_lo; -- Output from spwout latch
+                                data_out_y <= s_output_y_reg_hi & s_output_y_reg_lo;
+                                data_out_z <= s_output_z_reg_hi & s_output_z_reg_lo;
                             END IF;
                         ELSE
                             -- got EEP
@@ -342,11 +366,21 @@ BEGIN
                         v.rx_badpacket := '0';
                     ELSE
                         -- got next byte
-                        IF unsigned(r.rx_pktlen) = 0 THEN
+                        IF unsigned(r.rx_pktlen) = 6 THEN
+                            s_output_x_reg_hi <= s_rxdata;
+                        ELSIF unsigned(r.rx_pktlen) = 5 THEN
+                            s_output_x_reg_lo <= s_rxdata;
+                        ELSIF unsigned(r.rx_pktlen) = 4 THEN
+                            s_output_y_reg_hi <= s_rxdata;
+                        ELSIF unsigned(r.rx_pktlen) = 3 THEN
+                            s_output_y_reg_lo <= s_rxdata;
+                        ELSIF unsigned(r.rx_pktlen) = 2 THEN
+                            s_output_z_reg_hi <= s_rxdata;
+                        ELSIF unsigned(r.rx_pktlen) = 1 THEN
+                            s_output_z_reg_lo <= s_rxdata;
+                        ELSIF unsigned(r.rx_pktlen) = 0 THEN
                             -- missing EOP
                             v.rx_badpacket := '1';
-                        ELSE -- got corfrect byte
-                            s_output_reg <= s_rxdata; -- set output latch
                         END IF;
                     END IF;
                 END IF;
@@ -355,7 +389,16 @@ BEGIN
         -- Synchronous reset.
         IF rst = '1' THEN
             v := regs_reset;
-            s_output_reg <= (others => '0'); -- reset output latch
+            s_output_x_reg_hi <= (others => '0'); -- reset output latch
+            s_output_x_reg_lo <= (others => '0'); -- reset output latch
+            s_output_y_reg_hi <= (others => '0'); -- reset output latch
+            s_output_y_reg_lo <= (others => '0'); -- reset output latch
+            s_output_z_reg_hi <= (others => '0'); -- reset output latch
+            s_output_z_reg_lo <= (others => '0'); -- reset output latch
+
+            data_out_x <= (others => '0');
+            data_out_y <= (others => '0');
+            data_out_z <= (others => '0');
         END IF;
 
         -- Update registers.
