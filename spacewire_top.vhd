@@ -194,7 +194,7 @@ BEGIN
             spw_do => s_spwdo,
             spw_so => s_spwso,
 
-            data_in => sensor_data(7 DOWNTO 0),
+            data_in => "00000001", --sensor_data(7 DOWNTO 0),
             data_out => s_spwout
         );
 
@@ -209,18 +209,22 @@ BEGIN
     BEGIN
         IF rising_edge(sysclk) THEN
             
-            s_count <= STD_LOGIC_VECTOR(unsigned(s_count) + 1);
-            IF (unsigned(s_count) = CountVal1) THEN
-                s_sel_axis <= 0;
-                sensor_data_x <= sensor_data;
-            ELSIF (unsigned(s_count) = CountVal2) THEN
-                s_sel_axis <= 1;
-                sensor_data_y <= sensor_data;
-            ELSIF (unsigned(s_count) = CountVal3) THEN
-                s_sel_axis <= 2;
-                sensor_data_z <= sensor_data;
-                s_count <= (OTHERS => '0');
-            END IF;
+            sensor_data_x <= s_spwout & s_spwout;
+            sensor_data_y <= "0000000000000000";
+            sensor_data_z <= "0000000000000000";
+
+            -- s_count <= STD_LOGIC_VECTOR(unsigned(s_count) + 1);
+            -- IF (unsigned(s_count) = CountVal1) THEN
+            --     s_sel_axis <= 0;
+            --     sensor_data_x <= sensor_data;
+            -- ELSIF (unsigned(s_count) = CountVal2) THEN
+            --     s_sel_axis <= 1;
+            --     sensor_data_y <= sensor_data;
+            -- ELSIF (unsigned(s_count) = CountVal3) THEN
+            --     s_sel_axis <= 2;
+            --     sensor_data_z <= sensor_data;
+            --     s_count <= (OTHERS => '0');
+            -- END IF;
             s_rst <= s_resetbtn;
             s_clearbtn <= NOT btn_clear;
 

@@ -261,22 +261,26 @@ BEGIN
     BEGIN
         v := r;
 
-        -- Transmit Data once per second
+        -- Senddata 50% of the time
         v.tx_clk1hz := STD_LOGIC_VECTOR(unsigned(r.tx_clk1hz) + 1);
         IF unsigned(r.tx_clk1hz) = 50000000 THEN -- 1Hz clock
             v.tx_clk1hz := (OTHERS => '0');
-            v.tx_enabledata := senddata;
+            IF senddata = '1' THEN
+                v.tx_enabledata := NOT r.tx_enabledata;
+            ELSE
+                v.tx_enabledata := '0';
+            END IF;
+
             v.dataerror := NOT r.dataerror;
-        ELSE
-            v.tx_enabledata := '0';
         END IF;
+
         
         -- Generate data packets.
         CASE r.tx_state IS
             WHEN txst_idle =>
                 -- generate packet length
                 v.tx_state := txst_prepare;
-                v.tx_pktlen := std_logic_vector(to_unsigned(2, 16));
+                v.tx_pktlen := std_logic_vector(to_unsigned(1, 16));
                 v.txwrite := '0';
             WHEN txst_prepare =>
                 -- generate first byte of packet
@@ -315,7 +319,7 @@ BEGIN
             WHEN rxst_idle =>
                 -- get expected packet length
                 v.rx_state := rxst_data;
-                v.rx_pktlen := std_logic_vector(to_unsigned(2, 16));
+                v.rx_pktlen := std_logic_vector(to_unsigned(1, 16));
             WHEN rxst_data =>
                 v.rxread := r.rx_enabledata;
                 IF r.rxread = '1' AND s_rxvalid = '1' THEN
